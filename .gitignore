@@ -1,0 +1,34 @@
+# macOS
+.DS_Store
+._*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.user
+
+# CMake
+cmake-build-*/
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Binaries & libs
+*.o
+*.obj
+*.out
+*.exe
+*.dylib
+*.so
+*.a
+*.dSYM/
+
+# Coverage & CI
+*.gcda
+*.gcno
+*.gcov
+coverage/
+*.info
