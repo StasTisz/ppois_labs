@@ -33,7 +33,7 @@ public:
      * @brief Конструктор от вектора коэффициентов.
      * @param c Вектор коэффициентов, где индекс соответствует степени x.
      */
-    Polynomial(std::vector<double> c);
+    Polynomial(const std::vector<double>& c);
 
     /**
      * @brief Возвращает степень многочлена.

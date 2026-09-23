@@ -53,7 +53,7 @@ public:
      * @param value Искомый элемент.
      * @return true, если элемент присутствует, иначе false.
      */
-    bool contains(T value) const {
+    bool contains(const T& value) const {
         for (int i = 0; i < elements.size(); i++) {
             if (elements[i] == value) return true;
         }
@@ -65,7 +65,7 @@ public:
      * Если элемент уже существует, добавление игнорируется.
      * @param element Элемент для добавления.
      */
-    void add(T element) {
+    void add(const T& element) {
         if (!contains(element)) {
             elements.push_back(element);
         }
@@ -75,7 +75,7 @@ public:
      * @brief Удаляет элемент из множества.
      * @param element Элемент для удаления.
      */
-    void remove(T element) {
+    void remove(const T& element) {
         for (int i = 0; i < elements.size(); i++) {
             if (elements[i] == element) {
                 elements.erase(elements.begin() + i);

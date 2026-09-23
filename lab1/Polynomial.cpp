@@ -19,8 +19,7 @@ Polynomial::Polynomial() {
 }
 
 // Конструктор от вектора коэффициентов с последующей нормализацией
-Polynomial::Polynomial(std::vector<double> c) {
-    coefs = c;
+Polynomial::Polynomial(const std::vector<double>& c) : coefs(c) {
     if (coefs.empty()) {
         coefs.push_back(0.0);
     }

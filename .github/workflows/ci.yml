@@ -26,10 +26,10 @@ jobs:
       # 2. Статический анализ кода (Линтер)
       - name: Run Linter (cppcheck)
         run: |
-          cppcheck --enable=warning,performance,portability \
-                   --error-exitcode=1 \
-                   --inline-suppr \
-                   lab1/Polynomial.cpp lab1/Polynomial.h lab1/Set.h lab1/main.cpp
+          cppcheck --language=c++ --enable=warning,performance,portability \
+                    --error-exitcode=1 \
+                    --inline-suppr \
+                    lab1/Polynomial.cpp lab1/Polynomial.h lab1/Set.h lab1/main.cpp
 
       # 3. Конфигурация и сборка проекта с флагами покрытия
       - name: Configure and Build
