@@ -1,0 +1,70 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+permissions:
+  contents: write
+
+jobs:
+  build-test-lint-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 1. Установка линтера и утилит анализа покрытия
+      - name: Install Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck lcov
+
+      # 2. Статический анализ кода (Линтер)
+      - name: Run Linter (cppcheck)
+        run: |
+          cppcheck --enable=warning,performance,portability \
+                   --error-exitcode=1 \
+                   --inline-suppr \
+                   lab1/Polynomial.cpp lab1/Polynomial.h lab1/Set.h lab1/main.cpp
+
+      # 3. Конфигурация и сборка проекта с флагами покрытия
+      - name: Configure and Build
+        run: |
+          cd lab1
+          cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="--coverage"
+          cmake --build build
+
+      # 4. Запуск unit-тестов
+      - name: Run Unit Tests
+        run: |
+          cd lab1/build
+          ./run_tests
+
+      # 5. Проверка покрытия кода
+      - name: Verify Code Coverage
+        run: |
+          cd lab1
+          lcov --capture --directory build --output-file coverage.info
+          lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/test.cpp' --output-file coverage.info
+          lcov --list coverage.info
+
+      # 6. Сохранение артефакта сборки в CI
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ppois_lab1_linux
+          path: lab1/build/ppois_lab1
+
+      # 7. Автоматическая публикация релиза с бинарником (для веток main и feat/lab1)
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/lab1'
+        with:
+          tag_name: lab1-latest
+          name: "Лабораторная работа 1 (Сборка)"
+          body: "Готовый бинарный артефакт приложения для запуска независимо от среды."
+          files: lab1/build/ppois_lab1
