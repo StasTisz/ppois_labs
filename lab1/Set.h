@@ -1,3 +1,8 @@
+/**
+ * @file Set.h
+ * @brief Заголовочный файл с реализацией шаблонного класса Set, представляющего Канторовское множество.
+ */
+
 #pragma once
 #include <vector>
 #include <string>
@@ -5,11 +10,23 @@
 #include <type_traits>
 #include <iostream>
 
+/**
+ * @class Set
+ * @brief Шаблонный класс для работы с математическими множествами.
+ *
+ * Гарантирует уникальность хранимых элементов. Поддерживает операции
+ * объединения, пересечения, разности и построения булеана.
+ * @tparam T Тип элементов, хранящихся в множестве.
+ */
 template <typename T>
 class Set {
 private:
     std::vector<T> elements;
 
+    /**
+     * @brief Вспомогательный метод для парсинга строковых токенов при вводе множества.
+     * @param s Строковый токен для добавления.
+     */
     void parseAndAddToken(std::string s) {
         size_t first = s.find_first_not_of(" \t");
         size_t last = s.find_last_not_of(" \t");
@@ -27,8 +44,16 @@ private:
     }
 
 public:
+    /**
+     * @brief Конструктор по умолчанию. Создает пустое множество.
+     */
     Set() {}
 
+    /**
+     * @brief Проверяет наличие элемента в множестве.
+     * @param value Искомый элемент.
+     * @return true, если элемент присутствует, иначе false.
+     */
     bool contains(T value) const {
         for (int i = 0; i < elements.size(); i++) {
             if (elements[i] == value) return true;
@@ -36,12 +61,21 @@ public:
         return false;
     }
 
+    /**
+     * @brief Добавляет новый элемент в множество.
+     * Если элемент уже существует, добавление игнорируется.
+     * @param element Элемент для добавления.
+     */
     void add(T element) {
         if (!contains(element)) {
             elements.push_back(element);
         }
     }
 
+    /**
+     * @brief Удаляет элемент из множества.
+     * @param element Элемент для удаления.
+     */
     void remove(T element) {
         for (int i = 0; i < elements.size(); i++) {
             if (elements[i] == element) {
@@ -51,6 +85,11 @@ public:
         }
     }
 
+    /**
+     * @brief Оператор объединения двух множеств (A + B).
+     * @param other Второе множество.
+     * @return Новое множество, содержащее элементы из обоих множеств без дубликатов.
+     */
     Set<T> operator+(const Set<T>& other) const {
         Set<T> result;
         for (int i = 0; i < elements.size(); i++) result.add(elements[i]);
@@ -58,11 +97,21 @@ public:
         return result;
     }
 
+    /**
+     * @brief Объединяет текущее множество с другим.
+     * @param other Второе множество.
+     * @return Ссылка на текущее измененное множество.
+     */
     Set<T>& operator+=(const Set<T>& other) {
         *this = *this + other;
         return *this;
     }
 
+    /**
+     * @brief Оператор пересечения двух множеств (A * B).
+     * @param other Второе множество.
+     * @return Новое множество, содержащее только общие элементы.
+     */
     Set<T> operator*(const Set<T>& other) const {
         Set<T> result;
         for (int i = 0; i < elements.size(); i++) {
@@ -73,11 +122,21 @@ public:
         return result;
     }
 
+    /**
+     * @brief Пересекает текущее множество с другим.
+     * @param other Второе множество.
+     * @return Ссылка на текущее измененное множество.
+     */
     Set<T>& operator*=(const Set<T>& other) {
         *this = *this * other;
         return *this;
     }
 
+    /**
+     * @brief Оператор разности двух множеств (A - B).
+     * @param other Множество вычитаемых элементов.
+     * @return Новое множество с элементами A, которых нет в B.
+     */
     Set<T> operator-(const Set<T>& other) const {
         Set<T> result;
         for (int i = 0; i < elements.size(); i++) {
@@ -86,11 +145,21 @@ public:
         return result;
     }
 
+    /**
+     * @brief Вычитает элементы другого множества из текущего.
+     * @param other Множество вычитаемых элементов.
+     * @return Ссылка на текущее измененное множество.
+     */
     Set<T>& operator-=(const Set<T>& other) {
         *this = *this - other;
         return *this;
     }
 
+    /**
+     * @brief Проверяет два множества на равенство (совпадение элементов).
+     * @param other Второе множество.
+     * @return true, если мощности равны и все элементы совпадают.
+     */
     bool operator==(const Set<T>& other) const {
         if (elements.size() != other.elements.size()) return false;
         for (int i = 0; i < elements.size(); i++) {
@@ -99,25 +168,39 @@ public:
         return true;
     }
 
+    /**
+     * @brief Проверяет два множества на неравенство.
+     * @param other Второе множество.
+     * @return true, если множества не равны.
+     */
     bool operator!=(const Set<T>& other) const {
         return !(*this == other);
     }
 
+    /**
+     * @brief Возвращает мощность множества.
+     * @return Количество элементов в множестве.
+     */
     int cardinality() const {
         return elements.size();
     }
 
+    /**
+     * @brief Проверяет множество на пустоту.
+     * @return true, если множество не содержит элементов.
+     */
     bool isEmpty() const {
         return elements.empty();
     }
 
-    // Построение булеана
+    /**
+     * @brief Строит булеан (множество всех подмножеств) для текущего множества.
+     * @return Множество, содержащее множества-подмножества типа Set<Set<T>>.
+     */
     Set<Set<T>> powerSet() const {
         std::vector<Set<T>> subsets;
-        // Начинается с одного пустого подмножества
         subsets.push_back(Set<T>());
 
-        // По очереди перебираются каждый элемент множества
         for (int i = 0; i < elements.size(); i++) {
             int current_size = subsets.size();
             for (int j = 0; j < current_size; j++) {
@@ -135,6 +218,12 @@ public:
         return result;
     }
 
+    /**
+     * @brief Выводит множество в выходной поток в формате {a, b, c}.
+     * @param os Выходной поток.
+     * @param set Множество для вывода.
+     * @return Ссылка на выходной поток.
+     */
     friend std::ostream& operator<<(std::ostream& os, const Set<T>& set) {
         os << "{";
         for (int i = 0; i < set.elements.size(); i++) {
@@ -145,6 +234,13 @@ public:
         return os;
     }
 
+    /**
+     * @brief Считывает множество из входного потока.
+     * Ожидает формат ввода, заключенный в фигурные скобки: {a, b, c}.
+     * @param is Входной поток.
+     * @param set Множество, в которое добавятся элементы.
+     * @return Ссылка на входной поток.
+     */
     friend std::istream& operator>>(std::istream& is, Set<T>& set) {
         std::string line;
         std::getline(is >> std::ws, line);
