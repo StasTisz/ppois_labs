@@ -32,3 +32,11 @@ Makefile
 *.gcov
 coverage/
 *.info
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
