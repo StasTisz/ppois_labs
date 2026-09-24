@@ -101,8 +101,7 @@ class DeanOffice:
     def get_all_debtors(self) -> List[Student]:
         """Агрегация: сквозной поиск всех академических должников на факультете."""
         debtors = []
-        # Обрати внимание: если ты добавил свойства groups и students, как мы обсуждали ранее, используй их.
-        # Иначе используй self.faculty._groups и group._students
+
         for group in self.faculty.groups:
             for student in group.students:
                 if student.is_active:

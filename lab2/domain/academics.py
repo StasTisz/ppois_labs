@@ -17,6 +17,12 @@ class LabWork:
         status = "Обязательная" if self.is_mandatory else "Бонусная"
         return f"[{status}] {self.title} (Max: {self.max_score})"
 
+    def update_score_limit(self, new_max: float):
+        """Корректировка сложности лабораторной."""
+        if new_max <= 0:
+            raise ValueError("Максимальный балл не может быть нулевым или отрицательным.")
+        self.max_score = new_max
+
 
 class Subject:
     """Учебная дисциплина"""
@@ -51,10 +57,3 @@ class Subject:
     def get_mandatory_labs(self) -> list:
         """Фильтрация: возвращает только обязательные лабы."""
         return [lab for lab in self._labs if lab.is_mandatory]
-
-    # --- В класс LabWork ---
-    def update_score_limit(self, new_max: float):
-        """Корректировка сложности лабораторной."""
-        if new_max <= 0:
-            raise ValueError("Максимальный балл не может быть нулевым или отрицательным.")
-        self.max_score = new_max
