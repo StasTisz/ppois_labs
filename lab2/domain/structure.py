@@ -11,6 +11,12 @@ class Speciality:
     def __str__(self):
         return f"[{self.code}] {self.name}"
 
+    def update_semesters_count(self, new_count: int):
+        """Поведение: изменение нормативного срока обучения по специальности."""
+        if not (2 <= new_count <= 12):
+            raise ValueError("Недопустимое количество семестров (допустимо от 2 до 12).")
+        self.semesters_count = new_count
+
 
 class AcademicGroup:
     def __init__(self, number: str, speciality: Speciality, max_students: int = 30):
@@ -22,6 +28,10 @@ class AcademicGroup:
     @property   # геттер
     def students_count(self) -> int:
         return len(self._students)
+
+    @property
+    def students(self) -> List:
+        return self._students.copy()
 
     def is_full(self) -> bool:
         return self.students_count >= self.max_students
@@ -42,7 +52,21 @@ class AcademicGroup:
     def __str__(self):
         return f"Группа {self.number} ({self.students_count}/{self.max_students} чел.)"
 
-#     Кафедра
+    @property
+    def active_students(self) -> list:
+        """Возвращает список только тех студентов, кто не отчислен."""
+        return [s for s in self._students if s.is_active]
+
+    @property
+    def has_vacancies(self) -> bool:
+        """Проверка наличия свободных бюджетных/платных мест."""
+        return self.students_count < self.max_students
+
+    def clear_expelled(self):
+        """Массовая очистка группы от отчисленных студентов (в конце года)."""
+        self._students = [s for s in self._students if s.is_active]
+
+
 class Department:
     def __init__(self, name: str):
         self.name = name
@@ -56,6 +80,18 @@ class Department:
         if teacher not in self._teachers:
             self._teachers.append(teacher)
 
+    def remove_teacher(self, teacher):
+        """Поведение: увольнение/перевод преподавателя с кафедры."""
+        if teacher in self._teachers:
+            self._teachers.remove(teacher)
+        else:
+            raise ValueError(f"Преподаватель {teacher.full_name} не числится на кафедре.")
+
+    @property
+    def staff_count(self) -> int:
+        """Агрегация: количество сотрудников кафедры."""
+        return len(self._teachers)
+
 
 class Faculty:
     def __init__(self, name: str, short_name: str):
@@ -63,6 +99,10 @@ class Faculty:
         self.short_name = short_name
         self._departments: List[Department] = []
         self._groups: List[AcademicGroup] = []
+
+    @property
+    def groups(self) -> List[AcademicGroup]:
+        return self._groups.copy()
 
     def add_department(self, department: Department):
         self._departments.append(department)
@@ -86,6 +126,18 @@ class Faculty:
         if not group:
             raise GroupNotFoundException(f"Группа {number} не найдена на факультете {self.short_name}")
         return group
+
+    def get_total_capacity(self) -> int:
+        """Подсчет максимальной вместимости всего факультета."""
+        return sum(group.max_students for group in self._groups)
+
+    def find_student_by_id(self, person_id: str):
+        """Сквозной поиск студента по всем группам факультета."""
+        for group in self._groups:
+            for student in group._students:
+                if student.person_id == person_id:
+                    return student
+        return None
 
 
 class University:
