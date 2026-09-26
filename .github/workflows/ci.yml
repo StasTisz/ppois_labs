@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build-test-lint-deploy:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repository
@@ -37,21 +37,19 @@ jobs:
       # 3. Запуск unit-тестов и проверка покрытия (>90%)
       - name: Run Unit Tests & Verify Coverage
         run: |
-          # Это заменяет и run_tests, и lcov из первой лабы
           python -m pytest --cov=lab2/domain --cov-fail-under=90 lab2/tests/
 
-      # 4. Сборка независимого бинарника (аналог CMake)
+      # 4. Сборка независимого бинарника (.exe) под Windows
       - name: Build Standalone Artifact
         run: |
-          # PyInstaller соберет cli.py в один файл. Результат появится в папке dist/
           pyinstaller --onefile --name ppois_lab2 lab2/cli.py
 
       # 5. Сохранение артефакта сборки в CI
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ppois_lab2_linux
-          path: dist/ppois_lab2
+          name: ppois_lab2_windows
+          path: dist/ppois_lab2.exe
 
       # 6. Автоматическая публикация релиза с бинарником
       - name: Publish Release
@@ -59,6 +57,6 @@ jobs:
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/lab2'
         with:
           tag_name: lab2-latest
-          name: "Лабораторная работа 2 (Сборка)"
-          body: "Готовый бинарный артефакт приложения (Python PyInstaller)."
-          files: dist/ppois_lab2
+          name: "Лабораторная работа 2 (Сборка .exe)"
+          body: "Готовый исполняемый файл приложения под Windows."
+          files: dist/ppois_lab2.exe
