@@ -93,11 +93,14 @@
 python -m pytest --cov=lab2/domain --cov-fail-under=90 lab2/tests/
 
 ### Статический анализ и проверка типов
+```bash
 ruff check lab2/
 mypy lab2/ --explicit-package-bases --ignore-missing-imports
 
 ###Запуск консольного интерфейса (CLI)
+```bash
 python -m lab2.cli
 
 ###Сборка автономного исполняемого файла (.exe / binary)
+```bash
 pyinstaller --onefile --name ppois_lab2 lab2/cli.py
