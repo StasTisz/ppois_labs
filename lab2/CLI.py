@@ -236,7 +236,7 @@ class CLI:
                 print(f" 📜 [{order.created_at.strftime('%d.%m.%Y')}] {order.title} - {order.status}")
 
     # --- ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ---
-    def _select_student(self) -> Student:
+    def _select_student(self) -> Student | None:
         """Хелпер для выбора студента из списка."""
         group_num = input("Введите номер группы: ")
         group = self.office.faculty.find_group(group_num)

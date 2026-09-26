@@ -81,7 +81,7 @@ class AcademicStatement:
         self.group = group
         self.examiner = examiner
         self.is_closed = False
-        self._results = {}  # Словарь: student_id -> Grade
+        self._results: dict = {}  # Словарь: student_id -> Grade
 
     def add_result(self, student: Student, score: int):
         """Поведение: внесение оценки в ведомость."""

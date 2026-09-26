@@ -14,7 +14,7 @@ class DeanOffice:
         # Реестр зачеток: ключ - person_id, значение - RecordBook
         self.record_books: dict[str, RecordBook] = {}
         # Архив всех исполненных приказов
-        self._archive_orders = []
+        self._archive_orders: list = []
 
     def enroll_student(self, student: Student, group_number: str):
         """Комплексная транзакция: зачисление + выдача зачетки."""
