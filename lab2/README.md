@@ -91,16 +91,22 @@
 ### Запуск unit-тестов с проверкой покрытия (>90%)
 ```bash
 python -m pytest --cov=lab2/domain --cov-fail-under=90 lab2/tests/
+```
 
 ### Статический анализ и проверка типов
 ```bash
 ruff check lab2/
 mypy lab2/ --explicit-package-bases --ignore-missing-imports
+```
 
-###Запуск консольного интерфейса (CLI)
+### Запуск консольного интерфейса (CLI)
 ```bash
 python -m lab2.cli
+```
 
-###Сборка автономного исполняемого файла (.exe / binary)
+### Сборка автономного исполняемого файла (.exe / binary)
+Автоматическая сборка настроена через GitHub Actions при пуше в репозиторий (доступно в разделе Releases). Для локальной сборки:
 ```bash
 pyinstaller --onefile --name ppois_lab2 lab2/cli.py
+```
+Готовый исполняемый файл создается в каталоге `dist/`.
