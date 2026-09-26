@@ -55,7 +55,7 @@ class DataSeeder:
         office.enroll_student(elena, "252002")
 
         # Назначаем платное обучение Петру
-        petr_account = BankAccount(petr.person_id, "BY52AKBB1234")
+        BankAccount(petr.person_id, "BY52AKBB1234")
         contract = TuitionContract("Д-2026/1", petr, 3500.0)
         contract.sign_contract()
 
@@ -114,7 +114,7 @@ class CLI:
                 print(f"\n❌ БИЗНЕС-ОШИБКА: {e}")
             except ValueError as e:
                 print(f"\n⚠️ ОШИБКА ВВОДА: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 print(f"\n🔥 КРИТИЧЕСКАЯ ОШИБКА: {e}")
 
     # --- ГЛАВНОЕ МЕНЮ ---

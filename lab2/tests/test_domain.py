@@ -549,7 +549,7 @@ def test_missing_coverage_grading_finance_docs():
     doc.sign(Dean("Д", "Д"))
     doc.cancel_document("Отмена")  # Аннулирование (строки 34-36)
 
-    cert = AcademicCertificate(s, "Справка")  # (строка 59)
+    _ = AcademicCertificate(s, "Справка")  # (строка 59)
 
     g1 = AcademicGroup("1", Speciality("1", "1"))
     g2 = AcademicGroup("2", Speciality("1", "1"))

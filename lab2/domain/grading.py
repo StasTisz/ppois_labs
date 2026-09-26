@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from lab2.domain.academics import Subject
 from lab2.domain.people import Lecturer, Student
@@ -13,7 +13,7 @@ class Grade:
         self.subject_name = subject_name
         self.score = score
         self.is_exam = is_exam  # Именно экзаменационная оценка
-        self.date_issued = datetime.now()
+        self.date_issued = datetime.now(timezone.utc)
         self._validate_score()
 
     def _validate_score(self):

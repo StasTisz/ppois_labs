@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from lab2.domain.exceptions import ExpulsionDeniedException
 from lab2.domain.people import Dean, Student
@@ -12,7 +12,7 @@ class Document:
     def __init__(self, title: str):
         self.document_id = str(uuid.uuid4())
         self.title = title
-        self.created_at = datetime.now()
+        self.created_at = datetime.now(timezone.utc)
         self.is_signed = False
         self.signer: Dean | None = None
 

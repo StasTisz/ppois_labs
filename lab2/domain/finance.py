@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from lab2.domain.people import Employee, Student
 
@@ -50,7 +50,7 @@ class TuitionContract:
         self.total_amount = total_amount
         self.paid_amount = 0.0
         self.is_signed = False
-        self.creation_date = datetime.now()
+        self.creation_date = datetime.now(timezone.utc)
 
     def sign_contract(self):
         self.is_signed = True
