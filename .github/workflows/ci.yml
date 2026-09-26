@@ -1,44 +1,65 @@
-name: Lab 2 CI Pipeline
+name: Lab 2 CI/CD Pipeline
 
 on:
   push:
-    branches: [ "main", "feature/*" ]
+    branches: [ "**" ]
   pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:
+    branches: [ "**" ]
+
+permissions:
+  contents: write
 
 jobs:
-  build-and-test:
+  build-test-lint-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
-        cache: "pip"
+      # 1. Установка окружения Python и утилит
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pytest pytest-cov ruff mypy
-        # Если у тебя есть файл с зависимостями, раскомментируй строку ниже:
-        # pip install -r requirements.txt
+      - name: Install Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov ruff mypy pyinstaller
 
-    - name: Lint code with ruff
-      run: |
-        # Проверка синтаксиса, стиля кода и неиспользуемых импортов
-        ruff check lab2/
+      # 2. Статический анализ кода (Линтер и типы)
+      - name: Run Linter and Type Check
+        run: |
+          ruff check lab2/
+          mypy lab2/domain/ --ignore-missing-imports
 
-    - name: Type check with mypy
-      run: |
-        # Статический анализ аннотаций типов
-        mypy lab2/domain/ --ignore-missing-imports
+      # 3. Запуск unit-тестов и проверка покрытия (>90%)
+      - name: Run Unit Tests & Verify Coverage
+        run: |
+          # Это заменяет и run_tests, и lcov из первой лабы
+          python -m pytest --cov=lab2/domain --cov-fail-under=90 lab2/tests/
 
-    - name: Run tests with pytest
-      run: |
-        # Запуск тестов. Сборка упадет, если покрытие ниже 90%
-        python -m pytest --cov=lab2/domain --cov-fail-under=90 lab2/tests/
+      # 4. Сборка независимого бинарника (аналог CMake)
+      - name: Build Standalone Artifact
+        run: |
+          # PyInstaller соберет cli.py в один файл. Результат появится в папке dist/
+          pyinstaller --onefile --name ppois_lab2 lab2/cli.py
+
+      # 5. Сохранение артефакта сборки в CI
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ppois_lab2_linux
+          path: dist/ppois_lab2
+
+      # 6. Автоматическая публикация релиза с бинарником
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/lab2'
+        with:
+          tag_name: lab2-latest
+          name: "Лабораторная работа 2 (Сборка)"
+          body: "Готовый бинарный артефакт приложения (Python PyInstaller)."
+          files: dist/ppois_lab2
