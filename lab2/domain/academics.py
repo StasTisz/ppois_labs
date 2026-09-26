@@ -1,5 +1,4 @@
 import uuid
-from typing import List
 
 
 class LabWork:
@@ -32,7 +31,7 @@ class Subject:
         self.name = name
         self.semester = semester
         self.exam_required = exam_required
-        self._labs: List[LabWork] = []
+        self._labs: list[LabWork] = []
 
     def add_lab(self, lab: LabWork):
         if any(existing_lab.title == lab.title for existing_lab in self._labs):

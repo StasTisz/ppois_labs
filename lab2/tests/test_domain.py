@@ -1,26 +1,46 @@
 #       python -m pytest lab2/tests/test_domain.py --cov=lab2/domain --cov-report=term-missing
 
 
+
 import pytest
-from datetime import datetime
 
 # Импорты всех моделей
 from lab2.domain.academics import LabWork, Subject
-from lab2.domain.people import Person, Student, Employee, Lecturer, Dean, Assistant, Professor
-from lab2.domain.structure import Speciality, AcademicGroup, Department, Faculty, University
-from lab2.domain.grading import Grade, RecordBook, AcademicStatement, RetakeSheet
-from lab2.domain.documents import Document, ExpulsionOrder, TransferOrder, ScholarshipOrder, ReprimandOrder, \
-    AcademicLeaveOrder
-from lab2.domain.finance import BankAccount, TuitionContract, Payroll
-from lab2.domain.infrastructure import Room, Dormitory
-from lab2.domain.library import Book, LibraryCard
-from lab2.domain.schedule import Classroom, Timeslot, Lesson, Timetable
 from lab2.domain.dean_office import DeanOffice
+from lab2.domain.documents import (
+    AcademicLeaveOrder,
+    Document,
+    ExpulsionOrder,
+    ReprimandOrder,
+    ScholarshipOrder,
+    TransferOrder,
+)
 
 # Импорты кастомных исключений
 from lab2.domain.exceptions import (
-    DuplicateEnrollmentException, GroupNotFoundException,
-    ExpulsionDeniedException, StudentNotFoundException
+    DuplicateEnrollmentException,
+    GroupNotFoundException,
+    StudentNotFoundException,
+)
+from lab2.domain.finance import BankAccount, Payroll, TuitionContract
+from lab2.domain.grading import AcademicStatement, Grade, RecordBook, RetakeSheet
+from lab2.domain.infrastructure import Dormitory, Room
+from lab2.domain.library import Book, LibraryCard
+from lab2.domain.people import (
+    Dean,
+    Employee,
+    Lecturer,
+    Person,
+    Professor,
+    Student,
+)
+from lab2.domain.schedule import Classroom, Lesson, Timeslot, Timetable
+from lab2.domain.structure import (
+    AcademicGroup,
+    Department,
+    Faculty,
+    Speciality,
+    University,
 )
 
 
@@ -427,7 +447,7 @@ def test_dean_office_integration(office_setup):
     assert len(office._archive_orders) > 0
 
 
-from lab2.domain.documents import AcademicCertificate, AcademicLeaveOrder, ReprimandOrder
+from lab2.domain.documents import AcademicCertificate
 
 
 def test_missing_coverage_people_and_structure():

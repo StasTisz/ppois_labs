@@ -1,5 +1,4 @@
 import uuid
-from typing import List
 
 
 class Person:
@@ -82,7 +81,7 @@ class Lecturer(Employee):
     def __init__(self, first_name: str, last_name: str, middle_name: str = "", degree: str = "Без степени"):
         super().__init__(first_name, last_name, middle_name, position="Преподаватель")
         self.degree = degree
-        self._subjects: List[str] = []
+        self._subjects: list[str] = []
 
     def assign_subject(self, subject_name: str):
         # Защита от двойного назначения одной и той же дисциплины

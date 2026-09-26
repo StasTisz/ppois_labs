@@ -1,9 +1,8 @@
-from typing import List, Dict, Optional
-from lab2.domain.people import Student, Dean
-from lab2.domain.structure import Faculty, AcademicGroup
-from lab2.domain.documents import ExpulsionOrder, TransferOrder, ScholarshipOrder
-from lab2.domain.grading import RecordBook
+from lab2.domain.documents import ExpulsionOrder, ScholarshipOrder, TransferOrder
 from lab2.domain.exceptions import StudentNotFoundException
+from lab2.domain.grading import RecordBook
+from lab2.domain.people import Dean, Student
+from lab2.domain.structure import Faculty
 
 
 class DeanOffice:
@@ -13,7 +12,7 @@ class DeanOffice:
         self.faculty = faculty
         self.dean = dean
         # Реестр зачеток: ключ - person_id, значение - RecordBook
-        self.record_books: Dict[str, RecordBook] = {}
+        self.record_books: dict[str, RecordBook] = {}
         # Архив всех исполненных приказов
         self._archive_orders = []
 
@@ -98,7 +97,7 @@ class DeanOffice:
             total += sum(1 for s in group._students if s.is_active)
         return total
 
-    def get_all_debtors(self) -> List[Student]:
+    def get_all_debtors(self) -> list[Student]:
         """Агрегация: сквозной поиск всех академических должников на факультете."""
         debtors = []
 
@@ -112,7 +111,9 @@ class DeanOffice:
 
     def issue_reprimand(self, student: Student, reason: str, is_strict: bool = False):
         """Оформление дисциплинарного взыскания через Фасад."""
-        from lab2.domain.documents import ReprimandOrder  # импорт можно поднять наверх файла
+        from lab2.domain.documents import (
+            ReprimandOrder,  # импорт можно поднять наверх файла
+        )
         order = ReprimandOrder(student, reason, is_strict)
         order.sign(self.dean)
         order.execute()

@@ -1,4 +1,5 @@
-from typing import List, Optional, Any
+from typing import Any
+
 from lab2.domain.exceptions import DuplicateEnrollmentException, GroupNotFoundException
 
 
@@ -56,7 +57,7 @@ class AcademicGroup:
         self.number = number
         self.speciality = speciality
         self.max_students = max_students
-        self._students: List[Any] = []  # Ожидаются объекты класса Student
+        self._students: list[Any] = []  # Ожидаются объекты класса Student
 
     @property
     def students_count(self) -> int:
@@ -64,12 +65,12 @@ class AcademicGroup:
         return len(self._students)
 
     @property
-    def students(self) -> List[Any]:
+    def students(self) -> list[Any]:
         """Возвращает защищенную копию списка студентов."""
         return self._students.copy()
 
     @property
-    def active_students(self) -> List[Any]:
+    def active_students(self) -> list[Any]:
         """Возвращает список только тех студентов, кто не отчислен."""
         return [s for s in self._students if s.is_active]
 
@@ -131,8 +132,8 @@ class Department:
     """
     def __init__(self, name: str) -> None:
         self.name = name
-        self.head_name: Optional[str] = None
-        self._teachers: List[Any] = []  # Ожидаются объекты класса Lecturer
+        self.head_name: str | None = None
+        self._teachers: list[Any] = []  # Ожидаются объекты класса Lecturer
 
     @property
     def staff_count(self) -> int:
@@ -182,11 +183,11 @@ class Faculty:
     def __init__(self, name: str, short_name: str) -> None:
         self.name = name
         self.short_name = short_name
-        self._departments: List[Department] = []
-        self._groups: List[AcademicGroup] = []
+        self._departments: list[Department] = []
+        self._groups: list[AcademicGroup] = []
 
     @property
-    def groups(self) -> List[AcademicGroup]:
+    def groups(self) -> list[AcademicGroup]:
         """Возвращает защищенную копию списка групп."""
         return self._groups.copy()
 
@@ -208,7 +209,7 @@ class Faculty:
             raise ValueError(f"Группа {group.number} уже существует на {self.short_name}")
         self._groups.append(group)
 
-    def find_group(self, number: str) -> Optional[AcademicGroup]:
+    def find_group(self, number: str) -> AcademicGroup | None:
         """
         Мягкий поиск группы по номеру (возвращает None, если не найдена).
         """
@@ -233,7 +234,7 @@ class Faculty:
         """Подсчитывает максимальную суммарную вместимость всех групп факультета."""
         return sum(group.max_students for group in self._groups)
 
-    def find_student_by_id(self, person_id: str) -> Optional[Any]:
+    def find_student_by_id(self, person_id: str) -> Any | None:
         """
         Сквозной поиск студента по номеру билета/идентификатору среди всех групп факультета.
         """
@@ -257,7 +258,7 @@ class University:
     def __init__(self, name: str, abbreviation: str) -> None:
         self.name = name
         self.abbreviation = abbreviation
-        self._faculties: List[Faculty] = []
+        self._faculties: list[Faculty] = []
 
     def add_faculty(self, faculty: Faculty) -> None:
         """
@@ -270,7 +271,7 @@ class University:
             raise ValueError(f"Факультет '{faculty.short_name}' уже зарегистрирован в {self.abbreviation}")
         self._faculties.append(faculty)
 
-    def find_faculty(self, short_name: str) -> Optional[Faculty]:
+    def find_faculty(self, short_name: str) -> Faculty | None:
         """Ищет факультет по аббревиатуре."""
         for f in self._faculties:
             if f.short_name == short_name:

@@ -1,4 +1,4 @@
-from typing import List, Optional
+
 from lab2.domain.people import Student
 
 
@@ -8,7 +8,7 @@ class Room:
     def __init__(self, number: str, capacity: int = 4):
         self.number = number
         self.capacity = capacity
-        self._residents: List[Student] = []
+        self._residents: list[Student] = []
 
     @property
     def free_beds(self) -> int:
@@ -44,21 +44,21 @@ class Dormitory:
     def __init__(self, number: int, address: str):
         self.number = number
         self.address = address
-        self._rooms: List[Room] = []
+        self._rooms: list[Room] = []
 
     def add_room(self, room: Room):
         if any(r.number == room.number for r in self._rooms):
             raise ValueError(f"Комната {room.number} уже есть в плане общежития.")
         self._rooms.append(room)
 
-    def find_room_for_student(self, student: Student) -> Optional[Room]:
+    def find_room_for_student(self, student: Student) -> Room | None:
         """Поиск комнаты, за которой закреплен конкретный студент."""
         for room in self._rooms:
             if student in room._residents:
                 return room
         return None
 
-    def get_available_rooms(self) -> List[Room]:
+    def get_available_rooms(self) -> list[Room]:
         """Возвращает список комнат, где есть хотя бы одно свободное место."""
         return [room for room in self._rooms if room.free_beds > 0]
 

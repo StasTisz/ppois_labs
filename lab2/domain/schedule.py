@@ -1,8 +1,8 @@
 import uuid
-from typing import List, Optional
+
+from lab2.domain.academics import Subject
 from lab2.domain.people import Lecturer
 from lab2.domain.structure import AcademicGroup
-from lab2.domain.academics import Subject
 
 
 class Classroom:
@@ -84,7 +84,7 @@ class Timetable:
 
     def __init__(self, semester_number: int):
         self.semester_number = semester_number
-        self._lessons: List[Lesson] = []
+        self._lessons: list[Lesson] = []
 
     def add_lesson(self, lesson: Lesson):
         """Добавление занятия с защитой от накладок (коллизий)."""
@@ -102,14 +102,14 @@ class Timetable:
 
         self._lessons.append(lesson)
 
-    def get_schedule_for_group(self, group_number: str, day_of_week: int) -> List[Lesson]:
+    def get_schedule_for_group(self, group_number: str, day_of_week: int) -> list[Lesson]:
         """Мягкий поиск занятий группы на конкретный день."""
         day_schedule = [lesson for lesson in self._lessons if
                         lesson.group.number == group_number and lesson.day_of_week == day_of_week]
         # Сортируем по номеру пары
         return sorted(day_schedule, key=lambda l: l.timeslot.sequence_number)
 
-    def get_lecturer_schedule(self, lecturer_id: str, day_of_week: int) -> List:
+    def get_lecturer_schedule(self, lecturer_id: str, day_of_week: int) -> list:
         """Фильтрация: получение расписания конкретного преподавателя на день."""
         day_schedule = [lesson for lesson in self._lessons if
                         lesson.lecturer.person_id == lecturer_id and lesson.day_of_week == day_of_week]

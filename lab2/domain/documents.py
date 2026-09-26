@@ -1,8 +1,8 @@
 import uuid
 from datetime import datetime
-from typing import Optional, List
-from lab2.domain.people import Student, Dean
+
 from lab2.domain.exceptions import ExpulsionDeniedException
+from lab2.domain.people import Dean, Student
 from lab2.domain.structure import AcademicGroup
 
 
@@ -14,7 +14,7 @@ class Document:
         self.title = title
         self.created_at = datetime.now()
         self.is_signed = False
-        self.signer: Optional[Dean] = None
+        self.signer: Dean | None = None
 
     def sign(self, dean: Dean):
         """Поведение: подписание документа уполномоченным лицом."""
@@ -91,7 +91,7 @@ class TransferOrder(Document):
 class ScholarshipOrder(Document):
     """Массовый приказ о назначении стипендии по итогам сессии."""
 
-    def __init__(self, students: List[Student]):
+    def __init__(self, students: list[Student]):
         super().__init__(f"Приказ о стипендии ({len(students)} чел.)")
         self.students = students
 

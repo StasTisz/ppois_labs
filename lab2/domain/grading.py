@@ -1,9 +1,9 @@
-from typing import List, Optional
-from datetime import datetime
 import uuid
+from datetime import datetime
+
 from lab2.domain.academics import Subject
-from lab2.domain.structure import AcademicGroup
 from lab2.domain.people import Lecturer, Student
+from lab2.domain.structure import AcademicGroup
 
 
 class Grade:
@@ -33,7 +33,7 @@ class RecordBook:
     def __init__(self, student_id: str, book_number: str):
         self.student_id = student_id
         self.book_number = book_number
-        self._grades: List[Grade] = []
+        self._grades: list[Grade] = []
 
     def add_grade(self, grade: Grade):
         """Добавление экзаменационной оценки"""
@@ -49,7 +49,7 @@ class RecordBook:
         total = sum(g.score for g in self._grades)
         return round(total / len(self._grades), 2)
 
-    def get_debts(self) -> List[str]:
+    def get_debts(self) -> list[str]:
         """Список предметов на пересдачу"""
         return [grade.subject_name for grade in self._grades if not grade.is_passed]
 

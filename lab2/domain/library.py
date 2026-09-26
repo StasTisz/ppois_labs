@@ -1,6 +1,7 @@
 import uuid
-from typing import List, Optional
+
 from lab2.domain.people import Student
+
 
 class Book:
     """Учебная литература."""
@@ -38,7 +39,7 @@ class LibraryCard:
     def __init__(self, student: Student):
         self.card_id = str(uuid.uuid4())
         self.student = student
-        self._borrowed_books: List[Book] = []
+        self._borrowed_books: list[Book] = []
 
     def take_book(self, book: Book):
         if len(self._borrowed_books) >= 5:

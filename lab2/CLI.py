@@ -1,16 +1,15 @@
 import sys
-from datetime import datetime
 
-# Импорты всех подсистем нашей архитектуры
-from lab2.domain.structure import Faculty, Speciality, AcademicGroup, Department
-from lab2.domain.people import Dean, Student, AssociateProfessor, Assistant
-from lab2.domain.academics import Subject, LabWork
-from lab2.domain.grading import Grade
-from lab2.domain.infrastructure import Dormitory, Room
-from lab2.domain.finance import BankAccount, TuitionContract, Payroll
-from lab2.domain.library import Book, LibraryCard
 from lab2.domain.dean_office import DeanOffice
 from lab2.domain.exceptions import DeanOfficeException
+from lab2.domain.finance import BankAccount, TuitionContract
+from lab2.domain.grading import Grade
+from lab2.domain.infrastructure import Dormitory, Room
+from lab2.domain.library import Book, LibraryCard
+from lab2.domain.people import Assistant, AssociateProfessor, Dean, Student
+
+# Импорты всех подсистем нашей архитектуры
+from lab2.domain.structure import AcademicGroup, Faculty, Speciality
 
 
 class DataSeeder:
@@ -157,7 +156,7 @@ class CLI:
 
             rb = self.office.get_student_record_book(student.person_id)
             rb.add_grade(Grade(subject, score, is_exam=True))
-            print(f"✅ Оценка успешно выставлена.")
+            print("✅ Оценка успешно выставлена.")
 
     # --- МЕНЮ 2: БУХГАЛТЕРИЯ ---
     def _menu_finance(self):

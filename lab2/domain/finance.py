@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
-from typing import List, Optional
-from lab2.domain.people import Student, Employee
+
+from lab2.domain.people import Employee, Student
 
 
 class BankAccount:
@@ -94,7 +94,7 @@ class Payroll:
         self.month = month
         self.year = year
         self.total_fund = 0.0
-        self._processed_payments: List[str] = []
+        self._processed_payments: list[str] = []
 
     def pay_salary(self, employee: Employee, account: BankAccount, bonus: float = 0.0):
         """Выплата зарплаты сотруднику (декану или преподавателю)."""
@@ -117,6 +117,6 @@ class Payroll:
         """Агрегация: общее количество проведенных транзакций фонда."""
         return len(self._processed_payments)
 
-    def get_payment_history(self) -> List[str]:
+    def get_payment_history(self) -> list[str]:
         """Поведение: получение копии выписки из зарплатной ведомости."""
         return self._processed_payments.copy()
