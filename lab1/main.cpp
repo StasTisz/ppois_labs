@@ -1,66 +1,49 @@
+/**
+ * @file main.cpp
+ * @brief Главный файл программы, содержащий консольный пользовательский интерфейс (CLI).
+ */
+
 #include <iostream>
 #include <string>
 #include "Set.h"
+#include "Polynomial.h"
 
 using namespace std;
 
-void showMenu() {
-    cout << "\n=== УПРАВЛЕНИЕ МНОЖЕСТВАМИ ===\n"
-         << "1. Задать множество A (ввод Канторовского множества)\n"
-         << "2. Задать множество B (ввод Канторовского множества)\n"
-         << "3. Показать множества A и B\n"
-         << "4. Объединить (A + B)\n"
-         << "5. Пересечь (A & B)\n"
-         << "6. Разность (A - B)\n"
-         << "7. Проверить на равенство (A == B)\n"
-         << "8. Добавить элемент в множество A\n"
-         << "9. Мощность множества А\n"
-         << "10. Мощность множества B\n"
-         << "0. Выход\n"
-         << "Выберите действие: ";
-}
-
-int main() {
+/**
+ * @brief Запускает интерактивное меню для работы с Канторовскими множествами.
+ * Позволяет пользователю вводить множества, выполнять над ними операции
+ * (объединение, пересечение, разность, булеан) и выводить результаты в консоль.
+ */
+void runSetDemo() {
     Set<string> setA;
     Set<string> setB;
     int choice = -1;
 
     while (choice != 0) {
-        showMenu();
+        cout << "\n=== УПРАВЛЕНИЕ МНОЖЕСТВАМИ ===\n"
+             << "1. Задать множество A (формат {a, b, {c}})\n"
+             << "2. Задать множество B (формат {a, b, {c}})\n"
+             << "3. Показать множества A и B\n"
+             << "4. Объединить (A + B)\n"
+             << "5. Пересечь (A * B)\n" // ВНИМАНИЕ: ЗАМЕНЕНО НА * ПО ТРЕБОВАНИЮ 1.4
+             << "6. Разность (A - B)\n"
+             << "7. Проверить на равенство (A == B)\n"
+             << "8. Добавить элемент в множество A\n"
+             << "9. Мощность множества А\n"
+             << "10. Построить булеан множества A\n"
+             << "0. Выход в главное меню\n"
+             << "Выберите действие: ";
         cin >> choice;
 
         switch (choice) {
-            case 1:
-                cout << "Введите множество в формате {a, b, {c, d}}:\n";
-                cin >> setA;
-                break;
-            case 2:
-                cout << "Введите множество в формате {a, b, {c, d}}:\n";
-                cin >> setB;
-                break;
-            case 3:
-                cout << "Множество A: " << setA << "\n";
-                cout << "Множество B: " << setB << "\n";
-                break;
-            case 4: {
-                Set<string> res = setA + setB;
-                cout << "A + B = " << res << "\n";
-                break;
-            }
-            case 5: {
-                Set<string> res = setA & setB;
-                cout << "A & B = " << res << "\n";
-                break;
-            }
-            case 6: {
-                Set<string> res = setA - setB;
-                cout << "A - B = " << res << "\n";
-                break;
-            }
-            case 7:
-                if (setA == setB) cout << "Множества равны.\n";
-                else cout << "Множества не равны.\n";
-                break;
+            case 1: cout << "Введите множество A:\n"; cin >> setA; break;
+            case 2: cout << "Введите множество B:\n"; cin >> setB; break;
+            case 3: cout << "A: " << setA << "\nB: " << setB << "\n"; break;
+            case 4: cout << "A + B = " << (setA + setB) << "\n"; break;
+            case 5: cout << "A * B = " << (setA * setB) << "\n"; break;
+            case 6: cout << "A - B = " << (setA - setB) << "\n"; break;
+            case 7: cout << (setA == setB ? "Равны\n" : "Не равны\n"); break;
             case 8: {
                 string val;
                 cout << "Введите значение: ";
@@ -68,19 +51,91 @@ int main() {
                 setA.add(val);
                 break;
             }
-            case 9:
-                cout << "|A| = " << setA.cardinality() << endl;
+            case 9: cout << "|A| = " << setA.cardinality() << endl; break;
+            case 10: {
+                Set<Set<string>> boolean_A = setA.powerSet();
+                cout << "Булеан множества A: " << boolean_A << "\n";
+                cout << "Мощность булеана: " << boolean_A.cardinality() << "\n";
                 break;
-            case 10:
-                cout << "|B| = " << setB.cardinality() << endl;
-                break;
-            case 0:
-                cout << "Завершение программы.\n";
-                break;
-            default:
-                cout << "Неверный пункт меню, попробуйте снова.\n";
-                break;
+            }
+            case 0: break;
+            default: cout << "Неверный пункт!\n"; break;
         }
     }
+}
+
+/**
+ * @brief Запускает интерактивное меню для работы с многочленами.
+ * Позволяет пользователю задавать коэффициенты многочленов,
+ * складывать, вычитать, умножать, делить их и вычислять значение в точке.
+ */
+void runPolyDemo() {
+    Polynomial pA;
+    Polynomial pB;
+    int choice = -1;
+
+    while (choice != 0) {
+        cout << "\n=== УПРАВЛЕНИЕ МНОГОЧЛЕНАМИ ===\n"
+             << "1. Задать многочлен A\n"
+             << "2. Задать многочлен B\n"
+             << "3. Показать многочлены A и B\n"
+             << "4. Сложить (A + B)\n"
+             << "5. Вычесть (A - B)\n"
+             << "6. Умножить (A * B)\n"
+             << "7. Разделить (A / B)\n"
+             << "8. Вычислить значение A(x)\n"
+             << "0. Выход в главное меню\n"
+             << "Выберите действие: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: cin >> pA; break;
+            case 2: cin >> pB; break;
+            case 3: cout << "A(x) = " << pA << "\nB(x) = " << pB << "\n"; break;
+            case 4: cout << "A + B = " << (pA + pB) << "\n"; break;
+            case 5: cout << "A - B = " << (pA - pB) << "\n"; break;
+            case 6: cout << "A * B = " << (pA * pB) << "\n"; break;
+            case 7:
+                try {
+                    cout << "A / B = " << (pA / pB) << "\n";
+                } catch (const exception& e) {
+                    cout << e.what() << "\n";
+                }
+                break;
+            case 8: {
+                double x;
+                cout << "Введите x: ";
+                cin >> x;
+                cout << "A(" << x << ") = " << pA(x) << "\n";
+                break;
+            }
+            case 0: break;
+            default: cout << "Неверный пункт!\n"; break;
+        }
+    }
+}
+
+/**
+ * @brief Главная функция программы.
+ * Реализует основной диспетчер выбора предметной области (множества или многочлены).
+ * @return 0 при успешном завершении программы.
+ */
+int main() {
+    int mainChoice = -1;
+    while (mainChoice != 0) {
+        cout << "\n========== ГЛАВНОЕ МЕНЮ ==========\n"
+             << "1. Работа с Канторовскими множествами\n"
+             << "2. Работа с Многочленами\n"
+             << "0. Выход из программы\n"
+             << "Выберите предметную область: ";
+        cin >> mainChoice;
+
+        if (mainChoice == 1) {
+            runSetDemo();
+        } else if (mainChoice == 2) {
+            runPolyDemo();
+        }
+    }
+    cout << "Завершение работы.\n";
     return 0;
 }
