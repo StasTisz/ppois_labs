@@ -1,0 +1,43 @@
+name: Lab 2 CI Pipeline
+
+on:
+  push:
+    branches: [ "main", "feature/*" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        cache: "pip"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov ruff mypy
+        # Если у тебя есть файл с зависимостями, раскомментируй строку ниже:
+        # pip install -r requirements.txt
+
+    - name: Lint code with ruff
+      run: |
+        # Проверка синтаксиса, стиля кода и неиспользуемых импортов
+        ruff check lab2/
+
+    - name: Type check with mypy
+      run: |
+        # Статический анализ аннотаций типов
+        mypy lab2/domain/ --ignore-missing-imports
+
+    - name: Run tests with pytest
+      run: |
+        # Запуск тестов. Сборка упадет, если покрытие ниже 90%
+        python -m pytest --cov=lab2/domain --cov-fail-under=90 lab2/tests/
