@@ -7,6 +7,9 @@
 .vscode/
 *.swp
 *.user
+dist/
+build/
+*.spec
 
 # CMake
 cmake-build-*/
