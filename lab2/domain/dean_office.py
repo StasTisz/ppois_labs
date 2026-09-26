@@ -10,6 +10,8 @@ from lab2.domain.grading import RecordBook
 from lab2.domain.people import Dean, Student
 from lab2.domain.structure import Faculty
 
+ExecutableOrder = ExpulsionOrder | ReprimandOrder | ScholarshipOrder | TransferOrder
+
 
 class DeanOffice:
     """
@@ -30,7 +32,7 @@ class DeanOffice:
         self.record_books: dict[str, RecordBook] = {}
         self._archive_orders: list[Document] = []
 
-    def _process_order(self, order: Document) -> None:
+    def _process_order(self, order: ExecutableOrder) -> None:
         """
         Автоматизирует жизненный цикл любого приказа.
         Подписывает у декана, пускает в исполнение и сохраняет в архив.
