@@ -2,15 +2,21 @@ import sys
 
 from lab2.domain.academics import LabWork, Subject
 from lab2.domain.dean_office import DeanOffice
-from lab2.domain.documents import AcademicCertificate, AcademicLeaveOrder
+from lab2.domain.documents import AcademicCertificate
 from lab2.domain.exceptions import DeanOfficeException
 from lab2.domain.finance import BankAccount, Payroll, TuitionContract
-from lab2.domain.grading import AcademicStatement, Grade, RecordBook, RetakeSheet
+from lab2.domain.grading import AcademicStatement, Grade, RetakeSheet
 from lab2.domain.infrastructure import Dormitory, Room
 from lab2.domain.library import Book, LibraryCard
 from lab2.domain.people import Assistant, AssociateProfessor, Dean, Student
 from lab2.domain.schedule import Classroom, Lesson, Timeslot, Timetable
-from lab2.domain.structure import AcademicGroup, Department, Faculty, Speciality, University
+from lab2.domain.structure import (
+    AcademicGroup,
+    Department,
+    Faculty,
+    Speciality,
+    University,
+)
 
 
 class DataSeeder:
@@ -137,7 +143,7 @@ class CLI:
                 print(f"\n❌ БИЗНЕС-ОШИБКА: {e}")
             except ValueError as e:
                 print(f"\n⚠️ ОШИБКА ВВОДА: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 print(f"\n🔥 КРИТИЧЕСКАЯ ОШИБКА: {e}")
 
     def _print_main_menu(self):
