@@ -1,5 +1,4 @@
 import uuid
-from typing import List
 
 
 class Person:
@@ -155,7 +154,7 @@ class Lecturer(Employee):
     def __init__(self, first_name: str, last_name: str, middle_name: str = "", degree: str = DEFAULT_DEGREE) -> None:
         super().__init__(first_name, last_name, middle_name, position=self.DEFAULT_POSITION)
         self.degree = degree
-        self._subjects: List[str] = []
+        self._subjects: list[str] = []
 
     @property
     def subjects_count(self) -> int:
