@@ -32,7 +32,7 @@ jobs:
       - name: Run Linter and Type Check
         run: |
           ruff check lab2/
-          mypy lab2/domain/ --ignore-missing-imports
+          mypy lab2/ --explicit-package-bases --ignore-missing-imports
 
       # 3. Запуск unit-тестов и проверка покрытия (>90%)
       - name: Run Unit Tests & Verify Coverage
