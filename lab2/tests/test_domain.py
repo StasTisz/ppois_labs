@@ -196,7 +196,7 @@ def test_faculty_and_university():
 def test_record_book():
     rb = RecordBook("u-1", "ZK-1")
     assert rb.average_score == 0.0
-    assert rb.get_best_subject() == "Нет оценок"
+    assert rb.get_best_subject() is None
 
     rb.add_grade(Grade("ООП", 9, is_exam=True))
     with pytest.raises(ValueError, match="уже стоит"):
