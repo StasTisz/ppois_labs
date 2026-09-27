@@ -1,10 +1,11 @@
 """
-Модуль безопасности и контроля аэропорта.
+Модуль сервисного обслуживания и метеоусловий аэропорта.
 
-Отвечает за досмотр пассажиров и багажа (Служба авиационной безопасности),
-проверку виз (Пограничный контроль) и таможенных деклараций (Таможня).
-Обеспечивает валидацию прохождения контроля с помощью оборудования (сканеров)
-и выброс соответствующих доменных исключений при нарушениях.
+Отвечает за регламентные работы на перроне: технический осмотр бортов,
+дозаправку, уборку салонов и загрузку бортового питания (кейтеринг).
+Реализует объектно-ориентированный паттерн «Команда» (Command) через
+базовый класс ServiceTask, где каждая задача имеет свой жизненный цикл
+и привязанный персонал. Также включает генерацию метеосводок.
 """
 
 from __future__ import annotations
@@ -13,193 +14,177 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from lab3.domain.exceptions import SecurityCheckFailedException, VisaExpiredException
-
-# Отложенный импорт для строгой типизации методов (замена Any)
+# Отложенный импорт защищает от циклических зависимостей,
+# позволяя использовать строгую типизацию без ошибок в рантайме.
 if TYPE_CHECKING:
-    from lab3.domain.operations import Baggage
-    from lab3.domain.people import Passenger, SecurityOfficer
+    from lab3.domain.fleet import Aircraft, FuelTruck
+    from lab3.domain.people import Employee
 
 
-class Visa:
+class WeatherReport:
     """
-    Виза для пересечения границы.
+    Метеорологическая сводка аэропорта.
+    Служит источником правды для диспетчерской вышки при выдаче разрешений.
 
     Attributes:
-        visa_id (str): Внутренний идентификатор визы.
-        country (str): Страна, выдавшая визу.
-        expiration_date (datetime): Срок окончания действия.
+        report_id (str): Внутренний номер сводки.
+        timestamp (datetime): Точное время формирования отчета.
+        temperature_c (float): Температура в градусах Цельсия.
+        wind_speed_ms (float): Скорость ветра в м/с.
+        visibility_m (float): Видимость в метрах.
+        is_stormy (bool): Наличие активного грозового фронта.
     """
 
-    def __init__(self, country: str, expiration_date: datetime) -> None:
-        self.visa_id = str(uuid.uuid4())
-        self.country = country
-        self.expiration_date = expiration_date
-
-    def is_valid(self, current_date: datetime) -> bool:
-        """Проверяет, не истек ли срок действия визы на указанную дату."""
-        return current_date <= self.expiration_date
-
-
-class CustomsDeclaration:
-    """
-    Таможенная декларация на провоз товаров или валюты.
-
-    Attributes:
-        declaration_id (str): Уникальный номер декларации.
-        passenger_id (str): Идентификатор декларанта.
-        declared_items (list[str]): Список задекларированных вещей (например, "Дрон").
-        cash_amount (float): Сумма провозимых наличных в USD.
-    """
-
-    def __init__(self, passenger_id: str, declared_items: list[str], cash_amount: float) -> None:
-        self.declaration_id = str(uuid.uuid4())
-        self.passenger_id = passenger_id
-        self.declared_items = declared_items
-        self.cash_amount = cash_amount
-        self._is_approved = False
+    def __init__(self, temperature_c: float, wind_speed_ms: float, visibility_m: float, is_stormy: bool) -> None:
+        self.report_id = str(uuid.uuid4())
+        self.timestamp = datetime.now()
+        self.temperature_c = temperature_c
+        self.wind_speed_ms = wind_speed_ms
+        self.visibility_m = visibility_m
+        self.is_stormy = is_stormy
 
     @property
-    def is_approved(self) -> bool:
-        """Статус одобрения таможней (только чтение)."""
-        return self._is_approved
+    def is_safe_for_operations(self) -> bool:
+        """
+        Анализирует параметры погоды и определяет, безопасны ли условия
+        для взлета, посадки и перронных работ.
+        """
+        if self.is_stormy:
+            return False
+        if self.wind_speed_ms > 25.0:  # Штормовой ветер
+            return False
+        if self.visibility_m < 400.0:  # Сильный туман (ниже метеоминимума)
+            return False
+        return True
 
-    def approve(self) -> None:
-        """Ставит официальную отметку таможни о прохождении контроля."""
-        self._is_approved = True
 
-
-class Scanner(ABC):
+class ServiceTask(ABC):
     """
-    Базовый абстрактный класс для оборудования службы безопасности.
+    Базовый абстрактный класс для регламентных задач по обслуживанию борта.
+    Управляет статусом выполнения и привязкой сотрудников.
+
+    Attributes:
+        task_id (str): UUID задачи.
+        aircraft (Aircraft): Воздушное судно, требующее обслуживания.
     """
 
-    def __init__(self, model: str) -> None:
-        self.scanner_id = str(uuid.uuid4())
-        self.model = model
-        self.is_active = True
+    def __init__(self, aircraft: Aircraft) -> None:
+        self.task_id = str(uuid.uuid4())
+        self.aircraft = aircraft
+        self._status = "Pending"  # Pending, InProgress, Completed
+        self._assigned_staff: list[Employee] = []
+
+    @property
+    def status(self) -> str:
+        """Текущий статус выполнения задачи (только чтение)."""
+        return self._status
+
+    @property
+    def assigned_staff(self) -> list[Employee]:
+        """Безопасная копия списка назначенного персонала."""
+        return self._assigned_staff.copy()
+
+    def assign_staff(self, employee: Employee) -> None:
+        """
+        Назначает сотрудника на выполнение данной задачи.
+        """
+        self._assigned_staff.append(employee)
+
+    def _start(self) -> None:
+        """Внутренний метод валидации и старта задачи."""
+        if not self._assigned_staff:
+            raise ValueError("Невозможно начать обслуживание: не назначен персонал.")
+        self._status = "InProgress"
+
+    def _complete(self) -> None:
+        """Внутренний метод успешного закрытия задачи."""
+        self._status = "Completed"
 
     @abstractmethod
-    def scan(self, target: Passenger | Baggage | None) -> bool:
+    def execute(self) -> str:
         """
-        Полиморфный метод сканирования объекта.
-        Возвращает True, если запрещенных предметов не найдено.
+        Полиморфный контракт выполнения конкретной работы.
+        Обязателен для переопределения в дочерних классах обслуживания.
         """
         pass
 
 
-class MetalDetector(Scanner):
+class MaintenanceInspection(ServiceTask):
     """
-    Рамочный металлодетектор для досмотра людей.
-    """
-
-    def scan(self, target: Passenger | Baggage | None) -> bool:
-        """Анализирует наличие металла у пассажира."""
-        if not self.is_active:
-            raise ValueError(f"Детектор {self.model} выключен.")
-        # В реальной бизнес-логике здесь была бы проверка свойств объекта Passenger
-        return True
-
-
-class XRayScanner(Scanner):
-    """
-    Рентгеновский интроскоп для досмотра ручной клади и багажа.
+    Предполетный технический осмотр (Line Maintenance).
     """
 
-    def scan(self, target: Passenger | Baggage | None) -> bool:
-        """Просвечивает багаж на наличие запрещенных к перевозке веществ."""
-        if not self.is_active:
-            raise ValueError(f"Интроскоп {self.model} выключен.")
-        # В реальной бизнес-логике здесь была бы проверка содержимого Baggage
-        return True
+    def execute(self) -> str:
+        """Запускает полиморфный метод perform_maintenance() у самого судна."""
+        self._start()
+
+        # Делегируем логику самому объекту Aircraft
+        self.aircraft.perform_maintenance()
+
+        self._complete()
+        return f"Технический осмотр борта {self.aircraft.tail_number} успешно завершен."
 
 
-class SecurityCheckpoint:
+class RefuelingTask(ServiceTask):
     """
-    Зона предполетного досмотра (САБ - служба авиационной безопасности).
-    """
-
-    def __init__(self, number: int) -> None:
-        self.checkpoint_id = str(uuid.uuid4())
-        self.number = number
-        self.metal_detector: MetalDetector | None = None
-        self.xray_scanner: XRayScanner | None = None
-        self.officer: SecurityOfficer | None = None
-
-    def assign_equipment(self, metal_detector: MetalDetector, xray_scanner: XRayScanner) -> None:
-        """Комплектует пункт досмотра необходимым оборудованием."""
-        self.metal_detector = metal_detector
-        self.xray_scanner = xray_scanner
-
-    def assign_officer(self, officer: SecurityOfficer) -> None:
-        """Назначает дежурного сотрудника на пункт."""
-        self.officer = officer
-
-    def process_passenger(self, passenger: Passenger, carry_on: Baggage | None = None) -> None:
-        """
-        Осуществляет комплексный досмотр пассажира и его ручной клади.
-
-        Raises:
-            ValueError: Если пункт не укомплектован или нет офицера на смене.
-            SecurityCheckFailedException: Если досмотр не пройден (сигнал тревоги сканера).
-        """
-        if not self.metal_detector or not self.xray_scanner:
-            raise ValueError(f"Пункт досмотра {self.number} не укомплектован оборудованием.")
-        if not self.officer or not self.officer.is_on_shift:
-            raise ValueError("Нет дежурного офицера для проведения досмотра.")
-
-        person_clear = self.metal_detector.scan(passenger)
-        baggage_clear = self.xray_scanner.scan(carry_on) if carry_on else True
-
-        if not person_clear or not baggage_clear:
-            raise SecurityCheckFailedException(f"Пассажир {passenger.full_name} не прошел досмотр СБ.")
-
-
-class PassportControl:
-    """
-    Пограничный контроль (проверка документов и виз).
+    Задача заправки воздушного судна керосином с использованием спецтехники.
     """
 
-    def __init__(self, booth_number: int) -> None:
-        self.booth_id = str(uuid.uuid4())
-        self.booth_number = booth_number
+    def __init__(self, aircraft: Aircraft, fuel_truck: FuelTruck, fuel_amount: float) -> None:
+        super().__init__(aircraft)
+        self.fuel_truck = fuel_truck
+        self.fuel_amount = fuel_amount
 
-    def check_documents(self, passenger: Passenger, visa: Visa | None, destination_country: str) -> None:
-        """
-        Проверяет легальность выезда/въезда по паспорту и визе.
+    def execute(self) -> str:
+        """Использует переданный топливозаправщик для перекачки топлива."""
+        self._start()
 
-        Raises:
-            VisaExpiredException: При отсутствии, несоответствии страны или просрочке визы.
-        """
-        if not visa:
-            raise VisaExpiredException(f"Отсутствует виза для въезда в страну {destination_country}.")
+        # Вызываем метод спецтехники, который инкапсулирует логику заправки
+        self.fuel_truck.refuel_aircraft(self.aircraft, self.fuel_amount)
 
-        if visa.country != destination_country:
-            raise VisaExpiredException(f"В паспорте виза {visa.country}, требуется виза {destination_country}.")
-
-        if not visa.is_valid(datetime.now()):
-            raise VisaExpiredException("Срок действия визы истек.")
+        self._complete()
+        return (
+            f"Борт {self.aircraft.tail_number} заправлен на {self.fuel_amount} л. "
+            f"через заправщик {self.fuel_truck.license_plate}."
+        )
 
 
-class CustomsControl:
+class CleaningTask(ServiceTask):
     """
-    Таможенный контроль. Проверяет соблюдение лимитов на вывоз валюты.
+    Уборка салона после высадки пассажиров.
     """
-    MAX_CASH_ALLOWED_USD = 10000.0
 
-    def __init__(self) -> None:
-        self.control_id = str(uuid.uuid4())
+    def __init__(self, aircraft: Aircraft, requires_deep_cleaning: bool = False) -> None:
+        super().__init__(aircraft)
+        self.requires_deep_cleaning = requires_deep_cleaning
 
-    def inspect_declaration(self, declaration: CustomsDeclaration) -> None:
-        """
-        Проверяет таможенную декларацию и одобряет её, если нет нарушений.
+    def execute(self) -> str:
+        """Проводит стандартную или генеральную уборку борта."""
+        self._start()
 
-        Raises:
-            SecurityCheckFailedException: При превышении лимита провозимых наличных.
-        """
-        if declaration.cash_amount > self.MAX_CASH_ALLOWED_USD:
-            raise SecurityCheckFailedException(
-                f"Сумма {declaration.cash_amount}$ превышает лимит вывоза "
-                f"без дополнительных разрешений ({self.MAX_CASH_ALLOWED_USD}$)."
-            )
-        declaration.approve()
+        cleaning_type = "Генеральная" if self.requires_deep_cleaning else "Стандартная"
+
+        self._complete()
+        return f"{cleaning_type} уборка салона {self.aircraft.tail_number} выполнена."
+
+
+class CateringTask(ServiceTask):
+    """
+    Погрузка бортового питания (кейтеринг).
+    """
+
+    def __init__(self, aircraft: Aircraft, meals_count: int, includes_vip: bool = False) -> None:
+        super().__init__(aircraft)
+        self.meals_count = meals_count
+        self.includes_vip = includes_vip
+
+    def execute(self) -> str:
+        """Осуществляет загрузку питания в кухонные блоки судна."""
+        self._start()
+
+        # Если борт — частный джет и требуется VIP-питание, активируем флаг через duck typing
+        if self.includes_vip and hasattr(self.aircraft, 'order_vip_catering'):
+            self.aircraft.order_vip_catering()
+
+        self._complete()
+        return f"На борт {self.aircraft.tail_number} загружено {self.meals_count} порций питания."

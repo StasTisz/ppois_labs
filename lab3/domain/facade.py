@@ -1,42 +1,47 @@
-import uuid
+"""
+Модуль главного фасада аэропорта.
+
+Реализует паттерн проектирования Facade, предоставляя единую высокоуровневую 
+точку входа для управления всеми доменными подсистемами (инфраструктурой, 
+флотом, операциями, безопасностью и персоналом). Инкапсулирует сложные сквозные 
+бизнес-процессы, такие как подготовка рейса к вылету и регистрация пассажиров.
+"""
+
+from __future__ import annotations
 from datetime import datetime
 
 from lab3.domain.exceptions import (
-    GateNotAssignedException,
     InvalidTicketException,
     MaintenanceRequiredException,
-    NoAvailableCrewException,
     PassengerNotFoundException,
-    SecurityCheckFailedException,
-    WeatherWarningException,
 )
-from lab3.domain.fleet import Aircraft, FuelTruck, PassengerAircraft
-from lab3.domain.infrastructure import Airport, Gate, Runway, Terminal
+from lab3.domain.fleet import Aircraft, FuelTruck
+from lab3.domain.infrastructure import Airport, Runway
 from lab3.domain.maintenance import MaintenanceInspection, RefuelingTask, WeatherReport
 from lab3.domain.operations import (
+    Airline,
     Baggage,
     BoardingPass,
     DepartureFlight,
-    Flight,
     FlightPlan,
     Schedule,
     Ticket,
 )
-from lab3.domain.people import Employee, Passenger, Pilot
+from lab3.domain.people import Employee, Passenger
 from lab3.domain.security import MetalDetector, SecurityCheckpoint, XRayScanner
 
 
 class AirportFacade:
     """
-    Главный фасад аэропорта (Controller / Facade).
-    Оркестрирует взаимодействие всех доменных подсистем.
+    Главный контроллер аэропорта.
+    Оркестрирует реестры пассажиров, техники, расписание и погодные условия.
     """
 
     def __init__(self, airport_name: str, iata_code: str) -> None:
         self.airport = Airport(airport_name, iata_code)
         self.schedule = Schedule()
 
-        # Реестры сущностей
+        # Защищенные реестры сущностей
         self._passengers: dict[str, Passenger] = {}
         self._employees: dict[str, Employee] = {}
         self._aircrafts: dict[str, Aircraft] = {}
@@ -58,10 +63,35 @@ class AirportFacade:
             is_stormy=False
         )
 
+    @property
+    def passengers(self) -> dict[str, Passenger]:
+        """Безопасная копия реестра зарегистрированных пассажиров."""
+        return self._passengers.copy()
+
+    @property
+    def employees(self) -> dict[str, Employee]:
+        """Безопасная копия реестра сотрудников аэропорта."""
+        return self._employees.copy()
+
+    @property
+    def aircrafts(self) -> dict[str, Aircraft]:
+        """Безопасная копия реестра флота воздушных судов."""
+        return self._aircrafts.copy()
+
+    @property
+    def fuel_trucks(self) -> list[FuelTruck]:
+        """Безопасная копия списка доступных топливозаправщиков."""
+        return self._fuel_trucks.copy()
+
+    @property
+    def tickets(self) -> list[Ticket]:
+        """Безопасная копия реестра выпущенных билетов."""
+        return self._tickets.copy()
+
     # --- Управление инфраструктурой и флотом ---
 
     def register_aircraft(self, aircraft: Aircraft) -> None:
-        """Добавляет воздушное судно в реестр."""
+        """Добавляет воздушное судно в реестр аэропорта."""
         self._aircrafts[aircraft.tail_number] = aircraft
 
     def register_fuel_truck(self, truck: FuelTruck) -> None:
@@ -69,19 +99,24 @@ class AirportFacade:
         self._fuel_trucks.append(truck)
 
     def register_passenger(self, first_name: str, last_name: str, passport_number: str) -> Passenger:
-        """Регистрирует нового пассажира в системе."""
+        """Создает и регистрирует нового пассажира в системе."""
         passenger = Passenger(first_name, last_name, passport_number)
         self._passengers[passenger.passport_number] = passenger
         return passenger
 
     def register_employee(self, employee: Employee) -> None:
-        """Принимает сотрудника на работу."""
+        """Принимает сотрудника на работу (добавляет в реестр)."""
         self._employees[employee.employee_id] = employee
 
     # --- Билеты и расписание ---
 
     def issue_ticket(self, passport_number: str, flight_number: str, seat_class: str, price: float) -> Ticket:
-        """Оформляет билет на рейс."""
+        """
+        Оформляет и продает билет на рейс существующему пассажиру.
+
+        Raises:
+            PassengerNotFoundException: Если пассажир с таким паспортом не найден.
+        """
         passenger = self._passengers.get(passport_number)
         if not passenger:
             raise PassengerNotFoundException(f"Пассажир с паспортом {passport_number} не найден.")
@@ -95,9 +130,12 @@ class AirportFacade:
             self, flight_number: str, airline_name: str, tail_number: str,
             origin: str, destination: str, scheduled_time: datetime
     ) -> DepartureFlight:
-        """Создает и регистрирует вылетающий рейс в расписании."""
-        from lab3.domain.operations import Airline
+        """
+        Формирует вылетающий рейс и добавляет его в расписание.
 
+        Raises:
+            ValueError: Если указанный борт отсутствует в реестре флота.
+        """
         aircraft = self._aircrafts.get(tail_number)
         if not aircraft:
             raise ValueError(f"Самолет {tail_number} не найден во флоте.")
@@ -115,13 +153,18 @@ class AirportFacade:
             self, passport_number: str, flight_number: str, baggage_weight: float | None = None
     ) -> BoardingPass:
         """
-        Сквозной процесс: проверка билета -> досмотр СБ -> сдача багажа -> выдача талона.
+        Сквозной бизнес-процесс: поиск билета -> регистрация багажа -> выдача талона.
+
+        Raises:
+            PassengerNotFoundException: Если пассажир не зарегистрирован.
+            InvalidTicketException: Если у пассажира нет активного билета на рейс.
+            ValueError: Если рейс отсутствует в расписании вылетов.
         """
         passenger = self._passengers.get(passport_number)
         if not passenger:
             raise PassengerNotFoundException(f"Пассажир с паспортом {passport_number} не найден.")
 
-        # Поиск неиспользованного билета на этот рейс
+        # Поиск первого неиспользованного билета на нужный рейс
         ticket = next(
             (t for t in passenger.get_tickets() if t.flight_number == flight_number and not t.is_used),
             None
@@ -129,7 +172,7 @@ class AirportFacade:
         if not ticket:
             raise InvalidTicketException(f"У пассажира нет активного билета на рейс {flight_number}.")
 
-        # Поиск рейса
+        # Поиск рейса в табло вылетов
         flight = next(
             (f for f in self.schedule.get_departures() if f.flight_number == flight_number),
             None
@@ -137,19 +180,21 @@ class AirportFacade:
         if not flight:
             raise ValueError(f"Рейс {flight_number} не найден в расписании вылетов.")
 
-        # Обработка багажа, если есть
-        baggage_obj = None
+        # Обработка багажа, если он есть
         if baggage_weight and baggage_weight > 0:
             baggage_obj = Baggage(baggage_weight, passenger.person_id)
             passenger.add_baggage(baggage_obj)
             flight.load_baggage(baggage_obj)
 
-        # Регистрация пассажира на рейс
+        # Выполнение регистрации и выдача посадочного талона
         return flight.check_in_passenger(passenger, ticket)
 
     def prepare_flight(self, flight_number: str, fuel_amount: float = 3000.0) -> None:
         """
-        Наземное обслуживание борта: ТО и заправка перед вылетом.
+        Наземное обслуживание борта перед вылетом (ТО и дозаправка).
+
+        Raises:
+            ValueError: Если рейс не найден в расписании.
         """
         flight = next(
             (f for f in self.schedule.get_departures() if f.flight_number == flight_number),
@@ -158,15 +203,15 @@ class AirportFacade:
         if not flight:
             raise ValueError(f"Рейс {flight_number} не найден.")
 
-        # 1. Проведение ТО
+        # 1. Проведение регламентного ТО
         inspection = MaintenanceInspection(flight.aircraft)
-        # Назначаем первого попавшегося сотрудника
+        # Берем первого попавшегося сотрудника на смене для выполнения работы
         tech = next((e for e in self._employees.values() if e.is_on_shift), None)
         if tech:
             inspection.assign_staff(tech)
             inspection.execute()
 
-        # 2. Заправка
+        # 2. Перекачка топлива заправщиком
         if self._fuel_trucks and fuel_amount > 0:
             truck = self._fuel_trucks[0]
             refuel = RefuelingTask(flight.aircraft, truck, fuel_amount)
@@ -176,7 +221,11 @@ class AirportFacade:
 
     def dispatch_takeoff(self, flight_number: str) -> Runway:
         """
-        Выполнение взлета: проверка готовности, метеоусловий и выделение полосы.
+        Запрашивает коридор у вышки и отправляет борт в рейс.
+
+        Raises:
+            ValueError: Если рейс не найден.
+            MaintenanceRequiredException: Если борт не прошел ТО.
         """
         flight = next(
             (f for f in self.schedule.get_departures() if f.flight_number == flight_number),
@@ -188,14 +237,14 @@ class AirportFacade:
         if flight.aircraft.requires_maintenance:
             raise MaintenanceRequiredException("Самолет не может взлететь: требуется предполетное ТО.")
 
-        # Обновляем погоду на вышке перед запросом
+        # Обновляем сводку погоды на диспетчерской вышке перед запросом
         self.airport.control_tower.update_weather(self.current_weather.is_safe_for_operations)
 
-        # Выделяем полосу
+        # Выделяем ВПП и совершаем взлет
         runway = self.airport.control_tower.request_takeoff(flight.aircraft)
         flight.aircraft.take_off()
         flight.status = "InFlight"
 
-        # Полоса освобождается после разбега
+        # Освобождаем ВПП после отрыва борта
         runway.clear()
         return runway
