@@ -1,6 +1,5 @@
-from typing import Any
-
 from lab2.domain.exceptions import DuplicateEnrollmentException, GroupNotFoundException
+from lab2.domain.people import Student, Lecturer
 
 
 class Speciality:
@@ -57,7 +56,7 @@ class AcademicGroup:
         self.number = number
         self.speciality = speciality
         self.max_students = max_students
-        self._students: list[Any] = []  # Ожидаются объекты класса Student
+        self._students: list[Student] = []  # Ожидаются объекты класса Student
 
     @property
     def students_count(self) -> int:
@@ -65,12 +64,12 @@ class AcademicGroup:
         return len(self._students)
 
     @property
-    def students(self) -> list[Any]:
+    def students(self) -> list[Student]:
         """Возвращает защищенную копию списка студентов."""
         return self._students.copy()
 
     @property
-    def active_students(self) -> list[Any]:
+    def active_students(self) -> list[Student]:
         """Возвращает список только тех студентов, кто не отчислен."""
         return [s for s in self._students if s.is_active]
 
@@ -83,7 +82,7 @@ class AcademicGroup:
         """Проверяет, достигнут ли лимит вместимости группы."""
         return not self.has_vacancies
 
-    def enroll_student(self, student: Any) -> None:
+    def enroll_student(self, student: Student) -> None:
         """
         Зачисляет студента в группу.
 
@@ -102,7 +101,7 @@ class AcademicGroup:
 
         self._students.append(student)
 
-    def expel_student(self, student: Any) -> None:
+    def expel_student(self, student: Student) -> None:
         """
         Исключает студента из списка группы.
 
@@ -133,7 +132,7 @@ class Department:
     def __init__(self, name: str) -> None:
         self.name = name
         self.head_name: str | None = None
-        self._teachers: list[Any] = []  # Ожидаются объекты класса Lecturer
+        self._teachers: list[Lecturer] = []  # Ожидаются объекты класса Lecturer
 
     @property
     def staff_count(self) -> int:
@@ -144,7 +143,7 @@ class Department:
         """Назначает заведующего кафедрой."""
         self.head_name = name
 
-    def add_teacher(self, teacher: Any) -> None:
+    def add_teacher(self, teacher: Lecturer) -> None:
         """
         Нанимает преподавателя на кафедру.
 
@@ -154,7 +153,7 @@ class Department:
         if teacher not in self._teachers:
             self._teachers.append(teacher)
 
-    def remove_teacher(self, teacher: Any) -> None:
+    def remove_teacher(self, teacher: Lecturer) -> None:
         """
         Увольняет или переводит преподавателя с кафедры.
 
@@ -234,7 +233,7 @@ class Faculty:
         """Подсчитывает максимальную суммарную вместимость всех групп факультета."""
         return sum(group.max_students for group in self._groups)
 
-    def find_student_by_id(self, person_id: str) -> Any | None:
+    def find_student_by_id(self, person_id: str) -> Student | None:
         """
         Сквозной поиск студента по номеру билета/идентификатору среди всех групп факультета.
         """
