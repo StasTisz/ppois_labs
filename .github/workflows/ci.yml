@@ -1,4 +1,4 @@
-name: Lab 2 CI/CD Pipeline
+name: CI/CD Pipeline (Lab 2 & Lab 3)
 
 on:
   push:
@@ -17,7 +17,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 1. Установка окружения Python и утилит
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -28,35 +27,42 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-cov ruff mypy pyinstaller
 
-      # 2. Статический анализ кода (Линтер и типы)
       - name: Run Linter and Type Check
         run: |
-          ruff check lab2/
-          mypy lab2/ --explicit-package-bases --ignore-missing-imports
+          ruff check lab2/ lab3/
+          mypy lab2/ lab3/ --explicit-package-bases --ignore-missing-imports
 
-      # 3. Запуск unit-тестов и проверка покрытия (>90%)
-      - name: Run Unit Tests & Verify Coverage
+      - name: Run Unit Tests & Verify Coverage (Lab 2)
         run: |
           python -m pytest --cov=lab2/domain --cov-fail-under=90 lab2/tests/
 
-      # 4. Сборка независимого бинарника (.exe) под Windows
-      - name: Build Standalone Artifact
+      - name: Run Unit Tests & Verify Coverage (Lab 3)
         run: |
-          pyinstaller --onefile --name ppois_lab2 lab2/cli.py
+          python -m pytest --cov=lab3/domain --cov-fail-under=90 lab3/tests/
 
-      # 5. Сохранение артефакта сборки в CI
-      - name: Upload Artifact
+      - name: Build Standalone Artifacts
+        run: |
+          # Сборка второй лабораторной
+          pyinstaller --onefile --name ppois_lab2 lab2/cli.py
+          
+          # Безопасная попытка собрать третью лабу (если cli.py уже создан)
+          if (Test-Path "lab3/cli.py") { 
+            pyinstaller --onefile --name ppois_lab3 lab3/cli.py 
+          } else {
+            Write-Host "Файл lab3/cli.py пока не существует. Сборка пропущена."
+          }
+
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ppois_lab2_windows
-          path: dist/ppois_lab2.exe
+          name: ppois_windows_builds
+          path: dist/*.exe
 
-      # 6. Автоматическая публикация релиза с бинарником
       - name: Publish Release
         uses: softprops/action-gh-release@v2
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/lab2'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/lab2' || github.ref == 'refs/heads/feat/lab3'
         with:
-          tag_name: lab2-latest
-          name: "Лабораторная работа 2 (Сборка .exe)"
-          body: "Готовый исполняемый файл приложения под Windows."
-          files: dist/ppois_lab2.exe
+          tag_name: latest-builds
+          name: "Последние сборки (Lab 2 & Lab 3)"
+          body: "Автоматически собранные исполняемые файлы для Windows."
+          files: dist/*.exe
