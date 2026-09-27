@@ -17,54 +17,103 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 1. Установка линтера и утилит анализа покрытия
-      - name: Install Tools
+      # 1. Настройка окружения (C++ и Python)
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y cppcheck lcov
+          pip install pytest pytest-cov ruff mypy pyinstaller
 
-      # 2. Статический анализ кода (Линтер)
-      - name: Run Linter (cppcheck)
+      # ==========================================
+      # ЛАБОРАТОРНАЯ 1 (C++)
+      # ==========================================
+      - name: Lab 1 - Run Linter (cppcheck)
         run: |
           cppcheck --language=c++ --enable=warning,performance,portability \
                     --error-exitcode=1 \
                     --inline-suppr \
                     lab1/Polynomial.cpp lab1/Polynomial.h lab1/Set.h lab1/main.cpp
 
-      # 3. Конфигурация и сборка проекта с флагами покрытия
-      - name: Configure and Build
+      - name: Lab 1 - Configure, Build & Test
         run: |
           cd lab1
           cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="--coverage"
           cmake --build build
-
-      # 4. Запуск unit-тестов
-      - name: Run Unit Tests
-        run: |
-          cd lab1/build
+          cd build
           ./run_tests
 
-      # 5. Проверка покрытия кода
-      - name: Verify Code Coverage
+      - name: Lab 1 - Verify Code Coverage
         run: |
           cd lab1
           lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch,gcov
           lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/test.cpp' --output-file coverage_clean.info --ignore-errors unused,mismatch
           lcov --list coverage_clean.info --ignore-errors unused,mismatch
 
-      # 6. Сохранение артефакта сборки в CI
-      - name: Upload Artifact
+      # ==========================================
+      # ЛАБОРАТОРНАЯ 2 (Python)
+      # ==========================================
+      - name: Lab 2 - Linter & Type Check
+        run: |
+          ruff check lab2/
+          mypy lab2/ --explicit-package-bases --ignore-missing-imports
+
+      - name: Lab 2 - Unit Tests & Coverage
+        env:
+          PYTHONPATH: .
+        run: |
+          python -m pytest --cov=lab2/domain --cov-fail-under=90 lab2/tests/
+
+      - name: Lab 2 - Build Binary CLI
+        env:
+          PYTHONPATH: .
+        run: |
+          pyinstaller --onefile --name ppois_lab2 lab2/cli.py
+
+      # ==========================================
+      # ЛАБОРАТОРНАЯ 3 (Python)
+      # ==========================================
+      - name: Lab 3 - Linter & Type Check
+        run: |
+          ruff check lab3/
+          mypy lab3/ --explicit-package-bases --ignore-missing-imports
+
+      - name: Lab 3 - Unit Tests & Coverage
+        env:
+          PYTHONPATH: .
+        run: |
+          python -m pytest --cov=lab3/domain --cov-fail-under=90 lab3/tests/
+
+      - name: Lab 3 - Build Binary CLI
+        env:
+          PYTHONPATH: .
+        run: |
+          pyinstaller --onefile --name ppois_lab3 lab3/cli.py
+
+      # ==========================================
+      # ПУБЛИКАЦИЯ АРТЕФАКТОВ И РЕЛИЗА
+      # ==========================================
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ppois_lab1_linux
-          path: lab1/build/ppois_lab1
+          name: ppois_binaries_linux
+          path: |
+            lab1/build/ppois_lab1
+            dist/ppois_lab2
+            dist/ppois_lab3
 
-      # 7. Автоматическая публикация релиза с бинарником (для веток main и feat/lab1)
       - name: Publish Release
         uses: softprops/action-gh-release@v2
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/lab1'
+        if: github.ref == 'refs/heads/main'
         with:
-          tag_name: lab1-latest
-          name: "Лабораторная работа 1 (Сборка)"
-          body: "Готовый бинарный артефакт приложения для запуска независимо от среды."
-          files: lab1/build/ppois_lab1
+          tag_name: latest-labs
+          name: "Автоматическая сборка (Лабы 1-3)"
+          body: "Готовые бинарные артефакты консольных приложений."
+          files: |
+            lab1/build/ppois_lab1
+            dist/ppois_lab2
+            dist/ppois_lab3
