@@ -164,7 +164,7 @@ class DepartureFlight(Flight):
         self.assigned_gate: 'Gate | None' = None
         self._manifest: list['Passenger'] = []
         self._cargo_hold: list[Baggage] = []
-        self._seat_counter = 1
+        self._seat_counter = 0
 
     def assign_gate(self, gate: 'Gate') -> None:
         """Привязывает гейт к рейсу."""
