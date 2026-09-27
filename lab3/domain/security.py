@@ -1,10 +1,21 @@
+"""
+Модуль безопасности и контроля аэропорта.
+
+Отвечает за досмотр пассажиров и багажа (Служба авиационной безопасности),
+проверку виз (Пограничный контроль) и таможенных деклараций (Таможня).
+Обеспечивает валидацию прохождения контроля с помощью оборудования (сканеров)
+и выброс соответствующих доменных исключений при нарушениях.
+"""
+
+from __future__ import annotations
 import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from lab3.domain.exceptions import SecurityCheckFailedException, VisaExpiredException
 
+# Отложенный импорт для строгой типизации методов 
 if TYPE_CHECKING:
     from lab3.domain.operations import Baggage
     from lab3.domain.people import Passenger, SecurityOfficer
@@ -15,6 +26,7 @@ class Visa:
     Виза для пересечения границы.
 
     Attributes:
+        visa_id (str): Внутренний идентификатор визы.
         country (str): Страна, выдавшая визу.
         expiration_date (datetime): Срок окончания действия.
     """
@@ -25,7 +37,7 @@ class Visa:
         self.expiration_date = expiration_date
 
     def is_valid(self, current_date: datetime) -> bool:
-        """Проверяет, не истек ли срок действия визы."""
+        """Проверяет, не истек ли срок действия визы на указанную дату."""
         return current_date <= self.expiration_date
 
 
@@ -34,8 +46,9 @@ class CustomsDeclaration:
     Таможенная декларация на провоз товаров или валюты.
 
     Attributes:
+        declaration_id (str): Уникальный номер декларации.
         passenger_id (str): Идентификатор декларанта.
-        declared_items (list[str]): Список задекларированных вещей (например, "Картина", "Дрон").
+        declared_items (list[str]): Список задекларированных вещей (например, "Дрон").
         cash_amount (float): Сумма провозимых наличных в USD.
     """
 
@@ -44,11 +57,16 @@ class CustomsDeclaration:
         self.passenger_id = passenger_id
         self.declared_items = declared_items
         self.cash_amount = cash_amount
-        self.is_approved = False
+        self._is_approved = False
+
+    @property
+    def is_approved(self) -> bool:
+        """Статус одобрения таможней (только чтение)."""
+        return self._is_approved
 
     def approve(self) -> None:
-        """Ставит отметку таможни о прохождении контроля."""
-        self.is_approved = True
+        """Ставит официальную отметку таможни о прохождении контроля."""
+        self._is_approved = True
 
 
 class Scanner(ABC):
@@ -62,7 +80,7 @@ class Scanner(ABC):
         self.is_active = True
 
     @abstractmethod
-    def scan(self, target: Any) -> bool:
+    def scan(self, target: Passenger | Baggage | None) -> bool:
         """
         Полиморфный метод сканирования объекта.
         Возвращает True, если запрещенных предметов не найдено.
@@ -75,8 +93,8 @@ class MetalDetector(Scanner):
     Рамочный металлодетектор для досмотра людей.
     """
 
-    def scan(self, target: Any) -> bool:
-        """Анализирует наличие металла у пассажира (упрощенная заглушка)."""
+    def scan(self, target: Passenger | Baggage | None) -> bool:
+        """Анализирует наличие металла у пассажира."""
         if not self.is_active:
             raise ValueError(f"Детектор {self.model} выключен.")
         # В реальной бизнес-логике здесь была бы проверка свойств объекта Passenger
@@ -88,11 +106,11 @@ class XRayScanner(Scanner):
     Рентгеновский интроскоп для досмотра ручной клади и багажа.
     """
 
-    def scan(self, target: Any) -> bool:
+    def scan(self, target: Passenger | Baggage | None) -> bool:
         """Просвечивает багаж на наличие запрещенных к перевозке веществ."""
         if not self.is_active:
             raise ValueError(f"Интроскоп {self.model} выключен.")
-        # Допустим, мы проверяем внутреннее содержимое Baggage, если бы оно было
+        # В реальной бизнес-логике здесь была бы проверка содержимого Baggage
         return True
 
 
@@ -106,20 +124,24 @@ class SecurityCheckpoint:
         self.number = number
         self.metal_detector: MetalDetector | None = None
         self.xray_scanner: XRayScanner | None = None
-        self.officer: 'SecurityOfficer | None' = None
+        self.officer: SecurityOfficer | None = None
 
     def assign_equipment(self, metal_detector: MetalDetector, xray_scanner: XRayScanner) -> None:
         """Комплектует пункт досмотра необходимым оборудованием."""
         self.metal_detector = metal_detector
         self.xray_scanner = xray_scanner
 
-    def assign_officer(self, officer: 'SecurityOfficer') -> None:
+    def assign_officer(self, officer: SecurityOfficer) -> None:
         """Назначает дежурного сотрудника на пункт."""
         self.officer = officer
 
-    def process_passenger(self, passenger: 'Passenger', carry_on: 'Baggage | None' = None) -> None:
+    def process_passenger(self, passenger: Passenger, carry_on: Baggage | None = None) -> None:
         """
         Осуществляет комплексный досмотр пассажира и его ручной клади.
+
+        Raises:
+            ValueError: Если пункт не укомплектован или нет офицера на смене.
+            SecurityCheckFailedException: Если досмотр не пройден (сигнал тревоги сканера).
         """
         if not self.metal_detector or not self.xray_scanner:
             raise ValueError(f"Пункт досмотра {self.number} не укомплектован оборудованием.")
@@ -142,9 +164,12 @@ class PassportControl:
         self.booth_id = str(uuid.uuid4())
         self.booth_number = booth_number
 
-    def check_documents(self, passenger: 'Passenger', visa: Visa | None, destination_country: str) -> None:
+    def check_documents(self, passenger: Passenger, visa: Visa | None, destination_country: str) -> None:
         """
         Проверяет легальность выезда/въезда по паспорту и визе.
+
+        Raises:
+            VisaExpiredException: При отсутствии, несоответствии страны или просрочке визы.
         """
         if not visa:
             raise VisaExpiredException(f"Отсутствует виза для въезда в страну {destination_country}.")
@@ -158,7 +183,7 @@ class PassportControl:
 
 class CustomsControl:
     """
-    Таможенный контроль.
+    Таможенный контроль. Проверяет соблюдение лимитов на вывоз валюты.
     """
     MAX_CASH_ALLOWED_USD = 10000.0
 
@@ -167,7 +192,10 @@ class CustomsControl:
 
     def inspect_declaration(self, declaration: CustomsDeclaration) -> None:
         """
-        Проверяет таможенную декларацию.
+        Проверяет таможенную декларацию и одобряет её, если нет нарушений.
+
+        Raises:
+            SecurityCheckFailedException: При превышении лимита провозимых наличных.
         """
         if declaration.cash_amount > self.MAX_CASH_ALLOWED_USD:
             raise SecurityCheckFailedException(
