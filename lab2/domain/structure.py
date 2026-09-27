@@ -1,5 +1,5 @@
 from lab2.domain.exceptions import DuplicateEnrollmentException, GroupNotFoundException
-from lab2.domain.people import Student, Lecturer
+from lab2.domain.people import Lecturer, Student
 
 
 class Speciality:

@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline (All Labs)
 
 on:
   push:
@@ -10,110 +10,124 @@ permissions:
   contents: write
 
 jobs:
-  build-test-lint-deploy:
+  # ==========================================
+  # РАБОТА 1: Лабораторная 1 (C++ на Linux)
+  # ==========================================
+  build-cpp-linux:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 1. Настройка окружения (C++ и Python)
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install Dependencies
+      - name: Install Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y cppcheck lcov
-          pip install pytest pytest-cov ruff mypy pyinstaller
+          sudo apt-get install -y cppcheck lcov cmake
 
-      # ==========================================
-      # ЛАБОРАТОРНАЯ 1 (C++)
-      # ==========================================
-      - name: Lab 1 - Run Linter (cppcheck)
+      - name: Run Linter (cppcheck)
         run: |
           cppcheck --language=c++ --enable=warning,performance,portability \
-                    --error-exitcode=1 \
-                    --inline-suppr \
+                    --error-exitcode=1 --inline-suppr \
                     lab1/Polynomial.cpp lab1/Polynomial.h lab1/Set.h lab1/main.cpp
 
-      - name: Lab 1 - Configure, Build & Test
+      - name: Configure and Build
         run: |
           cd lab1
           cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="--coverage"
           cmake --build build
-          cd build
+
+      - name: Run Unit Tests
+        run: |
+          cd lab1/build
           ./run_tests
 
-      - name: Lab 1 - Verify Code Coverage
+      - name: Verify Code Coverage
         run: |
           cd lab1
           lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch,gcov
           lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/test.cpp' --output-file coverage_clean.info --ignore-errors unused,mismatch
           lcov --list coverage_clean.info --ignore-errors unused,mismatch
 
-      # ==========================================
-      # ЛАБОРАТОРНАЯ 2 (Python)
-      # ==========================================
-      - name: Lab 2 - Linter & Type Check
-        run: |
-          ruff check lab2/
-          mypy lab2/ --explicit-package-bases --ignore-missing-imports
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ppois_lab1_linux
+          path: lab1/build/ppois_lab1
 
-      - name: Lab 2 - Unit Tests & Coverage
+  # ==========================================
+  # РАБОТА 2: Лабораторные 2 и 3 (Python на Windows)
+  # ==========================================
+  build-python-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov ruff mypy pyinstaller
+
+      - name: Run Linter and Type Check
+        run: |
+          # Флаг --output-format=github будет красиво подсвечивать ошибки прямо в PR
+          ruff check lab2/ lab3/ --output-format=github
+          mypy lab2/ lab3/ --explicit-package-bases --ignore-missing-imports
+
+      - name: Run Unit Tests & Verify Coverage (Lab 2)
         env:
           PYTHONPATH: .
         run: |
           python -m pytest --cov=lab2/domain --cov-fail-under=90 lab2/tests/
 
-      - name: Lab 2 - Build Binary CLI
-        env:
-          PYTHONPATH: .
-        run: |
-          pyinstaller --onefile --name ppois_lab2 lab2/cli.py
-
-      # ==========================================
-      # ЛАБОРАТОРНАЯ 3 (Python)
-      # ==========================================
-      - name: Lab 3 - Linter & Type Check
-        run: |
-          ruff check lab3/
-          mypy lab3/ --explicit-package-bases --ignore-missing-imports
-
-      - name: Lab 3 - Unit Tests & Coverage
+      - name: Run Unit Tests & Verify Coverage (Lab 3)
         env:
           PYTHONPATH: .
         run: |
           python -m pytest --cov=lab3/domain --cov-fail-under=90 lab3/tests/
 
-      - name: Lab 3 - Build Binary CLI
-        env:
-          PYTHONPATH: .
+      - name: Build Standalone Artifacts
         run: |
-          pyinstaller --onefile --name ppois_lab3 lab3/cli.py
+          # Сборка второй лабораторной
+          pyinstaller --onefile --name ppois_lab2 lab2/cli.py
+          
+          # Безопасная попытка собрать третью лабу
+          if (Test-Path "lab3/cli.py") { 
+            pyinstaller --onefile --name ppois_lab3 lab3/cli.py 
+          } else {
+            Write-Host "Файл lab3/cli.py пока не существует. Сборка пропущена."
+          }
 
-      # ==========================================
-      # ПУБЛИКАЦИЯ АРТЕФАКТОВ И РЕЛИЗА
-      # ==========================================
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ppois_binaries_linux
-          path: |
-            lab1/build/ppois_lab1
-            dist/ppois_lab2
-            dist/ppois_lab3
+          name: ppois_windows_builds
+          path: dist/*.exe
+
+  # ==========================================
+  # РАБОТА 3: Публикация релиза (собирает артефакты обеих систем)
+  # ==========================================
+  publish-release:
+    needs: [build-cpp-linux, build-python-windows]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feat/')
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2
-        if: github.ref == 'refs/heads/main'
         with:
-          tag_name: latest-labs
-          name: "Автоматическая сборка (Лабы 1-3)"
-          body: "Готовые бинарные артефакты консольных приложений."
+          tag_name: latest-builds
+          name: "Последние сборки (Лабы 1-3)"
+          body: "Автоматически собранные исполняемые файлы (Linux для C++, Windows для Python)."
           files: |
-            lab1/build/ppois_lab1
-            dist/ppois_lab2
-            dist/ppois_lab3
+            artifacts/ppois_lab1_linux/ppois_lab1
+            artifacts/ppois_windows_builds/*.exe

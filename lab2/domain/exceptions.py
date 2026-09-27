@@ -1,6 +1,5 @@
 class DeanOfficeException(Exception):
     """Базовое исключение доменной модели деканата."""
-    pass
 
 class StudentNotFoundException(DeanOfficeException): pass
 class GroupNotFoundException(DeanOfficeException): pass
