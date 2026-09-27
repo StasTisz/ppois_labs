@@ -1,11 +1,19 @@
+"""
+Модуль операционной деятельности аэропорта.
+
+Отвечает за логику управления рейсами, билетами, багажом и расписанием.
+Связывает воедино инфраструктуру (гейты, карусели), флот (самолеты) и людей (пассажиров).
+Обеспечивает транзакционность при регистрации на рейс и посадке.
+"""
+
+from __future__ import annotations
 import uuid
 from abc import ABC
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from lab3.domain.exceptions import (
     BaggageOverweightException,
-    CapacityExceededException,
     FlightDelayedException,
     InvalidTicketException,
 )
@@ -23,7 +31,7 @@ class Baggage:
 
     Attributes:
         baggage_id (str): Уникальный RFID-номер багажной бирки.
-        weight_kg (float): Вес чемодана в килограммах.
+        weight_kg (float): Фактический вес чемодана в килограммах.
         owner_id (str): Идентификатор пассажира-владельца.
     """
     MAX_STANDARD_WEIGHT = 23.0
@@ -34,7 +42,12 @@ class Baggage:
         self.owner_id = owner_id
 
     def check_weight(self) -> None:
-        """Проверяет багаж на перевес."""
+        """
+        Проверяет багаж на соответствие нормам провоза.
+
+        Raises:
+            BaggageOverweightException: Если вес превышает допустимый лимит.
+        """
         if self.weight_kg > self.MAX_STANDARD_WEIGHT:
             raise BaggageOverweightException(
                 f"Перевес: {self.weight_kg} кг. Максимум: {self.MAX_STANDARD_WEIGHT} кг."
@@ -43,14 +56,15 @@ class Baggage:
 
 class Ticket:
     """
-    Маршрутная квитанция (билет) пассажира.
+    Маршрутная квитанция (электронный билет) пассажира.
 
     Attributes:
-        ticket_number (str): Уникальный номер билета.
-        passenger_id (str): Идентификатор владельца (Person.person_id).
-        flight_number (str): Номер рейса (например, "B2 973").
+        ticket_number (str): Уникальный 8-значный буквенно-цифровой номер билета.
+        passenger_id (str): Идентификатор владельца (связь с Person.person_id).
+        flight_number (str): Номер рейса (например, "B2-973").
         seat_class (str): Класс обслуживания (Economy, Business, First).
-        price (float): Стоимость билета.
+        price (float): Стоимость приобретенного билета.
+        is_used (bool): Флаг гашения билета после успешной регистрации.
     """
 
     def __init__(
@@ -64,7 +78,12 @@ class Ticket:
         self.is_used = False
 
     def use_ticket(self) -> None:
-        """Помечает билет как использованный после регистрации."""
+        """
+        Помечает билет как использованный (гасит его).
+
+        Raises:
+            InvalidTicketException: Если билет уже был погашен ранее.
+        """
         if self.is_used:
             raise InvalidTicketException(f"Билет {self.ticket_number} уже был использован.")
         self.is_used = True
@@ -72,13 +91,13 @@ class Ticket:
 
 class BoardingPass:
     """
-    Посадочный талон, выдаваемый после успешной регистрации.
+    Посадочный талон, выдаваемый после успешной регистрации и сдачи багажа.
 
     Attributes:
-        pass_id (str): Внутренний номер талона.
-        ticket (Ticket): Оригинальный билет.
+        pass_id (str): Внутренний номер посадочного талона.
+        ticket (Ticket): Ссылка на оригинальный билет.
         seat_number (str): Назначенное место в салоне (например, "12A").
-        gate_number (str): Номер гейта для посадки.
+        gate_number (str): Номер гейта для посадки ("TBD", если еще не назначен).
     """
 
     def __init__(self, ticket: Ticket, seat_number: str, gate_number: str) -> None:
@@ -101,15 +120,20 @@ class Airline:
         self.airline_id = str(uuid.uuid4())
         self.name = name
         self.iata_code = iata_code
-        self._fleet: list['Aircraft'] = []
+        self._fleet: list[Aircraft] = []
 
-    def register_aircraft(self, aircraft: 'Aircraft') -> None:
-        """Добавляет самолет в парк авиакомпании."""
+    def register_aircraft(self, aircraft: Aircraft) -> None:
+        """Регистрирует воздушное судно в парке авиакомпании."""
         self._fleet.append(aircraft)
 
     @property
     def fleet_size(self) -> int:
+        """Текущее количество самолетов во флоте компании."""
         return len(self._fleet)
+
+    def get_fleet(self) -> list[Aircraft]:
+        """Возвращает копию списка флота для безопасного перебора."""
+        return self._fleet.copy()
 
 
 class FlightPlan:
@@ -128,52 +152,80 @@ class FlightPlan:
 class Flight(ABC):
     """
     Базовый абстрактный класс авиарейса.
+
+    Attributes:
+        flight_number (str): Уникальный номер рейса.
+        airline (Airline): Компания-оператор.
+        aircraft (Aircraft): Воздушное судно, выполняющее рейс.
+        plan (FlightPlan): План полета.
+        status (str): Текущий статус рейса (Scheduled, Boarding, InFlight, Landed, Delayed, Cancelled).
+        delay_reason (str | None): Причина задержки рейса (если есть).
     """
 
     def __init__(
-            self, flight_number: str, airline: Airline, aircraft: 'Aircraft', plan: FlightPlan
+            self, flight_number: str, airline: Airline, aircraft: Aircraft, plan: FlightPlan
     ) -> None:
         self.flight_id = str(uuid.uuid4())
         self.flight_number = flight_number
         self.airline = airline
         self.aircraft = aircraft
         self.plan = plan
-        self.status = "Scheduled"  # Scheduled, Boarding, InFlight, Landed, Delayed, Cancelled
+        self.status = "Scheduled"
+        self.delay_reason: str | None = None
 
     def delay(self, reason: str) -> None:
-        """Откладывает рейс с указанием причины."""
+        """
+        Переводит рейс в статус 'Delayed' с указанием причины.
+
+        Raises:
+            ValueError: Если рейс уже отменен, находится в воздухе или приземлился.
+        """
         if self.status in ["InFlight", "Landed", "Cancelled"]:
             raise ValueError(f"Невозможно отложить рейс в статусе {self.status}.")
         self.status = "Delayed"
         self.delay_reason = reason
 
     def cancel(self) -> None:
-        """Отменяет рейс."""
+        """Полностью отменяет рейс."""
         self.status = "Cancelled"
 
 
 class DepartureFlight(Flight):
     """
-    Вылетающий рейс. Управляет регистрацией, багажом и посадкой.
+    Вылетающий рейс. Управляет процессом регистрации, багажом и посадкой.
     """
 
     def __init__(
-            self, flight_number: str, airline: Airline, aircraft: 'Aircraft', plan: FlightPlan
+            self, flight_number: str, airline: Airline, aircraft: Aircraft, plan: FlightPlan
     ) -> None:
         super().__init__(flight_number, airline, aircraft, plan)
-        self.assigned_gate: 'Gate | None' = None
-        self._manifest: list['Passenger'] = []
+        self.assigned_gate: Gate | None = None
+        self._manifest: list[Passenger] = []
         self._cargo_hold: list[Baggage] = []
         self._seat_counter = 0
 
-    def assign_gate(self, gate: 'Gate') -> None:
-        """Привязывает гейт к рейсу."""
+    @property
+    def manifest(self) -> list[Passenger]:
+        """Безопасная копия списка зарегистрированных пассажиров."""
+        return self._manifest.copy()
+
+    @property
+    def cargo_hold(self) -> list[Baggage]:
+        """Безопасная копия списка загруженного багажа."""
+        return self._cargo_hold.copy()
+
+    def assign_gate(self, gate: Gate) -> None:
+        """Привязывает инфраструктурный гейт к текущему рейсу."""
         self.assigned_gate = gate
         gate.assign_flight(self)
 
-    def check_in_passenger(self, passenger: 'Passenger', ticket: Ticket) -> BoardingPass:
+    def check_in_passenger(self, passenger: Passenger, ticket: Ticket) -> BoardingPass:
         """
-        Регистрирует пассажира на рейс и генерирует посадочный талон.
+        Регистрирует пассажира на рейс, гасит билет и генерирует посадочный талон.
+
+        Raises:
+            FlightDelayedException: Если регистрация закрыта или рейс отложен/отменен.
+            InvalidTicketException: Если билет не принадлежит этому рейсу.
         """
         if self.status in ["Delayed", "Cancelled"]:
             raise FlightDelayedException(f"Регистрация невозможна: рейс {self.status}.")
@@ -183,7 +235,7 @@ class DepartureFlight(Flight):
         ticket.use_ticket()
         self._manifest.append(passenger)
 
-        # Назначает место в формате "1A", "1B" и т.д.
+        # Алгоритм выдачи места (ряд + буква)
         row = (self._seat_counter // 6) + 1
         letter = chr(65 + (self._seat_counter % 6))
         seat_number = f"{row}{letter}"
@@ -193,12 +245,12 @@ class DepartureFlight(Flight):
         return BoardingPass(ticket, seat_number, gate_number)
 
     def load_baggage(self, baggage: Baggage) -> None:
-        """Грузит багаж в трюм самолета."""
+        """Грузит проверенный багаж в трюм самолета."""
         baggage.check_weight()
         self._cargo_hold.append(baggage)
 
     def start_boarding(self) -> None:
-        """Объявляет посадку."""
+        """Объявляет посадку и открывает привязанный гейт."""
         if not self.assigned_gate:
             raise ValueError("Гейт не назначен.")
         self.status = "Boarding"
@@ -207,22 +259,22 @@ class DepartureFlight(Flight):
 
 class ArrivalFlight(Flight):
     """
-    Прибывающий рейс. Управляет высадкой и выдачей багажа.
+    Прибывающий рейс. Взаимодействует с каруселями для выдачи багажа.
     """
 
     def __init__(
-            self, flight_number: str, airline: Airline, aircraft: 'Aircraft', plan: FlightPlan
+            self, flight_number: str, airline: Airline, aircraft: Aircraft, plan: FlightPlan
     ) -> None:
         super().__init__(flight_number, airline, aircraft, plan)
-        self.assigned_carousel: 'BaggageCarousel | None' = None
+        self.assigned_carousel: BaggageCarousel | None = None
         self.status = "InFlight"
 
-    def assign_carousel(self, carousel: 'BaggageCarousel') -> None:
-        """Привязывает карусель для выдачи багажа."""
+    def assign_carousel(self, carousel: BaggageCarousel) -> None:
+        """Назначает карусель для выгрузки багажа пассажирам."""
         self.assigned_carousel = carousel
 
     def land(self) -> None:
-        """Регистрирует приземление рейса."""
+        """Регистрирует приземление, меняет статус борта и запускает ленту багажа."""
         self.status = "Landed"
         self.aircraft.land()
         if self.assigned_carousel:
@@ -231,19 +283,20 @@ class ArrivalFlight(Flight):
 
 class Schedule:
     """
-    Электронное табло рейсов (реестр).
+    Электронное табло расписания рейсов (реестр полетов).
     """
 
     def __init__(self) -> None:
         self._flights: list[Flight] = []
 
     def add_flight(self, flight: Flight) -> None:
+        """Добавляет рейс в общее расписание."""
         self._flights.append(flight)
 
     def get_departures(self) -> list[DepartureFlight]:
-        """Фильтрует и возвращает только вылетающие рейсы."""
+        """Возвращает список всех вылетающих рейсов."""
         return [f for f in self._flights if isinstance(f, DepartureFlight)]
 
     def get_arrivals(self) -> list[ArrivalFlight]:
-        """Фильтрует и возвращает только прибывающие рейсы."""
+        """Возвращает список всех прибывающих рейсов."""
         return [f for f in self._flights if isinstance(f, ArrivalFlight)]
