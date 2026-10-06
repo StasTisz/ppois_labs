@@ -16,7 +16,7 @@
  *
  * Служит для демонстрации работы шаблонных сортировок (Задание 1)
  * и в качестве полезной нагрузки вершины графа (Задание 2).
- * Поддерживает полный набор операций сравнения и потоковый вывод.
+ * Поддерживает полный набор операций сравнения и потоковый ввод-вывод.
  */
 class FlightInfo {
 private:
@@ -60,12 +60,28 @@ public:
     int get_priority() const { return priority_level; }
 
     /**
+     * @brief Устанавливает новый номер рейса.
+     * @param number Новый идентификатор рейса.
+     */
+    void set_number(std::string number) { flight_number = std::move(number); }
+
+    /**
+     * @brief Устанавливает дистанцию рейса.
+     * @param distance Дистанция в км.
+     */
+    void set_distance(double distance) { distance_km = distance; }
+
+    /**
+     * @brief Устанавливает приоритет рейса.
+     * @param priority Уровень приоритета.
+     */
+    void set_priority(int priority) { priority_level = priority; }
+
+    /**
      * @brief Оператор "меньше".
-     *
-     * Сравнение выполняется лексикографически через std::tie в следующем порядке:
-     * дистанция -> приоритет -> номер рейса.
+     * Сравнение выполняется лексикографически: дистанция -> приоритет -> номер рейса.
      * @param other Объект для сравнения.
-     * @return true, если текущий объект меньше @p other, иначе false.
+     * @return true, если текущий объект меньше other.
      */
     bool operator<(const FlightInfo& other) const {
         return std::tie(distance_km, priority_level, flight_number) <
@@ -75,44 +91,20 @@ public:
     /**
      * @brief Оператор проверки на равенство.
      * @param other Объект для сравнения.
-     * @return true, если все поля совпадают, иначе false.
+     * @return true, если все поля совпадают.
      */
     bool operator==(const FlightInfo& other) const {
         return std::tie(distance_km, priority_level, flight_number) ==
                std::tie(other.distance_km, other.priority_level, other.flight_number);
     }
 
-    /**
-     * @brief Оператор проверки на неравенство.
-     * @param other Объект для сравнения.
-     * @return true, если объекты отличаются хотя бы одним полем, иначе false.
-     */
     bool operator!=(const FlightInfo& other) const { return !(*this == other); }
-
-    /**
-     * @brief Оператор "больше".
-     * @param other Объект для сравнения.
-     * @return true, если текущий объект строго больше @p other.
-     */
     bool operator>(const FlightInfo& other) const { return other < *this; }
-
-    /**
-     * @brief Оператор "меньше либо равно".
-     * @param other Объект для сравнения.
-     * @return true, если текущий объект меньше либо равен @p other.
-     */
     bool operator<=(const FlightInfo& other) const { return !(other < *this); }
-
-    /**
-     * @brief Оператор "больше либо равно".
-     * @param other Объект для сравнения.
-     * @return true, если текущий объект больше либо равен @p other.
-     */
     bool operator>=(const FlightInfo& other) const { return !(*this < other); }
 
     /**
      * @brief Выводит строковое представление объекта в выходной поток.
-     * Формат вывода: [Номер | Дистанция км | Приоритет: Число]
      * @param os Выходной поток.
      * @param flight Выводимый объект рейса.
      * @return Ссылка на выходной поток.
@@ -122,5 +114,24 @@ public:
            << flight.distance_km << " км | Приоритет: "
            << flight.priority_level << "]";
         return os;
+    }
+
+    /**
+     * @brief Считывает данные рейса из входного потока.
+     * Ожидает три значения, разделённых пробелом: номер_рейса дистанция приоритет.
+     * @param is Входной поток.
+     * @param flight Объект для записи результата.
+     * @return Ссылка на входной поток.
+     */
+    friend std::istream& operator>>(std::istream& is, FlightInfo& flight) {
+        std::string number;
+        double dist = 0.0;
+        int prio = 0;
+        if (is >> number >> dist >> prio) {
+            flight.flight_number = std::move(number);
+            flight.distance_km = dist;
+            flight.priority_level = prio;
+        }
+        return is;
     }
 };
