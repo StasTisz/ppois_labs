@@ -3,7 +3,7 @@
  * @brief Реализация методов класса Polynomial.
  */
 
-#include "Polynomial.h"
+#include "../include/Polynomial.h"
 #include <stdexcept>
 
 // Удаляет незначащие нули при старших степенях

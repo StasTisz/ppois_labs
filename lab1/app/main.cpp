@@ -5,8 +5,8 @@
 
 #include <iostream>
 #include <string>
-#include "Set.h"
-#include "Polynomial.h"
+#include "../include/Set.h"
+#include "../include/Polynomial.h"
 
 using namespace std;
 

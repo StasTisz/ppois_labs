@@ -60,6 +60,10 @@ public:
         return false;
     }
 
+    bool operator[](const T& value) const {
+        return contains(value);
+    }
+
     /**
      * @brief Добавляет новый элемент в множество.
      * Если элемент уже существует, добавление игнорируется.

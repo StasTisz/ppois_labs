@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "Polynomial.h"
-#include "Set.h"
+#include "../include/Polynomial.h"
+#include "../include/Set.h"
 #include <sstream>
 #include <stdexcept>
 

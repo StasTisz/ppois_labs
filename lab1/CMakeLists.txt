@@ -4,7 +4,11 @@ project(ppois_lab1)
 set(CMAKE_CXX_STANDARD 17)
 
 # Основная программа с меню
-add_executable(ppois_lab1 main.cpp Polynomial.cpp)
+add_executable(ppois_lab1 app/main.cpp src/Polynomial.cpp
+        ../lab4/src/custom_object.cpp
+        ../lab4/src/main.cpp
+        ../lab4/include/sortings/heapsort.h.cpp
+        ../lab4/include/sortings/stooge_sort.h.cpp)
 
 # Автоматическое скачивание Google Test
 include(FetchContent)
@@ -17,7 +21,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 # Отдельная программа-тестировщик
-add_executable(run_tests test.cpp Polynomial.cpp)
+add_executable(run_tests tests/test.cpp src/Polynomial.cpp)
 
 target_link_libraries(run_tests gtest_main)
 
