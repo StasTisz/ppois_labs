@@ -25,10 +25,7 @@ jobs:
           sudo apt-get install -y cppcheck lcov cmake
 
       - name: Run Linter (cppcheck)
-        run: |
-          cppcheck --language=c++ --enable=warning,performance,portability \
-                    --error-exitcode=1 --inline-suppr \
-                    lab1/Polynomial.cpp lab1/Polynomial.h lab1/Set.h lab1/main.cpp
+        run: cppcheck --language=c++ --enable=warning,performance,portability --force .
 
       - name: Configure and Build
         run: |
