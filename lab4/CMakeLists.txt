@@ -1,27 +1,35 @@
-cmake_minimum_required(VERSION 3.14)
-project(ppois_lab4)
+cmake_minimum_required(VERSION 3.20)
+project(ppois_lab4 CXX)
 
-# Включаем современный стандарт C++
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 1. Основной исполняемый файл (Консольное меню)
-add_executable(lab4_run main.cpp)
+include_directories(include)
 
-# 2. Автоматическое скачивание и подключение Google Test
+# Исполняемый файл CLI
+add_executable(lab4_app
+        src/main.cpp
+)
+
+# Модульные тесты Google Test
+enable_testing()
+
 include(FetchContent)
 FetchContent_Declare(
         googletest
-        URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG        v1.15.2
 )
-# Отключаем предупреждения и переопределение настроек компилятора от GTest
+# Предотвращает конфликт настроек рантайма на Windows
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-# 3. Исполняемый файл для unit-тестов
-add_executable(lab4_test tests.cpp)
-target_link_libraries(lab4_test GTest::gtest_main)
+add_executable(lab4_tests
+        tests/test_sortings.cpp
+        tests/test_graph.cpp
+)
 
-# Включаем обнаружение тестов для панели тестирования в CLion
+target_link_libraries(lab4_tests PRIVATE GTest::gtest GTest::gtest_main)
+
 include(GoogleTest)
-gtest_discover_tests(lab4_test)
+gtest_discover_tests(lab4_tests)
