@@ -1,6 +1,6 @@
 /**
  * @file main.cpp
- * @brief Главный модуль консольного интерфейса (CLI) для демонстрации обобщённых алгоритмов.
+ * @brief Главный модуль консольного интерфейса (CLI) для демонстрации сортировок и графов.
  */
 
 #include <iostream>
@@ -8,12 +8,18 @@
 #include <string>
 #include <limits>
 #include <iomanip>
+#include <stdexcept>
 
 #include "custom_object.h"
 #include "sortings/heapsort.h"
 #include "sortings/stooge_sort.h"
+#include "graph/graph.h" // Подключаем наш граф
 
 namespace cli {
+
+// ==========================================
+// БАЗОВЫЕ ФУНКЦИИ ВВОДА
+// ==========================================
 
 /**
  * @brief Очищает поток ввода std::cin от некорректных символов и сбрасывает флаги ошибок.
@@ -23,13 +29,6 @@ void clearInputStream() {
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
-/**
- * @brief Безопасно считывает целое число из заданного диапазона.
- * @param prompt Текст приглашения ко вводу.
- * @param min_val Минимальное допустимое значение.
- * @param max_val Максимальное допустимое значение.
- * @return Корректное целое число.
- */
 int readInt(const std::string& prompt, int min_val, int max_val) {
     int value = 0;
     while (true) {
@@ -43,12 +42,6 @@ int readInt(const std::string& prompt, int min_val, int max_val) {
     }
 }
 
-/**
- * @brief Безопасно считывает вещественное число не меньше минимального порога.
- * @param prompt Текст приглашения ко вводу.
- * @param min_val Минимально допустимое значение.
- * @return Корректное вещественное число.
- */
 double readDouble(const std::string& prompt, double min_val) {
     double value = 0.0;
     while (true) {
@@ -62,11 +55,6 @@ double readDouble(const std::string& prompt, double min_val) {
     }
 }
 
-/**
- * @brief Считывает непустую строку из потока ввода.
- * @param prompt Текст приглашения ко вводу.
- * @return Считанная строка.
- */
 std::string readString(const std::string& prompt) {
     std::string line;
     while (true) {
@@ -78,10 +66,10 @@ std::string readString(const std::string& prompt) {
     }
 }
 
-/**
- * @brief Заполняет вектор базовым набором демонстрационных данных для тестов.
- * @param list Вектор для заполнения.
- */
+// ==========================================
+// ФУНКЦИИ ДЛЯ ЗАДАНИЯ 1: СОРТИРОВКИ
+// ==========================================
+
 void seedDefaultData(std::vector<FlightInfo>& list) {
     list.clear();
     list.emplace_back("B2-710", 1250.5, 2);
@@ -92,10 +80,6 @@ void seedDefaultData(std::vector<FlightInfo>& list) {
     list.emplace_back("BA-890", 2100.0, 4);
 }
 
-/**
- * @brief Выводит текущую коллекцию рейсов в консоль в виде форматированного списка.
- * @param list Коллекция рейсов.
- */
 void displayList(const std::vector<FlightInfo>& list) {
     std::cout << "\n---------------- ТЕКУЩИЙ СПИСОК РЕЙСОВ ----------------\n";
     if (list.empty()) {
@@ -108,158 +92,215 @@ void displayList(const std::vector<FlightInfo>& list) {
     std::cout << "-------------------------------------------------------\n";
 }
 
-/**
- * @brief Запрашивает у пользователя данные пошагово и добавляет новый рейс.
- * @param list Коллекция рейсов.
- */
 void addFlightInteractive(std::vector<FlightInfo>& list) {
-    std::cout << "\n--- Добавление нового авиарейса (Пошагово) ---\n";
+    std::cout << "\n--- Добавление нового авиарейса ---\n";
     std::string number = readString("Введите номер рейса (например, AF-112): ");
     double distance = readDouble("Введите дистанцию полёта (км, > 0): ", 0.1);
     int priority = readInt("Введите уровень приоритета (целое число от 1 до 10): ", 1, 10);
-
     list.emplace_back(std::move(number), distance, priority);
     std::cout << "Рейс успешно добавлен!\n";
 }
 
-/**
- * @brief Добавляет рейс, демонстрируя перегруженный оператор ввода (>>).
- * @param list Коллекция рейсов.
- */
 void addFlightViaStream(std::vector<FlightInfo>& list) {
     std::cout << "\n--- Добавление рейса через поток ввода (operator>>) ---\n";
-    std::cout << "Введите данные через пробел: [Номер(строка)] [Дистанция(число)] [Приоритет(целое)]\n";
-    std::cout << "Пример ввода: AZ-555 1200.5 5\n> ";
-
+    std::cout << "Введите данные через пробел: [Номер] [Дистанция] [Приоритет]\n> ";
     FlightInfo new_flight;
     if (std::cin >> new_flight) {
         list.push_back(new_flight);
-        std::cout << "Объект успешно считан из потока и добавлен!\n";
+        std::cout << "Объект успешно считан и добавлен!\n";
     } else {
         std::cout << "Ошибка формата ввода! Данные не добавлены.\n";
     }
-    clearInputStream(); // Очищаем буфер после чтения оператором >>
+    clearInputStream();
 }
 
-/**
- * @brief Удаляет рейс по указанному индексу из вектора.
- * @param list Коллекция рейсов.
- */
 void removeFlight(std::vector<FlightInfo>& list) {
     if (list.empty()) {
-        std::cout << "Удаление невозможно: список пуст!\n";
+        std::cout << "Список пуст!\n";
         return;
     }
-
     displayList(list);
     int index = readInt("Введите индекс рейса для удаления: ", 0, static_cast<int>(list.size() - 1));
     list.erase(list.begin() + index);
-    std::cout << "Рейс с индексом " << index << " успешно удалён.\n";
+    std::cout << "Рейс успешно удалён.\n";
 }
 
-/**
- * @brief Запускает и замеряет пирамидальную сортировку (Heapsort).
- * @param list Коллекция для сортировки.
- */
-void performHeapsort(std::vector<FlightInfo>& list) {
-    if (list.size() < 2) {
-        std::cout << "В списке меньше двух элементов, сортировка не требуется.\n";
-        return;
-    }
-
-    std::cout << "\nЗапуск Heapsort (сложность O(N log N))...\n";
-    heapsort(list);
-    std::cout << "Коллекция успешно отсортирована (Heapsort)!\n";
-    displayList(list);
-}
-
-/**
- * @brief Запускает сортировку Студжа (Stooge sort).
- * @param list Коллекция для сортировки.
- */
-void performStoogeSort(std::vector<FlightInfo>& list) {
-    if (list.size() < 2) {
-        std::cout << "В списке меньше двух элементов, сортировка не требуется.\n";
-        return;
-    }
-
-    if (list.size() > 40) {
-        std::cout << "Внимание: для N=" << list.size()
-                  << " Stooge sort (O(N^2.709)) может работать долго.\n";
-    }
-
-    std::cout << "\nЗапуск Stooge sort...\n";
-    stooge_sort(list);
-    std::cout << "Коллекция успешно отсортирована (Stooge sort)!\n";
-    displayList(list);
-}
-
-/**
- * @brief Запускает сортировку с пользовательским лямбда-выражением в качестве компаратора.
- * @param list Коллекция для сортировки.
- */
-void performCustomSort(std::vector<FlightInfo>& list) {
-    if (list.size() < 2) {
-        std::cout << "В списке меньше двух элементов, сортировка не требуется.\n";
-        return;
-    }
-
-    std::cout << "\nЗапуск кастомной сортировки (Heapsort, убывание дистанции)...\n";
-    heapsort(list, [](const FlightInfo& a, const FlightInfo& b) {
-        return a.get_distance() > b.get_distance();
-    });
-    std::cout << "Отсортировано по убыванию дистанции!\n";
-    displayList(list);
-}
-
-} // namespace cli
-
-/**
- * @brief Главная функция программы. Запускает цикл консольного меню.
- * @return 0 при успешном завершении работы программы.
- */
-int main() {
+void sortingMenu() {
     std::vector<FlightInfo> flights;
-    cli::seedDefaultData(flights);
-
+    seedDefaultData(flights);
     int choice = -1;
     while (choice != 0) {
-        std::cout << "\n============================================\n"
-                  << "  ЛАБОРАТОРНАЯ РАБОТА №4: СОРТИРОВКИ (CLI)  \n"
-                  << "============================================\n"
+        std::cout << "\n=== ЗАДАНИЕ 1: СОРТИРОВКИ ===\n"
                   << "1. Показать текущий список рейсов\n"
                   << "2. Добавить новый рейс (пошагово)\n"
                   << "3. Добавить рейс строкой (через operator>>)\n"
                   << "4. Удалить рейс по индексу\n"
-                  << "5. Сбросить данные к начальным (Seed Data)\n"
-                  << "6. Очистить список полностью\n"
-                  << "7. Сортировка Heapsort (по умолчанию)\n"
-                  << "8. Сортировка Stooge sort (по умолчанию)\n"
-                  << "9. Сортировка Heapsort (лямбда: дистанция по убыванию)\n"
-                  << "0. Выход из программы\n";
+                  << "5. Сбросить данные к начальным\n"
+                  << "6. Сортировка Heapsort (по умолчанию)\n"
+                  << "7. Сортировка Stooge sort (по умолчанию)\n"
+                  << "8. Сортировка Heapsort (лямбда: дистанция по убыванию)\n"
+                  << "0. Вернуться в главное меню\n";
 
-        choice = cli::readInt("Выберите действие: ", 0, 9);
+        choice = readInt("Выберите действие: ", 0, 8);
 
         switch (choice) {
-            case 1: cli::displayList(flights); break;
-            case 2: cli::addFlightInteractive(flights); break;
-            case 3: cli::addFlightViaStream(flights); break;
-            case 4: cli::removeFlight(flights); break;
-            case 5:
-                cli::seedDefaultData(flights);
-                std::cout << "Список сброшен к базовым данным.\n";
-                break;
+            case 1: displayList(flights); break;
+            case 2: addFlightInteractive(flights); break;
+            case 3: addFlightViaStream(flights); break;
+            case 4: removeFlight(flights); break;
+            case 5: seedDefaultData(flights); std::cout << "Сброшено.\n"; break;
             case 6:
-                flights.clear();
-                std::cout << "Список очищен.\n";
+                heapsort(flights);
+                std::cout << "Отсортировано (Heapsort)!\n";
+                displayList(flights);
                 break;
-            case 7: cli::performHeapsort(flights); break;
-            case 8: cli::performStoogeSort(flights); break;
-            case 9: cli::performCustomSort(flights); break;
-            case 0: std::cout << "Завершение программы.\n"; break;
-            default: break;
+            case 7:
+                stooge_sort(flights);
+                std::cout << "Отсортировано (Stooge sort)!\n";
+                displayList(flights);
+                break;
+            case 8:
+                heapsort(flights, [](const FlightInfo& a, const FlightInfo& b) {
+                    return a.get_distance() > b.get_distance();
+                });
+                std::cout << "Отсортировано по убыванию дистанции!\n";
+                displayList(flights);
+                break;
         }
     }
+}
 
+// ==========================================
+// ФУНКЦИИ ДЛЯ ЗАДАНИЯ 2: ГРАФЫ
+// ==========================================
+
+void seedGraphData(Graph<std::string>& g) {
+    g.clear();
+    g.insert_vertex("MSQ"); // Минск
+    g.insert_vertex("SVO"); // Москва
+    g.insert_vertex("IST"); // Стамбул
+    g.insert_vertex("DXB"); // Дубай
+
+    g.insert_edge("MSQ", "SVO");
+    g.insert_edge("MSQ", "IST");
+    g.insert_edge("MSQ", "DXB");
+    g.insert_edge("IST", "DXB");
+    std::cout << "Граф заполнен тестовой картой авиамаршрутов.\n";
+}
+
+void addVertex(Graph<std::string>& g) {
+    std::string v = readString("Введите код аэропорта (например, MSQ): ");
+    try {
+        g.insert_vertex(v);
+        std::cout << "Аэропорт " << v << " успешно добавлен.\n";
+    } catch (const std::exception& e) {
+        std::cout << "Ошибка: " << e.what() << "\n";
+    }
+}
+
+void removeVertex(Graph<std::string>& g) {
+    std::string v = readString("Введите код аэропорта для удаления: ");
+    try {
+        g.erase_vertex(v);
+        std::cout << "Аэропорт " << v << " и все его маршруты удалены.\n";
+    } catch (const std::exception& e) {
+        std::cout << "Ошибка: " << e.what() << "\n";
+    }
+}
+
+void addEdge(Graph<std::string>& g) {
+    std::string from = readString("Откуда летим (аэропорт): ");
+    std::string to = readString("Куда летим (аэропорт): ");
+    try {
+        g.insert_edge(from, to);
+        std::cout << "Маршрут " << from << " -> " << to << " успешно открыт!\n";
+    } catch (const std::exception& e) {
+        std::cout << "Ошибка: " << e.what() << "\n";
+    }
+}
+
+void removeEdge(Graph<std::string>& g) {
+    std::string from = readString("Откуда летим (аэропорт): ");
+    std::string to = readString("Куда летим (аэропорт): ");
+    try {
+        g.erase_edge(from, to);
+        std::cout << "Маршрут " << from << " -> " << to << " закрыт.\n";
+    } catch (const std::exception& e) {
+        std::cout << "Ошибка: " << e.what() << "\n";
+    }
+}
+
+void printVertexInfo(Graph<std::string>& g) {
+    std::string v = readString("Введите код аэропорта: ");
+    if (!g.has_vertex(v)) {
+        std::cout << "Аэропорт " << v << " не найден в графе.\n";
+        return;
+    }
+    try {
+        std::cout << "Аэропорт присутствует. Общая степень узла (кол-во входящих и исходящих): "
+                  << g.vertex_degree(v) << "\n";
+    } catch (const std::exception& e) {
+        std::cout << "Ошибка: " << e.what() << "\n";
+    }
+}
+
+void graphMenu() {
+    Graph<std::string> g;
+    seedGraphData(g);
+    int choice = -1;
+    while (choice != 0) {
+        std::cout << "\n=== ЗАДАНИЕ 2: ГРАФЫ (Карта перелётов) ===\n"
+                  << "1. Вывести структуру графа на экран\n"
+                  << "2. Добавить аэропорт (вершину)\n"
+                  << "3. Удалить аэропорт (вершину)\n"
+                  << "4. Открыть маршрут (добавить ребро)\n"
+                  << "5. Закрыть маршрут (удалить ребро)\n"
+                  << "6. Информация об аэропорте (степень узла)\n"
+                  << "7. Очистить карту перелётов полностью\n"
+                  << "8. Вернуть базовые маршруты (Seed)\n"
+                  << "0. Вернуться в главное меню\n";
+
+        choice = readInt("Выберите действие: ", 0, 8);
+
+        switch (choice) {
+            case 1:
+                std::cout << g;
+                std::cout << "Всего аэропортов: " << g.vertex_count() << ", Всего маршрутов: " << g.edge_count() << "\n";
+                break;
+            case 2: addVertex(g); break;
+            case 3: removeVertex(g); break;
+            case 4: addEdge(g); break;
+            case 5: removeEdge(g); break;
+            case 6: printVertexInfo(g); break;
+            case 7: g.clear(); std::cout << "Карта очищена.\n"; break;
+            case 8: seedGraphData(g); break;
+        }
+    }
+}
+
+} // namespace cli
+
+// ==========================================
+// ГЛАВНОЕ МЕНЮ
+// ==========================================
+
+int main() {
+    int choice = -1;
+    while (choice != 0) {
+        std::cout << "\n============================================\n"
+                  << "      ЛАБОРАТОРНАЯ РАБОТА №4: ГЛАВНОЕ МЕНЮ  \n"
+                  << "============================================\n"
+                  << "1. Задание 1: Обобщённые алгоритмы сортировки\n"
+                  << "2. Задание 2: Обобщённый контейнер Граф\n"
+                  << "0. Выход из программы\n";
+
+        choice = cli::readInt("Выберите раздел: ", 0, 2);
+
+        switch (choice) {
+            case 1: cli::sortingMenu(); break;
+            case 2: cli::graphMenu(); break;
+            case 0: std::cout << "До свидания!\n"; break;
+        }
+    }
     return 0;
 }
