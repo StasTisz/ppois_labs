@@ -13,7 +13,7 @@ jobs:
   # ==========================================
   # РАБОТА 1: Лабораторная 1 (C++ на Linux)
   # ==========================================
-  build-cpp-linux:
+  build-cpp-lab1:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -24,35 +24,39 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cppcheck lcov cmake
 
+      - name: Cache GTest dependencies
+        uses: actions/cache@v4
+        with:
+          path: lab1/build/_deps
+          key: ${{ runner.os }}-gtest-lab1-${{ hashFiles('lab1/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-gtest-lab1-
+
       - name: Run Linter (cppcheck)
-        run: cppcheck --language=c++ --enable=warning,performance,portability --force lab1/
+        run: cppcheck --language=c++ --enable=warning,performance,portability --force -i lab1/build/ lab1/
 
       - name: Configure and Build
         run: |
-          cd lab1
-          cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="--coverage"
-          cmake --build build -j$(nproc)
+          cmake -S lab1 -B lab1/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="--coverage"
+          cmake --build lab1/build -j$(nproc)
 
       - name: Run Unit Tests
-        run: |
-          cd lab1/build
-          ./run_tests
+        run: ./lab1/build/lab1_tests
 
       - name: Verify Code Coverage
         run: |
-          cd lab1
-          lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch,gcov
-          lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/test.cpp' --output-file coverage_clean.info --ignore-errors unused,empty,mismatch
-          lcov --list coverage_clean.info --ignore-errors unused,empty,mismatch
+          lcov --capture --directory lab1/build --output-file lab1_coverage.info --ignore-errors mismatch,gcov
+          lcov --remove lab1_coverage.info '/usr/*' '*/_deps/*' '*/tests/*' '*/test.cpp' '*/app/*' --output-file lab1_coverage_clean.info --ignore-errors unused,empty,mismatch
+          lcov --list lab1_coverage_clean.info --ignore-errors unused,empty,mismatch
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ppois_lab1_linux
-          path: lab1/build/ppois_lab1
+          path: lab1/build/lab1_app
 
   # ==========================================
-  # РАБОТА 2: Лабораторная 4 (C++ на Linux с кэшированием)
+  # РАБОТА 2: Лабораторная 4 (C++ на Linux)
   # ==========================================
   build-cpp-lab4:
     runs-on: ubuntu-latest
@@ -69,30 +73,26 @@ jobs:
         uses: actions/cache@v4
         with:
           path: lab4/build/_deps
-          key: ${{ runner.os }}-gtest-${{ hashFiles('lab4/CMakeLists.txt') }}
+          key: ${{ runner.os }}-gtest-lab4-${{ hashFiles('lab4/CMakeLists.txt') }}
           restore-keys: |
-            ${{ runner.os }}-gtest-
+            ${{ runner.os }}-gtest-lab4-
 
       - name: Run Linter (cppcheck)
         run: cppcheck --language=c++ --enable=warning,performance,portability --force -i lab4/build/ lab4/
 
       - name: Configure and Build
         run: |
-          cd lab4
-          cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="--coverage"
-          cmake --build build -j$(nproc)
+          cmake -S lab4 -B lab4/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="--coverage"
+          cmake --build lab4/build -j$(nproc)
 
       - name: Run Unit Tests
-        run: |
-          cd lab4/build
-          ./lab4_tests
+        run: ./lab4/build/lab4_tests
 
       - name: Verify Code Coverage
         run: |
-          cd lab4
-          lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch,gcov
-          lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/tests/*' '*/src/main.cpp' --output-file coverage_clean.info --ignore-errors unused,empty,mismatch
-          lcov --list coverage_clean.info --ignore-errors unused,empty,mismatch
+          lcov --capture --directory lab4/build --output-file lab4_coverage.info --ignore-errors mismatch,gcov
+          lcov --remove lab4_coverage.info '/usr/*' '*/_deps/*' '*/tests/*' '*/src/main.cpp' --output-file lab4_coverage_clean.info --ignore-errors unused,empty,mismatch
+          lcov --list lab4_coverage_clean.info --ignore-errors unused,empty,mismatch
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -156,7 +156,7 @@ jobs:
   # РАБОТА 4: Публикация релиза
   # ==========================================
   publish-release:
-    needs: [build-cpp-linux, build-cpp-lab4, build-python-windows]
+    needs: [build-cpp-lab1, build-cpp-lab4, build-python-windows]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
