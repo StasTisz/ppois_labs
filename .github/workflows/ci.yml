@@ -25,13 +25,13 @@ jobs:
           sudo apt-get install -y cppcheck lcov cmake
 
       - name: Run Linter (cppcheck)
-        run: cppcheck --language=c++ --enable=warning,performance,portability --force .
+        run: cppcheck --language=c++ --enable=warning,performance,portability --force lab1/
 
       - name: Configure and Build
         run: |
           cd lab1
           cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="--coverage"
-          cmake --build build
+          cmake --build build -j$(nproc)
 
       - name: Run Unit Tests
         run: |
@@ -42,8 +42,8 @@ jobs:
         run: |
           cd lab1
           lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch,gcov
-          lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/test.cpp' --output-file coverage_clean.info --ignore-errors unused,mismatch
-          lcov --list coverage_clean.info --ignore-errors unused,mismatch
+          lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/test.cpp' --output-file coverage_clean.info --ignore-errors unused,empty,mismatch
+          lcov --list coverage_clean.info --ignore-errors unused,empty,mismatch
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -52,7 +52,56 @@ jobs:
           path: lab1/build/ppois_lab1
 
   # ==========================================
-  # РАБОТА 2: Лабораторные 2 и 3 (Python на Windows)
+  # РАБОТА 2: Лабораторная 4 (C++ на Linux с кэшированием)
+  # ==========================================
+  build-cpp-lab4:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck lcov cmake
+
+      - name: Cache GTest dependencies
+        uses: actions/cache@v4
+        with:
+          path: lab4/build/_deps
+          key: ${{ runner.os }}-gtest-${{ hashFiles('lab4/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-gtest-
+
+      - name: Run Linter (cppcheck)
+        run: cppcheck --language=c++ --enable=warning,performance,portability --force -i lab4/build/ lab4/
+
+      - name: Configure and Build
+        run: |
+          cd lab4
+          cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="--coverage"
+          cmake --build build -j$(nproc)
+
+      - name: Run Unit Tests
+        run: |
+          cd lab4/build
+          ./lab4_tests
+
+      - name: Verify Code Coverage
+        run: |
+          cd lab4
+          lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch,gcov
+          lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/tests/*' '*/src/main.cpp' --output-file coverage_clean.info --ignore-errors unused,empty,mismatch
+          lcov --list coverage_clean.info --ignore-errors unused,empty,mismatch
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ppois_lab4_linux
+          path: lab4/build/lab4_app
+
+  # ==========================================
+  # РАБОТА 3: Лабораторные 2 и 3 (Python на Windows)
   # ==========================================
   build-python-windows:
     runs-on: windows-latest
@@ -72,7 +121,6 @@ jobs:
 
       - name: Run Linter and Type Check
         run: |
-          # Флаг --output-format=github будет красиво подсвечивать ошибки прямо в PR
           ruff check lab2/ lab3/ --output-format=github
           mypy lab2/ lab3/ --explicit-package-bases --ignore-missing-imports
 
@@ -89,11 +137,9 @@ jobs:
           python -m pytest --cov=lab3/domain --cov-fail-under=90 lab3/tests/
 
       - name: Build Standalone Artifacts
+        shell: pwsh
         run: |
-          # Сборка второй лабораторной
           pyinstaller --onefile --name ppois_lab2 lab2/cli.py
-          
-          # Безопасная попытка собрать третью лабу
           if (Test-Path "lab3/cli.py") { 
             pyinstaller --onefile --name ppois_lab3 lab3/cli.py 
           } else {
@@ -107,12 +153,12 @@ jobs:
           path: dist/*.exe
 
   # ==========================================
-  # РАБОТА 3: Публикация релиза (собирает артефакты обеих систем)
+  # РАБОТА 4: Публикация релиза
   # ==========================================
   publish-release:
-    needs: [build-cpp-linux, build-python-windows]
+    needs: [build-cpp-linux, build-cpp-lab4, build-python-windows]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feat/')
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -122,8 +168,8 @@ jobs:
       - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "v1.0-test" # или "latest" (строго фиксированное имя тега, а не ссылка на ветку)
-          name: "Последние сборки"
-          files: path/to/artifacts/*
+          tag_name: "latest"
+          name: "Финальные сборки (Лабораторные 1-4)"
+          files: artifacts/**/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
