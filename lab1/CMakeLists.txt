@@ -3,13 +3,13 @@ project(ppois_lab1)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Основная программа с меню
-add_executable(ppois_lab1
+# Основная программа с меню (Переименовано в lab1_app)
+add_executable(lab1_app
         app/main.cpp
         src/Polynomial.cpp
 )
 
-target_include_directories(ppois_lab1 PRIVATE include)
+target_include_directories(lab1_app PRIVATE include)
 
 # Автоматическое скачивание Google Test
 include(FetchContent)
@@ -21,11 +21,11 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-# Отдельная программа-тестировщик
-add_executable(run_tests tests/test.cpp src/Polynomial.cpp)
+# Отдельная программа-тестировщик (Переименовано в lab1_tests)
+add_executable(lab1_tests tests/test.cpp src/Polynomial.cpp)
 
-target_link_libraries(run_tests gtest_main)
+target_link_libraries(lab1_tests gtest_main)
 
 # Интеграция со встроенным окном тестов CLion
 include(GoogleTest)
-gtest_discover_tests(run_tests)
+gtest_discover_tests(lab1_tests)
