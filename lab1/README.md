@@ -6,9 +6,6 @@
 lab1/
 ├── app/                           # Точка входа и консольное меню
 │   └── main.cpp
-├── cmake-build-debug/             # Артефакты сборки IDE (игнорируются в Git)
-├── cmake-build-debug-coverage/    # Артефакты покрытия кода (игнорируются в Git)
-├── docs/                          # Сгенерированная документация Doxygen (создается вручную)
 ├── include/                       # Заголовочные файлы
 │   ├── Polynomial.h
 │   └── Set.h
@@ -17,8 +14,7 @@ lab1/
 ├── tests/                         # Unit-тесты (Google Test)
 │   └── test.cpp
 ├── CMakeLists.txt                 # Сценарий сборки проекта и тестов
-├── Doxyfile                       # Конфигурационный файл для Doxygen
-└── README.md                      # Текущий файл описания
+└── Doxyfile                       # Конфигурационный файл для Doxygen
 ```
 ## 📚 Документация
 
