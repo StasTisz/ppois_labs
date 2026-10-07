@@ -1,0 +1,175 @@
+name: CI/CD Pipeline (All Labs)
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+permissions:
+  contents: write
+
+jobs:
+  # ==========================================
+  # РАБОТА 1: Лабораторная 1 (C++ на Linux)
+  # ==========================================
+  build-cpp-lab1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck lcov cmake
+
+      - name: Cache GTest dependencies
+        uses: actions/cache@v4
+        with:
+          path: lab1/build/_deps
+          key: ${{ runner.os }}-gtest-lab1-${{ hashFiles('lab1/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-gtest-lab1-
+
+      - name: Run Linter (cppcheck)
+        run: cppcheck --language=c++ --enable=warning,performance,portability --force -i lab1/build/ lab1/
+
+      - name: Configure and Build
+        run: |
+          cmake -S lab1 -B lab1/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="--coverage"
+          cmake --build lab1/build -j$(nproc)
+
+      - name: Run Unit Tests
+        run: ./lab1/build/lab1_tests
+
+      - name: Verify Code Coverage
+        run: |
+          lcov --capture --directory lab1/build --output-file lab1_coverage.info --ignore-errors mismatch,gcov
+          lcov --remove lab1_coverage.info '/usr/*' '*/_deps/*' '*/tests/*' '*/test.cpp' '*/app/*' --output-file lab1_coverage_clean.info --ignore-errors unused,empty,mismatch
+          lcov --list lab1_coverage_clean.info --ignore-errors unused,empty,mismatch
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ppois_lab1_linux
+          path: lab1/build/lab1_app
+
+  # ==========================================
+  # РАБОТА 2: Лабораторная 4 (C++ на Linux)
+  # ==========================================
+  build-cpp-lab4:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck lcov cmake
+
+      - name: Cache GTest dependencies
+        uses: actions/cache@v4
+        with:
+          path: lab4/build/_deps
+          key: ${{ runner.os }}-gtest-lab4-${{ hashFiles('lab4/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-gtest-lab4-
+
+      - name: Run Linter (cppcheck)
+        run: cppcheck --language=c++ --enable=warning,performance,portability --force -i lab4/build/ lab4/
+
+      - name: Configure and Build
+        run: |
+          cmake -S lab4 -B lab4/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="--coverage"
+          cmake --build lab4/build -j$(nproc)
+
+      - name: Run Unit Tests
+        run: ./lab4/build/lab4_tests
+
+      - name: Verify Code Coverage
+        run: |
+          lcov --capture --directory lab4/build --output-file lab4_coverage.info --ignore-errors mismatch,gcov
+          lcov --remove lab4_coverage.info '/usr/*' '*/_deps/*' '*/tests/*' '*/src/main.cpp' --output-file lab4_coverage_clean.info --ignore-errors unused,empty,mismatch
+          lcov --list lab4_coverage_clean.info --ignore-errors unused,empty,mismatch
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ppois_lab4_linux
+          path: lab4/build/lab4_app
+
+  # ==========================================
+  # РАБОТА 3: Лабораторные 2 и 3 (Python на Windows)
+  # ==========================================
+  build-python-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov ruff mypy pyinstaller
+
+      - name: Run Linter and Type Check
+        run: |
+          ruff check lab2/ lab3/ --output-format=github
+          mypy lab2/ lab3/ --explicit-package-bases --ignore-missing-imports
+
+      - name: Run Unit Tests & Verify Coverage (Lab 2)
+        env:
+          PYTHONPATH: .
+        run: |
+          python -m pytest --cov=lab2/domain --cov-fail-under=90 lab2/tests/
+
+      - name: Run Unit Tests & Verify Coverage (Lab 3)
+        env:
+          PYTHONPATH: .
+        run: |
+          python -m pytest --cov=lab3/domain --cov-fail-under=90 lab3/tests/
+
+      - name: Build Standalone Artifacts
+        shell: pwsh
+        run: |
+          pyinstaller --onefile --name ppois_lab2 lab2/cli.py
+          if (Test-Path "lab3/cli.py") { 
+            pyinstaller --onefile --name ppois_lab3 lab3/cli.py 
+          } else {
+            Write-Host "Файл lab3/cli.py пока не существует. Сборка пропущена."
+          }
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ppois_windows_builds
+          path: dist/*.exe
+
+  # ==========================================
+  # РАБОТА 4: Публикация релиза
+  # ==========================================
+  publish-release:
+    needs: [build-cpp-lab1, build-cpp-lab4, build-python-windows]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "latest"
+          name: "Финальные сборки (Лабораторные 1-4)"
+          files: artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
