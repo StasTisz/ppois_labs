@@ -197,6 +197,13 @@ public:
     }
 
     /**
+     * @brief Очищает множество (удаляет все элементы).
+     */
+    void clear() {
+        elements.clear();
+    }
+
+    /**
      * @brief Строит булеан (множество всех подмножеств) для текущего множества.
      * @return Множество, содержащее множества-подмножества типа Set<Set<T>>.
      */
@@ -245,6 +252,8 @@ public:
      * @return Ссылка на входной поток.
      */
     friend std::istream& operator>>(std::istream& is, Set<T>& set) {
+        set.clear();
+
         std::string line;
         std::getline(is >> std::ws, line);
 
