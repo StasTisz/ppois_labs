@@ -48,6 +48,11 @@ jobs:
           lcov --capture --directory lab1/build --output-file lab1_coverage.info --ignore-errors mismatch,gcov,inconsistent,unsupported,format
           lcov --remove lab1_coverage.info '/usr/*' '*/_deps/*' '*/tests/*' '*/test*.cpp' '*/app/*' --output-file lab1_coverage_clean.info --ignore-errors unused,empty,mismatch,inconsistent,format
           lcov --list lab1_coverage_clean.info --ignore-errors unused,empty,mismatch,inconsistent,format
+          
+          # Проверка порога покрытия (минимум 90%)
+          COVERAGE=$(lcov --summary lab1_coverage_clean.info --ignore-errors unused,empty,mismatch,inconsistent,format | grep lines | awk '{print $2}' | tr -d '%')
+          echo "Текущее покрытие Lab 1: $COVERAGE%"
+          awk -v cov="$COVERAGE" 'BEGIN { if (cov < 90.0) { print "Ошибка: покрытие ниже 90% (" cov "%)"; exit 1 } else { print "Покрытие валидно (" cov "%)" } }'
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -93,6 +98,11 @@ jobs:
           lcov --capture --directory lab4/build --output-file lab4_coverage.info --ignore-errors mismatch,gcov,inconsistent,unsupported,format
           lcov --remove lab4_coverage.info '/usr/*' '*/_deps/*' '*/tests/*' '*/src/main.cpp' --output-file lab4_coverage_clean.info --ignore-errors unused,empty,mismatch,inconsistent,format
           lcov --list lab4_coverage_clean.info --ignore-errors unused,empty,mismatch,inconsistent,format
+          
+          # Проверка порога покрытия (минимум 90%)
+          COVERAGE=$(lcov --summary lab4_coverage_clean.info --ignore-errors unused,empty,mismatch,inconsistent,format | grep lines | awk '{print $2}' | tr -d '%')
+          echo "Текущее покрытие Lab 4: $COVERAGE%"
+          awk -v cov="$COVERAGE" 'BEGIN { if (cov < 90.0) { print "Ошибка: покрытие ниже 90% (" cov "%)"; exit 1 } else { print "Покрытие валидно (" cov "%)" } }'
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -139,9 +149,10 @@ jobs:
       - name: Build Standalone Artifacts
         shell: pwsh
         run: |
-          pyinstaller --onefile --name ppois_lab2 lab2/cli.py
+          $env:PYTHONPATH = "."
+          pyinstaller --onefile --paths . --collect-all lab2 --name ppois_lab2 lab2/cli.py
           if (Test-Path "lab3/cli.py") { 
-            pyinstaller --onefile --name ppois_lab3 lab3/cli.py 
+            pyinstaller --onefile --paths . --collect-all lab3 --name ppois_lab3 lab3/cli.py 
           } else {
             Write-Host "Файл lab3/cli.py пока не существует. Сборка пропущена."
           }
@@ -184,13 +195,13 @@ jobs:
 
       - name: Build Lab 2 (Python macOS)
         run: |
-          pyinstaller --onefile --name ppois_lab2_macos lab2/cli.py
+          PYTHONPATH=. pyinstaller --onefile --paths . --collect-all lab2 --name ppois_lab2_macos lab2/cli.py
           cp dist/ppois_lab2_macos macos_binaries/
 
       - name: Build Lab 3 (Python macOS)
         run: |
           if [ -f "lab3/cli.py" ]; then
-            pyinstaller --onefile --name ppois_lab3_macos lab3/cli.py
+            PYTHONPATH=. pyinstaller --onefile --paths . --collect-all lab3 --name ppois_lab3_macos lab3/cli.py
             cp dist/ppois_lab3_macos macos_binaries/
           else
             echo "lab3/cli.py не найден, сборка пропущена"
