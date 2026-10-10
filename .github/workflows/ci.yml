@@ -45,9 +45,9 @@ jobs:
 
       - name: Verify Code Coverage
         run: |
-          lcov --capture --directory lab1/build --output-file lab1_coverage.info --ignore-errors mismatch,gcov
-          lcov --remove lab1_coverage.info '/usr/*' '*/_deps/*' '*/tests/*' '*/test.cpp' '*/app/*' --output-file lab1_coverage_clean.info --ignore-errors unused,empty,mismatch
-          lcov --list lab1_coverage_clean.info --ignore-errors unused,empty,mismatch
+          lcov --capture --directory lab1/build --output-file lab1_coverage.info --ignore-errors mismatch,gcov,inconsistent,unsupported,format
+          lcov --remove lab1_coverage.info '/usr/*' '*/_deps/*' '*/tests/*' '*/test*.cpp' '*/app/*' --output-file lab1_coverage_clean.info --ignore-errors unused,empty,mismatch,inconsistent,format
+          lcov --list lab1_coverage_clean.info --ignore-errors unused,empty,mismatch,inconsistent,format
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -90,9 +90,9 @@ jobs:
 
       - name: Verify Code Coverage
         run: |
-          lcov --capture --directory lab4/build --output-file lab4_coverage.info --ignore-errors mismatch,gcov
-          lcov --remove lab4_coverage.info '/usr/*' '*/_deps/*' '*/tests/*' '*/src/main.cpp' --output-file lab4_coverage_clean.info --ignore-errors unused,empty,mismatch
-          lcov --list lab4_coverage_clean.info --ignore-errors unused,empty,mismatch
+          lcov --capture --directory lab4/build --output-file lab4_coverage.info --ignore-errors mismatch,gcov,inconsistent,unsupported,format
+          lcov --remove lab4_coverage.info '/usr/*' '*/_deps/*' '*/tests/*' '*/src/main.cpp' --output-file lab4_coverage_clean.info --ignore-errors unused,empty,mismatch,inconsistent,format
+          lcov --list lab4_coverage_clean.info --ignore-errors unused,empty,mismatch,inconsistent,format
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -153,10 +153,60 @@ jobs:
           path: dist/*.exe
 
   # ==========================================
-  # РАБОТА 4: Публикация релиза
+  # РАБОТА 4: Сборка всех лаб под macOS (Apple Silicon)
+  # ==========================================
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PyInstaller
+        run: pip install pyinstaller
+
+      - name: Build Lab 1 (C++ macOS ARM64)
+        run: |
+          cmake -S lab1 -B lab1/build_macos -DCMAKE_BUILD_TYPE=Release
+          cmake --build lab1/build_macos -j$(sysctl -n hw.ncpu)
+          mkdir -p macos_binaries
+          cp lab1/build_macos/lab1_app macos_binaries/lab1_app_macos
+
+      - name: Build Lab 4 (C++ macOS ARM64)
+        run: |
+          cmake -S lab4 -B lab4/build_macos -DCMAKE_BUILD_TYPE=Release
+          cmake --build lab4/build_macos -j$(sysctl -n hw.ncpu)
+          cp lab4/build_macos/lab4_app macos_binaries/lab4_app_macos
+
+      - name: Build Lab 2 (Python macOS)
+        run: |
+          pyinstaller --onefile --name ppois_lab2_macos lab2/cli.py
+          cp dist/ppois_lab2_macos macos_binaries/
+
+      - name: Build Lab 3 (Python macOS)
+        run: |
+          if [ -f "lab3/cli.py" ]; then
+            pyinstaller --onefile --name ppois_lab3_macos lab3/cli.py
+            cp dist/ppois_lab3_macos macos_binaries/
+          else
+            echo "lab3/cli.py не найден, сборка пропущена"
+          fi
+
+      - name: Upload macOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ppois_macos_builds
+          path: macos_binaries/*
+
+  # ==========================================
+  # РАБОТА 5: Публикация всех сборок в Releases
   # ==========================================
   publish-release:
-    needs: [build-cpp-lab1, build-cpp-lab4, build-python-windows]
+    needs: [build-cpp-lab1, build-cpp-lab4, build-python-windows, build-macos]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
