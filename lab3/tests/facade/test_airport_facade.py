@@ -1,5 +1,5 @@
-import pytest
 from datetime import UTC, datetime
+import pytest
 from lab3.domain.exceptions import (
     InvalidTicketException,
     MaintenanceRequiredException,
@@ -14,12 +14,12 @@ from lab3.domain.people.employee import Employee
 
 class DummyTech(Employee):
     def perform_duty(self) -> str:
-        return "Работает"
+        return "Обслужено"
 
 
-def test_facade_end_to_end():
+def test_airport_facade():
     facade = AirportFacade("Minsk International", "MSQ")
-    plane = PassengerAircraft("B737", 850.0, "EW-001PA", 20000.0, 160)
+    plane = PassengerAircraft("B737", 850.0, "EW-900PA", 20000.0, 160)
     truck = FuelTruck("FT-500", 50.0, "T001TT", 10000.0)
 
     facade.register_aircraft(plane)
@@ -36,7 +36,7 @@ def test_facade_end_to_end():
     assert len(facade.passengers) == 1
 
     flight = facade.create_departure_flight(
-        "B2-973", "Belavia", "EW-001PA", "MSQ", "SVO", datetime.now(UTC)
+        "B2-973", "Belavia", "EW-900PA", "MSQ", "SVO", datetime.now(UTC)
     )
 
     ticket = facade.issue_ticket("MP1234567", "B2-973", "Economy", 120.0)
