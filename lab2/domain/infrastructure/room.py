@@ -21,10 +21,10 @@ class Room:
         return self.capacity - len(self._residents)
 
     def check_in(self, student: Student) -> None:
-        if self.free_beds <= 0:
-            raise RoomCapacityExceededException(f"Блок {self.number} полностью укомплектован.")
         if self.has_resident(student):
             raise ValueError(f"Студент {student.full_name} уже прописан в этой комнате.")
+        if self.free_beds <= 0:
+            raise RoomCapacityExceededException(f"Блок {self.number} полностью укомплектован.")
         self._residents.append(student)
         student.room = self
 
