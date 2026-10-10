@@ -4,9 +4,6 @@ from lab2.domain.people.employee import Employee
 
 
 class Dean(Employee):
-    """
-    Декан факультета. Подписывает приказы и руководит факультетом.
-    """
     DEFAULT_DEGREE = "К.т.н."
     DEFAULT_POSITION = "Декан"
 
@@ -15,13 +12,4 @@ class Dean(Employee):
         self.degree = degree
 
     def sign_order(self, order_text: str) -> str:
-        """
-        Подписывает приказ по факультету.
-
-        Args:
-            order_text (str): Текст приказа.
-
-        Returns:
-            str: Форматированная строка подписанного приказа.
-        """
         return f"ПРИКАЗ УТВЕРЖДЕН: {order_text} | Подписант: декан {self.full_name}"

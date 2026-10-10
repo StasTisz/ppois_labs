@@ -5,15 +5,6 @@ from lab2.domain.people.student import Student
 
 
 class AcademicLeaveOrder(Document):
-    """
-    Приказ о предоставлении академического отпуска.
-
-    Attributes:
-        student (Student): Студент, уходящий в отпуск.
-        reason (str): Причина отпуска.
-        duration_months (int): Длительность в месяцах.
-    """
-
     def __init__(self, student: Student, reason: str, duration_months: int) -> None:
         super().__init__(f"Академический отпуск: {student.full_name}")
         self.student = student
@@ -21,7 +12,6 @@ class AcademicLeaveOrder(Document):
         self.duration_months = duration_months
 
     def execute(self) -> None:
-        """Замораживает статус студента (отключает стипендию и переводит в неактивный статус)."""
         self._ensure_signed()
         self.student.is_active = False
         self.student.has_scholarship = False

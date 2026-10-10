@@ -17,15 +17,6 @@ ExecutableOrder = ExpulsionOrder | ReprimandOrder | ScholarshipOrder | TransferO
 
 
 class DeanOffice:
-    """
-    Главный фасад для управления бизнес-процессами деканата (например, ФИТиУ).
-    Скрывает сложность подсистем, предоставляя удобный высокоуровневый интерфейс.
-
-    Attributes:
-        faculty (Faculty): Управляемый факультет.
-        dean (Dean): Декан, уполномоченный подписывать документы.
-        record_books (dict[Any, RecordBook]): Реестр зачетных книжек.
-    """
     MAX_ALLOWED_DEBTS = 3
     MIN_SCHOLARSHIP_SCORE = 8.0
 
@@ -36,25 +27,11 @@ class DeanOffice:
         self._archive_orders: list[Document] = []
 
     def _process_order(self, order: ExecutableOrder) -> None:
-        """
-        Автоматизирует жизненный цикл любого приказа.
-        Подписывает у декана, пускает в исполнение и сохраняет в архив.
-
-        Args:
-            order (Document): Подготовленный проект приказа.
-        """
         order.sign(self.dean)
         order.execute()
         self._archive_orders.append(order)
 
     def enroll_student(self, student: Student, group_number: str) -> None:
-        """
-        Комплексная транзакция: зачисление в группу и автоматическая выдача зачетки.
-
-        Args:
-            student (Student): Абитуриент для зачисления.
-            group_number (str): Номер целевой группы.
-        """
         group = self.faculty.get_group_strict(group_number)
         group.enroll_student(student)
 
@@ -65,18 +42,6 @@ class DeanOffice:
         self.record_books[student.person_id] = rb
 
     def get_student_record_book(self, student: Student | str) -> RecordBook:
-        """
-        Безопасный поиск зачетной книжки по экземпляру студента или его идентификатору.
-
-        Args:
-            student (Student | str): Объект студента или его UUID.
-
-        Returns:
-            RecordBook: Объект зачетной книжки.
-
-        Raises:
-            StudentNotFoundException: Если зачетка не заведена.
-        """
         if isinstance(student, Student):
             if student.record_book is not None:
                 return student.record_book
@@ -91,36 +56,21 @@ class DeanOffice:
         return self.record_books[key]
 
     def transfer_student(self, student: Student, from_group_num: str, to_group_num: str) -> None:
-        """
-        Оформление перевода студента между группами через официальный приказ.
-
-        Args:
-            student (Student): Переводимый студент.
-            from_group_num (str): Номер исходной группы.
-            to_group_num (str): Номер целевой группы.
-        """
         from_group = self.faculty.get_group_strict(from_group_num)
         to_group = self.faculty.get_group_strict(to_group_num)
-
         order = TransferOrder(student, from_group, to_group)
         self._process_order(order)
 
     def expel_student_for_debts(
             self, student: Student, reason: str = "Академическая задолженность") -> None:
-        """Оформляет отчисление студента и применяет приказ."""
         order = ExpulsionOrder(student, reason)
         self._process_order(order)
 
     def issue_reprimand(self, student: Student, reason: str, is_strict: bool = False) -> None:
-        """Оформление дисциплинарного взыскания (выговора)."""
         order = ReprimandOrder(student, reason, is_strict)
         self._process_order(order)
 
     def summarize_session(self) -> None:
-        """
-        Массовая обработка результатов сессии:
-        автоматическое отчисление злостных должников и назначение стипендий отличникам.
-        """
         excellent_students: list[Student] = []
 
         for group in self.faculty.groups:
@@ -133,10 +83,8 @@ class DeanOffice:
                     continue
 
                 debts = record_book.get_debts()
-
                 if len(debts) >= self.MAX_ALLOWED_DEBTS:
                     self.expel_student_for_debts(student)
-
                 elif len(debts) == 0 and record_book.average_score >= self.MIN_SCHOLARSHIP_SCORE:
                     excellent_students.append(student)
 
@@ -146,23 +94,18 @@ class DeanOffice:
 
     @property
     def total_active_students(self) -> int:
-        """Агрегация: подсчет всех активных студентов на факультете."""
         total = 0
         for group in self.faculty.groups:
             total += sum(1 for student in group.students if student.is_active)
         return total
 
     def get_all_debtors(self) -> list[Student]:
-        """Агрегация: сквозной поиск всех академических должников на факультете."""
         debtors: list[Student] = []
-
         for group in self.faculty.groups:
             for student in group.students:
                 if not student.is_active:
                     continue
-
                 rb = student.record_book or self.record_books.get(student) or self.record_books.get(student.person_id)
                 if rb and len(rb.get_debts()) > 0:
                     debtors.append(student)
-
         return debtors

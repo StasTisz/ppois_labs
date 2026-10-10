@@ -6,28 +6,13 @@ from lab2.domain.people.student import Student
 
 
 class ExpulsionOrder(Document):
-    """
-    Приказ об отчислении студента.
-
-    Attributes:
-        student (Student): Отчисляемый студент.
-        reason (str): Основание для отчисления.
-    """
-
     def __init__(self, student: Student, reason: str) -> None:
         super().__init__(f"Приказ об отчислении: {student.full_name}")
         self.student = student
         self.reason = reason
 
     def execute(self) -> None:
-        """
-        Применяет приказ: проверяет законность оснований и меняет статус студента.
-
-        Raises:
-            ExpulsionDeniedException: Если нет веских причин для отчисления.
-        """
         self._ensure_signed()
-
         reason_lower = self.reason.lower()
         has_academic_ground = "академическ" in reason_lower or "неуспеваемост" in reason_lower
         is_voluntary = "по собственному" in reason_lower
