@@ -49,3 +49,17 @@ docs/html/
 docs/latex/
 **/docs/html/
 **/docs/latex/
+# Documentation build artifacts
+**/docs/
+
+# Python caches and testing
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build and PyInstaller artifacts
+build/
+dist/
+*.spec
