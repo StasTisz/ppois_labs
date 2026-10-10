@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 
+from lab2.domain.exceptions import LibraryLimitExceededException
 from lab2.domain.library.book import Book
 from lab2.domain.people.student import Student
 
@@ -16,10 +17,10 @@ class LibraryCard:
         student.library_card = self
 
     def take_book(self, book: Book) -> None:
-        if self.borrowed_count >= self.MAX_BOOKS_LIMIT:
-            raise ValueError(f"Нельзя взять более {self.MAX_BOOKS_LIMIT} книг одновременно.")
         if self.has_book(book):
             raise ValueError(f"Книга '{book.title}' уже числится за этим билетом.")
+        if self.borrowed_count >= self.MAX_BOOKS_LIMIT:
+            raise LibraryLimitExceededException(f"Нельзя взять более {self.MAX_BOOKS_LIMIT} книг одновременно.")
         book.borrow()
         self._borrowed_books.append(book)
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from lab2.domain.exceptions import ScheduleCollisionException
 from lab2.domain.people.lecturer import Lecturer
 from lab2.domain.schedule.lesson import Lesson
 from lab2.domain.structure.academic_group import AcademicGroup
@@ -12,16 +13,16 @@ class Timetable:
 
     def _validate_no_collisions(self, lesson: Lesson) -> None:
         if not lesson.room.is_available:
-            raise ValueError(f"Аудитория {lesson.room.number} закрыта на ремонт")
+            raise ScheduleCollisionException(f"Аудитория {lesson.room.number} закрыта на ремонт")
 
         for existing in self._lessons:
             if existing.day_of_week == lesson.day_of_week and                     existing.timeslot.sequence_number == lesson.timeslot.sequence_number:
                 if existing.room.number == lesson.room.number:
-                    raise ValueError(f"Накладка: аудитория {lesson.room.number} уже занята")
+                    raise ScheduleCollisionException(f"Накладка: аудитория {lesson.room.number} уже занята")
                 if existing.group.number == lesson.group.number:
-                    raise ValueError(f"Накладка: у группы {lesson.group.number} уже есть пара в это время")
+                    raise ScheduleCollisionException(f"Накладка: у группы {lesson.group.number} уже есть пара в это время")
                 if existing.lecturer.person_id == lesson.lecturer.person_id:
-                    raise ValueError(f"Накладка: преподаватель {lesson.lecturer.full_name} уже ведет пару")
+                    raise ScheduleCollisionException(f"Накладка: преподаватель {lesson.lecturer.full_name} уже ведет пару")
 
     def add_lesson(self, lesson: Lesson) -> None:
         self._validate_no_collisions(lesson)

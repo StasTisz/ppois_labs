@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from lab2.domain.academics.subject import Subject
+from lab2.domain.exceptions import InvalidScoreException
 
 
 class Grade:
@@ -24,7 +25,7 @@ class Grade:
 
     def _validate_score(self) -> None:
         if not (self.MIN_SCORE <= self.score <= self.MAX_SCORE):
-            raise ValueError(
+            raise InvalidScoreException(
                 f"Недопустимый балл: {self.score}. В системе оценок допустимы "
                 f"значения от {self.MIN_SCORE} до {self.MAX_SCORE}."
             )

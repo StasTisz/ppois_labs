@@ -4,6 +4,8 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from lab2.domain.exceptions import DocumentNotSignedException
+
 if TYPE_CHECKING:
     from lab2.domain.people.dean import Dean
 
@@ -24,7 +26,7 @@ class Document:
 
     def _ensure_signed(self) -> None:
         if not self.is_signed:
-            raise ValueError(f"Операция отклонена: документ '{self.title}' не подписан.")
+            raise DocumentNotSignedException(f"Операция отклонена: документ '{self.title}' не подписан.")
 
     @property
     def status(self) -> str:

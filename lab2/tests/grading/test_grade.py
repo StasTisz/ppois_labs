@@ -1,5 +1,6 @@
 import pytest
 from lab2.domain.academics.subject import Subject
+from lab2.domain.exceptions import InvalidScoreException
 from lab2.domain.grading.grade import Grade
 
 
@@ -16,7 +17,7 @@ def test_grade():
     assert g2.subject_name == "Физика"
     assert g2.is_passed is False
 
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidScoreException):
         Grade("Химия", -1)
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidScoreException):
         Grade("Химия", 11)

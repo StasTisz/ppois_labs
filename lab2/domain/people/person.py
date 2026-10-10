@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from lab2.domain.finance.bank_account import BankAccount
 
 
 class Person:
@@ -10,7 +13,7 @@ class Person:
         self.last_name = last_name
         self.middle_name = middle_name
         self.person_id = str(uuid.uuid4())
-        self.bank_account: Any = None
+        self.bank_account: BankAccount | None = None
 
     @property
     def full_name(self) -> str:

@@ -1,5 +1,6 @@
 import pytest
 from lab2.domain.documents.document import Document
+from lab2.domain.exceptions import DocumentNotSignedException
 from lab2.domain.people.dean import Dean
 
 
@@ -8,7 +9,7 @@ def test_document():
     assert doc.status == "Проект"
     assert doc.is_signed is False
 
-    with pytest.raises(ValueError):
+    with pytest.raises(DocumentNotSignedException):
         doc.cancel_document("Причина")
 
     dean = Dean("Декан", "Деканов")

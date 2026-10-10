@@ -1,4 +1,5 @@
 import pytest
+from lab2.domain.exceptions import AccountBlockedException, InsufficientFundsException
 from lab2.domain.finance.bank_account import BankAccount
 from lab2.domain.people.student import Student
 
@@ -25,7 +26,8 @@ def test_bank_account():
         acc1.withdraw(-10)
     with pytest.raises(ValueError):
         acc1.withdraw(0)
-    with pytest.raises(ValueError):
+
+    with pytest.raises(InsufficientFundsException):
         acc1.withdraw(1000)
 
     acc1.withdraw(40)
@@ -40,5 +42,5 @@ def test_bank_account():
 
     acc1.block_account()
     assert acc1.is_blocked is True
-    with pytest.raises(ValueError):
+    with pytest.raises(AccountBlockedException):
         acc1.withdraw(10)

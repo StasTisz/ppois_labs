@@ -1,133 +1,139 @@
-# Лабораторная работа №2. Объектно-ориентированная архитектура деканата
+# Laboratory Work No. 2. Object-Oriented Dean's Office Architecture
 
-Информационная система деканата университета. Система управляет структурой факультета, контингентом студентов, профессорско-преподавательским составом, учебным процессом, расписанием, сессионными ведомостями, приказами, инфраструктурой (общежитие, библиотека) и финансовыми взаиморасчетами.
-
----
-
-## 1. Спецификация классов объектной модели
-
-*Примечание: в столбце «Поля» для дочерних классов учитываются атрибуты, унаследованные от базовых.*
-
-| Класс | Поля | Методы | Ассоциации (связанные классы) |
-|---|:---:|:---:|---|
-| **Person** | 4 | 3 | — |
-| **Student** | 8 | 4 | — |
-| **Employee** | 6 | 2 | — |
-| **Lecturer** | 8 | 4 | — |
-| **Dean** | 7 | 1 | — |
-| **Assistant** | 8 | 0 | — |
-| **AssociateProfessor** | 8 | 0 | — |
-| **Professor** | 8 | 0 | — |
-| **Speciality** | 3 | 2 | — |
-| **AcademicGroup** | 4 | 9 | Speciality, Student |
-| **Department** | 3 | 4 | Lecturer |
-| **Faculty** | 4 | 7 | Department, AcademicGroup, Student |
-| **University** | 3 | 2 | Faculty |
-| **LabWork** | 4 | 3 | — |
-| **Subject** | 5 | 5 | LabWork |
-| **Grade** | 4 | 2 | — |
-| **RecordBook** | 3 | 6 | Grade |
-| **AcademicStatement** | 6 | 3 | Subject, AcademicGroup, Lecturer, Student, Grade |
-| **RetakeSheet** | 6 | 1 | Student, Subject, Grade |
-| **Document** | 5 | 4 | Dean |
-| **ExpulsionOrder** | 7 | 1 | Document, Student |
-| **TransferOrder** | 8 | 1 | Document, Student, AcademicGroup |
-| **ScholarshipOrder** | 6 | 1 | Document, Student |
-| **AcademicLeaveOrder** | 8 | 1 | Document, Student |
-| **ReprimandOrder** | 8 | 1 | Document, Student |
-| **AcademicCertificate** | 7 | 0 | Document, Student |
-| **Room** | 3 | 6 | Student |
-| **Dormitory** | 3 | 4 | Room, Student |
-| **BankAccount** | 5 | 4 | BankAccount |
-| **TuitionContract** | 7 | 7 | Student, BankAccount |
-| **Payroll** | 4 | 4 | Employee, Student, BankAccount |
-| **Classroom** | 6 | 4 | — |
-| **Timeslot** | 3 | 1 | — |
-| **Lesson** | 7 | 2 | Subject, Lecturer, AcademicGroup, Classroom, Timeslot |
-| **Timetable** | 2 | 4 | Lesson, AcademicGroup, Lecturer |
-| **Book** | 6 | 4 | — |
-| **LibraryCard** | 3 | 4 | Student, Book |
-| **DeanOffice** | 4 | 9 | Faculty, Dean, RecordBook, Student, AcademicGroup, Document |
-| **DataSeeder** | 1 | 1 | DeanOffice, Faculty, Dormitory, TuitionContract, Book |
-| **CLI** | 2 | 8 | DeanOffice, Student, Subject, Grade, RetakeSheet, Payroll |
+University dean's office information management system. The system models the administrative workflows of a higher education faculty: student registration, teaching personnel, academic disciplines, course schedules, examination grading and credit books, official dean's orders, campus facilities (dormitories, library catalog), and student financial accounts.
 
 ---
 
-## 2. Пользовательские исключения (14)
+## 1. Object Model & Class Specification
 
-Архитектура содержит собственную иерархию исключений с базовым классом `DeanOfficeException`:
+*Note: In the "Fields" column, subclass counts include all attributes inherited from their respective parent classes.*
 
-1. `DeanOfficeException` — базовое доменное исключение подсистемы деканата.
-2. `StudentNotFoundException` — студент или зачетная книжка не найдены в реестре.
-3. `GroupNotFoundException` — учебная группа с заданным номером отсутствует на факультете.
-4. `DuplicateEnrollmentException` — попытка повторного зачисления студента в группу.
-5. `ExpulsionDeniedException` — отказ в отчислении при отсутствии законных оснований.
-6. `InsufficientFundsException` — недостаточно средств на счете для проведения транзакции.
-7. `AccountBlockedException` — попытка проведения операции по заблокированному счету.
-8. `InvalidScoreException` — выход выставляемой оценки за допустимый диапазон.
-9. `RoomCapacityExceededException` — превышение лимита мест в комнате общежития.
-10. `ResidentNotFoundException` — студент не числится проживающим в данном блоке.
-11. `BookNotAvailableException` — отсутствие доступных экземпляров книги в фонде библиотеки.
-12. `LibraryLimitExceededException` — превышение лимита одновременно взятых книг.
-13. `ScheduleCollisionException` — накладка по аудитории, преподавателю или группе в расписании.
-14. `DocumentNotSignedException` — попытка исполнения неподписанного приказа.
+| Subpackage & Module Path | Class | Fields | Methods | Associations (Connected Classes) |
+|---|---|:---:|:---:|---|
+| **academics/labwork.py** | `LabWork` | 6 | 3 | `Subject` |
+| **academics/subject.py** | `Subject` | 5 | 5 | `LabWork` |
+| **people/person.py** | `Person` | 5 | 3 | `BankAccount` |
+| **people/student.py** | `Student` | 13 | 4 | `RecordBook`, `AcademicGroup`, `Room`, `LibraryCard`, `BankAccount` |
+| **people/employee.py** | `Employee` | 7 | 3 | `BankAccount` |
+| **people/lecturer.py** | `Lecturer` | 12 | 5 | `Department`, `Subject`, `BankAccount` |
+| **people/dean.py** | `Dean` | 10 | 2 | `BankAccount` |
+| **people/assistant.py** | `Assistant` | 12 | 1 | `Department`, `Subject`, `BankAccount` |
+| **people/associate_professor.py** | `AssociateProfessor` | 12 | 1 | `Department`, `Subject`, `BankAccount` |
+| **people/professor.py** | `Professor` | 12 | 1 | `Department`, `Subject`, `BankAccount` |
+| **finance/bank_account.py** | `BankAccount` | 6 | 5 | `Person` |
+| **finance/tuition_contract.py** | `TuitionContract` | 10 | 7 | `Student`, `BankAccount` |
+| **finance/payroll.py** | `Payroll` | 5 | 4 | `Employee`, `Student`, `BankAccount` |
+| **grading/grade.py** | `Grade` | 8 | 3 | `Subject` |
+| **grading/record_book.py** | `RecordBook` | 4 | 7 | `Student`, `Grade`, `Subject` |
+| **grading/academic_statement.py** | `AcademicStatement` | 6 | 4 | `Subject`, `AcademicGroup`, `Lecturer`, `Student`, `Grade` |
+| **grading/retake_sheet.py** | `RetakeSheet` | 7 | 2 | `Student`, `Subject`, `Grade` |
+| **structure/speciality.py** | `Speciality` | 6 | 3 | — |
+| **structure/academic_group.py** | `AcademicGroup` | 5 | 9 | `Speciality`, `Student` |
+| **structure/department.py** | `Department` | 4 | 5 | `Lecturer` |
+| **structure/faculty.py** | `Faculty` | 4 | 8 | `Department`, `AcademicGroup`, `Student` |
+| **structure/university.py** | `University` | 3 | 3 | `Faculty` |
+| **infrastructure/room.py** | `Room` | 4 | 6 | `Student` |
+| **infrastructure/dormitory.py** | `Dormitory` | 3 | 5 | `Room`, `Student` |
+| **library/book.py** | `Book` | 6 | 5 | — |
+| **library/library_card.py** | `LibraryCard` | 4 | 5 | `Student`, `Book` |
+| **schedule/classroom.py** | `Classroom` | 6 | 5 | — |
+| **schedule/timeslot.py** | `Timeslot` | 3 | 2 | — |
+| **schedule/lesson.py** | `Lesson` | 7 | 3 | `Subject`, `Lecturer`, `AcademicGroup`, `Classroom`, `Timeslot` |
+| **schedule/timetable.py** | `Timetable` | 2 | 5 | `Lesson`, `AcademicGroup`, `Lecturer` |
+| **documents/document.py** | `Document` | 5 | 5 | `Dean` |
+| **documents/expulsion_order.py** | `ExpulsionOrder` | 7 | 2 | `Student`, `Dean` |
+| **documents/academic_certificate.py** | `AcademicCertificate` | 7 | 1 | `Student`, `Dean` |
+| **documents/transfer_order.py** | `TransferOrder` | 8 | 2 | `Student`, `AcademicGroup`, `Dean` |
+| **documents/scholarship_order.py** | `ScholarshipOrder` | 6 | 2 | `Student`, `Dean` |
+| **documents/academic_leave_order.py** | `AcademicLeaveOrder` | 8 | 2 | `Student`, `Dean` |
+| **documents/reprimand_order.py** | `ReprimandOrder` | 8 | 2 | `Student`, `Dean` |
+| **dean_office/dean_office.py** | `DeanOffice` | 6 | 10 | `Faculty`, `Dean`, `RecordBook`, `Student`, `AcademicGroup`, `Document`, `ExpulsionOrder`, `ReprimandOrder`, `ScholarshipOrder`, `TransferOrder` |
+| **cli.py** | `DataSeeder` | 1 | 1 | `DeanOffice`, `Faculty`, `Dormitory`, `TuitionContract`, `Book` |
+| **cli.py** | `CLI` | 2 | 8 | `DeanOffice`, `Student`, `Subject`, `Grade`, `RetakeSheet`, `Payroll` |
 
 ---
 
-## 3. Сводная статистика объектной модели
+## 2. Custom Domain Exceptions (14)
 
-| Показатель | Требование задания | Фактическое значение |
+The architecture contains an isolated domain exception hierarchy rooted in `DeanOfficeException`:
+
+1. `DeanOfficeException` — Base exception class for the dean's office domain model.
+2. `StudentNotFoundException` — Raised when a student or record book cannot be found in the registry.
+3. `GroupNotFoundException` — Raised when an academic group is absent from the faculty roster.
+4. `DuplicateEnrollmentException` — Raised when attempting to enroll a student already present in the target group.
+5. `ExpulsionDeniedException` — Raised when attempting to execute an expulsion order lacking valid academic or legal grounds.
+6. `InsufficientFundsException` — Raised when a bank account balance is insufficient for withdrawal or transfer.
+7. `AccountBlockedException` — Raised when an operation is attempted on a blocked bank account.
+8. `InvalidScoreException` — Raised when an academic grade falls outside the allowed 0–10 scale.
+9. `RoomCapacityExceededException` — Raised when attempting to check a student into a fully occupied dormitory room.
+10. `ResidentNotFoundException` — Raised when attempting to evict a student who is not registered in the specified room.
+11. `BookNotAvailableException` — Raised when no available copies of a book remain in the library inventory.
+12. `LibraryLimitExceededException` — Raised when a student exceeds the maximum limit for simultaneously borrowed books.
+13. `ScheduleCollisionException` — Raised when an overlap occurs regarding an auditorium, lecturer, or group in the schedule.
+14. `DocumentNotSignedException` — Raised when attempting to execute an order without the dean's signature.
+
+---
+
+## 3. Summary Object Model Statistics
+
+| Metric | Assignment Requirement | Actual Value |
 |---|:---:|:---:|
-| **Классы** | $\ge$ 50 | **54** |
-| **Поля** | $\ge$ 150 | **208** |
-| **Поведения (методы логики)** | $\ge$ 100 | **129** |
-| **Ассоциации (связи между классами)** | $\ge$ 30 | **42** |
-| **Собственные исключения** | $\ge$ 12 | **14** |
+| **Classes** | $\ge$ 50 | **54** |
+| **Attributes / Fields** | $\ge$ 150 | **268** |
+| **Behaviors / Methods** | $\ge$ 100 | **162** |
+| **Class Associations** | $\ge$ 30 | **61** |
+| **Custom Domain Exceptions** | $\ge$ 12 | **14** |
 
 ---
 
-## 4. Документация
+## 4. Documentation Generation
 
-В проекте используется автоматическая генерация документации на основе встроенных docstrings с помощью утилиты **pdoc**. Папка `docs/` является артефактом сборки и не хранится в репозитории.
+The project utilizes automated API documentation generation via **pdoc**, parsing standard docstrings across all modules. The `docs/` directory is treated as a build artifact and excluded from version control.
 
-### Гайд по созданию документации:
+### Guide to Generating Documentation:
 
-1. Убедитесь, что у вас установлен Python-пакет `pdoc`. Если его нет, установите:
+1. Ensure the `pdoc` package is installed in your virtual environment:
    ```bash
    pip install pdoc
    ```
-2. Откройте терминал и перейдите в **корень всего репозитория** (`ppois_labs`), а не в папку `lab2`. Это необходимо для правильного разрешения путей импорта:
+2. Open a terminal and navigate to the **repository root**:
    ```bash
    cd ~/CLionProjects/ppois_labs
    ```
-3. Запустите генерацию, передав переменную окружения `PYTHONPATH=.`, чтобы утилита увидела модули:
+3. Execute HTML documentation generation:
    ```bash
    PYTHONPATH=. pdoc lab2 -o lab2/docs
    ```
-4. Утилита создаст папку `docs/`. Откройте главный файл в браузере:
+4. Open the generated entrypoint in your browser:
    ```bash
    open lab2/docs/index.html
    ```
 
-## 5. Инструкция по сборке, тестированию и запуску
+---
+
+## 5. Testing, Linting & Build Procedures
+
+All commands must be executed from the repository root:
+
+### Run Unit Tests & Verify Code Coverage (90%+ Required)
 ```bash
-python -m pytest --cov=lab2/domain --cov-fail-under=90 lab2/tests/
+python -m pytest --cov=lab2/domain --cov-fail-under=90 lab2/tests/ -v
 ```
 
-### Статический анализ и проверка типов
+### Static Analysis & Strict Type Checking
 ```bash
 ruff check lab2/
 mypy lab2/ --explicit-package-bases --ignore-missing-imports
 ```
 
-### Запуск консольного интерфейса (CLI)
+### Run Interactive Console Application (CLI)
 ```bash
 python -m lab2.cli
 ```
 
-### Сборка автономного исполняемого файла (.exe / binary)
-Автоматическая сборка настроена через GitHub Actions при пуше в репозиторий (доступно в разделе Releases). Для локальной сборки:
+### Build Standalone Executable Binary
+Automated builds are handled via GitHub Actions upon pushing to the repository. For local compilation using PyInstaller:
 ```bash
-pyinstaller --onefile --name ppois_lab2 lab2/cli.py
+pyinstaller --onefile --paths . --collect-all lab2 --name ppois_lab2 lab2/cli.py
 ```
-Готовый исполняемый файл создается в каталоге `dist/`.
+The output binary will be located inside the `dist/` directory.

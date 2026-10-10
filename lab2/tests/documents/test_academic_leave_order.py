@@ -1,5 +1,6 @@
 import pytest
 from lab2.domain.documents.academic_leave_order import AcademicLeaveOrder
+from lab2.domain.exceptions import DocumentNotSignedException
 from lab2.domain.people.dean import Dean
 from lab2.domain.people.student import Student
 
@@ -12,7 +13,7 @@ def test_academic_leave_order():
     order = AcademicLeaveOrder(s, "Болезнь", 12)
     assert order.duration_months == 12
 
-    with pytest.raises(ValueError):
+    with pytest.raises(DocumentNotSignedException):
         order.execute()
 
     order.sign(dean)

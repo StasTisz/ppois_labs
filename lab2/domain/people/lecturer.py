@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from lab2.domain.people.employee import Employee
+
+if TYPE_CHECKING:
+    from lab2.domain.structure.department import Department
 
 
 class Lecturer(Employee):
@@ -12,7 +15,7 @@ class Lecturer(Employee):
     def __init__(self, first_name: str, last_name: str, middle_name: str = "", degree: str = DEFAULT_DEGREE) -> None:
         super().__init__(first_name, last_name, middle_name, position=self.DEFAULT_POSITION)
         self.degree = degree
-        self.department: Any = None
+        self.department: Department | None = None
         self._subjects: list[Any] = []
 
     @property

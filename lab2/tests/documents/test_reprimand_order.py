@@ -1,5 +1,6 @@
 import pytest
 from lab2.domain.documents.reprimand_order import ReprimandOrder
+from lab2.domain.exceptions import DocumentNotSignedException
 from lab2.domain.people.dean import Dean
 from lab2.domain.people.student import Student
 
@@ -10,7 +11,7 @@ def test_reprimand_order():
     dean = Dean("Д", "Д")
 
     rep1 = ReprimandOrder(s, "Опоздание", is_strict=False)
-    with pytest.raises(ValueError):
+    with pytest.raises(DocumentNotSignedException):
         rep1.execute()
 
     rep1.sign(dean)

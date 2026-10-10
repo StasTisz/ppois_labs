@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import uuid
 
+from lab2.domain.exceptions import BookNotAvailableException
+
 
 class Book:
     def __init__(self, title: str, author: str, isbn: str, total_copies: int) -> None:
@@ -14,7 +16,7 @@ class Book:
 
     def borrow(self) -> None:
         if not self.is_available:
-            raise ValueError(f"Книга '{self.title}' закончилась.")
+            raise BookNotAvailableException(f"Книга '{self.title}' закончилась.")
         self.available_copies -= 1
 
     def return_book(self) -> None:

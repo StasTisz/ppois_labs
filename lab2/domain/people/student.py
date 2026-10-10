@@ -1,18 +1,24 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING
 
 from lab2.domain.people.person import Person
+
+if TYPE_CHECKING:
+    from lab2.domain.grading.record_book import RecordBook
+    from lab2.domain.infrastructure.room import Room
+    from lab2.domain.library.library_card import LibraryCard
+    from lab2.domain.structure.academic_group import AcademicGroup
 
 
 class Student(Person):
     def __init__(self, first_name: str, last_name: str, middle_name: str = "", record_book_number: str = "") -> None:
         super().__init__(first_name, last_name, middle_name)
         self.record_book_number = record_book_number
-        self.record_book: Any = None
-        self.group: Any = None
-        self.room: Any = None
-        self.library_card: Any = None
+        self.record_book: RecordBook | None = None
+        self.group: AcademicGroup | None = None
+        self.room: Room | None = None
+        self.library_card: LibraryCard | None = None
         self.is_active = True
         self.has_scholarship = False
         self.financial_debt = 0.0

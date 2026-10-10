@@ -3,19 +3,19 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from lab2.domain.grading.grade import Grade
+from lab2.domain.people.student import Student
 
 if TYPE_CHECKING:
     from lab2.domain.academics.subject import Subject
-    from lab2.domain.people.student import Student
 
 
 class RecordBook:
     def __init__(self, student: Student | str, book_number: str) -> None:
-        self.student = student if not isinstance(student, str) else None
-        self._student_id = getattr(student, "person_id", str(student))
+        self.student = student if isinstance(student, Student) else None
+        self._student_id = student.person_id if isinstance(student, Student) else str(student)
         self.book_number = book_number
         self._grades: list[Grade] = []
-        if hasattr(student, "record_book"):
+        if isinstance(student, Student):
             student.record_book = self
 
     @property

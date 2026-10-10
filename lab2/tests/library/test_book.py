@@ -1,4 +1,5 @@
 import pytest
+from lab2.domain.exceptions import BookNotAvailableException
 from lab2.domain.library.book import Book
 
 
@@ -11,7 +12,7 @@ def test_book():
     assert b.is_available is False
     assert b.popularity_index == 1
 
-    with pytest.raises(ValueError):
+    with pytest.raises(BookNotAvailableException):
         b.borrow()
 
     b.return_book()

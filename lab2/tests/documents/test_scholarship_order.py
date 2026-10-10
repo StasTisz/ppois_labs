@@ -1,5 +1,6 @@
 import pytest
 from lab2.domain.documents.scholarship_order import ScholarshipOrder
+from lab2.domain.exceptions import DocumentNotSignedException
 from lab2.domain.people.dean import Dean
 from lab2.domain.people.student import Student
 
@@ -10,7 +11,7 @@ def test_scholarship_order():
     dean = Dean("Д", "Д")
 
     order = ScholarshipOrder([s1, s2])
-    with pytest.raises(ValueError):
+    with pytest.raises(DocumentNotSignedException):
         order.execute()
 
     order.sign(dean)

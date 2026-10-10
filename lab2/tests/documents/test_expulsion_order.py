@@ -1,6 +1,6 @@
 import pytest
 from lab2.domain.documents.expulsion_order import ExpulsionOrder
-from lab2.domain.exceptions import ExpulsionDeniedException
+from lab2.domain.exceptions import DocumentNotSignedException, ExpulsionDeniedException
 from lab2.domain.people.dean import Dean
 from lab2.domain.people.student import Student
 
@@ -10,7 +10,7 @@ def test_expulsion_order():
     dean = Dean("Д", "Д")
     order = ExpulsionOrder(s, "Академическая задолженность")
 
-    with pytest.raises(ValueError):
+    with pytest.raises(DocumentNotSignedException):
         order.execute()
 
     order.sign(dean)
