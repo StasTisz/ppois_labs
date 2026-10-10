@@ -6,9 +6,11 @@ Enterprise information management system for a major international airport. The 
 
 ## 1. Object Model & Class Specification
 
-*Note: In the "Fields" column, subclass counts include all attributes inherited from their respective parent classes.*
+*Note: The "Fields" and "Methods" columns include all class variables, properties, initialized instance variables, and inherited attributes/methods from parent classes to reflect the exact memory and behavior footprint of each instantiated object.*
 
-| Subpackage & Module Path | Class | Fields | Methods | Associations (Connected Classes) |
+### 1.1 Transport Fleet (`lab3/domain/fleet/`)
+
+| Module Path | Class | Fields | Methods | Associations (Connected Classes) |
 |---|---|:---:|:---:|---|
 | **fleet/vehicle.py** | `Vehicle` | 5 | 1 | — |
 | **fleet/aircraft.py** | `Aircraft` | 9 | 5 | — |
@@ -20,6 +22,11 @@ Enterprise information management system for a major international airport. The 
 | **fleet/fuel_truck.py** | `FuelTruck` | 11 | 5 | `Aircraft` |
 | **fleet/follow_me_car.py** | `FollowMeCar` | 8 | 4 | `Aircraft` |
 | **fleet/passenger_bus.py** | `PassengerBus` | 10 | 6 | — |
+
+### 1.2 Airport Infrastructure (`lab3/domain/infrastructure/`)
+
+| Module Path | Class | Fields | Methods | Associations (Connected Classes) |
+|---|---|:---:|:---:|---|
 | **infrastructure/runway.py** | `Runway` | 5 | 2 | `Aircraft` |
 | **infrastructure/gate.py** | `Gate` | 4 | 4 | `Flight` |
 | **infrastructure/check_in_counter.py** | `CheckInCounter` | 6 | 3 | `CheckInAgent`, `Flight`, `Baggage` |
@@ -30,12 +37,22 @@ Enterprise information management system for a major international airport. The 
 | **infrastructure/hangar.py** | `Hangar` | 4 | 2 | `Aircraft` |
 | **infrastructure/parking_lot.py** | `ParkingLot` | 4 | 2 | — |
 | **infrastructure/airport.py** | `Airport` | 6 | 2 | `ControlTower`, `Terminal`, `Hangar`, `ParkingLot` |
+
+### 1.3 Ground Maintenance (`lab3/domain/maintenance/`)
+
+| Module Path | Class | Fields | Methods | Associations (Connected Classes) |
+|---|---|:---:|:---:|---|
 | **maintenance/weather_report.py** | `WeatherReport` | 6 | 1 | — |
 | **maintenance/service_task.py** | `ServiceTask` | 4 | 6 | `Aircraft`, `Employee` |
 | **maintenance/maintenance_inspection.py** | `MaintenanceInspection` | 4 | 6 | `Aircraft`, `Employee` |
 | **maintenance/refueling_task.py** | `RefuelingTask` | 6 | 6 | `Aircraft`, `FuelTruck`, `Employee` |
 | **maintenance/cleaning_task.py** | `CleaningTask` | 5 | 6 | `Aircraft`, `Employee` |
 | **maintenance/catering_task.py** | `CateringTask` | 6 | 6 | `Aircraft`, `Employee` |
+
+### 1.4 Flight Operations (`lab3/domain/operations/`)
+
+| Module Path | Class | Fields | Methods | Associations (Connected Classes) |
+|---|---|:---:|:---:|---|
 | **operations/baggage.py** | `Baggage` | 4 | 1 | `Passenger` |
 | **operations/ticket.py** | `Ticket` | 8 | 1 | `Passenger`, `Flight` |
 | **operations/boarding_pass.py** | `BoardingPass` | 5 | 0 | `Ticket`, `Gate` |
@@ -45,6 +62,11 @@ Enterprise information management system for a major international airport. The 
 | **operations/departure_flight.py** | `DepartureFlight` | 11 | 8 | `Gate`, `Passenger`, `Baggage`, `Ticket`, `BoardingPass`, `Airline`, `Aircraft`, `FlightPlan` |
 | **operations/arrival_flight.py** | `ArrivalFlight` | 8 | 4 | `BaggageCarousel`, `Airline`, `Aircraft`, `FlightPlan` |
 | **operations/schedule.py** | `Schedule` | 1 | 3 | `Flight`, `DepartureFlight`, `ArrivalFlight` |
+
+### 1.5 Personnel and Passengers (`lab3/domain/people/`)
+
+| Module Path | Class | Fields | Methods | Associations (Connected Classes) |
+|---|---|:---:|:---:|---|
 | **people/person.py** | `Person` | 4 | 1 | — |
 | **people/passenger.py** | `Passenger` | 7 | 6 | `Ticket`, `Baggage` |
 | **people/employee.py** | `Employee` | 7 | 4 | — |
@@ -55,6 +77,11 @@ Enterprise information management system for a major international airport. The 
 | **people/security_officer.py** | `SecurityOfficer` | 7 | 4 | — |
 | **people/check_in_agent.py** | `CheckInAgent` | 9 | 5 | — |
 | **people/baggage_handler.py** | `BaggageHandler` | 9 | 5 | — |
+
+### 1.6 Border & Aviation Security (`lab3/domain/security/`)
+
+| Module Path | Class | Fields | Methods | Associations (Connected Classes) |
+|---|---|:---:|:---:|---|
 | **security/visa.py** | `Visa` | 3 | 1 | — |
 | **security/customs_declaration.py** | `CustomsDeclaration` | 6 | 2 | `Passenger` |
 | **security/scanner.py** | `Scanner` | 3 | 1 | `Passenger`, `Baggage` |
@@ -62,16 +89,26 @@ Enterprise information management system for a major international airport. The 
 | **security/xray_scanner.py** | `XRayScanner` | 3 | 1 | `Passenger`, `Baggage` |
 | **security/security_checkpoint.py** | `SecurityCheckpoint` | 5 | 3 | `MetalDetector`, `XRayScanner`, `SecurityOfficer`, `Passenger`, `Baggage` |
 | **security/passport_control.py** | `PassportControl` | 2 | 1 | `Passenger`, `Visa` |
-| **security/customs_control.py** | `CustomsControl` | 1 | 1 | `CustomsDeclaration` |
-| **facade/airport_facade.py** | `AirportFacade` | 9 | 14 | `Airport`, `Schedule`, `Passenger`, `Employee`, `Aircraft`, `FuelTruck`, `Ticket`, `SecurityCheckpoint`, `WeatherReport`, `DepartureFlight`, `BoardingPass`, `Runway` |
+| **security/customs_control.py** | `CustomsControl` | 2 | 1 | `CustomsDeclaration` |
+
+### 1.7 Main Facade Controller (`lab3/domain/facade/`)
+
+| Module Path | Class | Fields | Methods | Associations (Connected Classes) |
+|---|---|:---:|:---:|---|
+| **facade/airport_facade.py** | `AirportFacade` | 9 | 14 | `Airport`, `Schedule`, `Passenger`, `Employee`, `Aircraft`, `FuelTruck`, `Ticket`, `SecurityCheckpoint`, `WeatherReport`, `DepartureFlight`, `BoardingPass`, `Runway`, `Airline`, `FlightPlan`, `Baggage` |
+
+### 1.8 Command Line Interface (`lab3/cli.py`)
+
+| Module Path | Class | Fields | Methods | Associations (Connected Classes) |
+|---|---|:---:|:---:|---|
 | **cli.py** | `DataSeeder` | 1 | 1 | `AirportFacade`, `Runway`, `Terminal`, `Gate`, `PassengerAircraft`, `FuelTruck`, `Pilot`, `SecurityOfficer` |
-| **cli.py** | `CLI` | 1 | 8 | `AirportFacade`, `Passenger`, `CustomsControl`, `PassportControl` |
+| **cli.py** | `CLI` | 2 | 8 | `AirportFacade`, `Passenger`, `CustomsControl`, `PassportControl` |
 
 ---
 
 ## 2. Custom Domain Exceptions (14)
 
-The architecture defines an isolated exception hierarchy rooted in `AirportException`:
+The architecture contains an isolated domain exception hierarchy rooted in `AirportException`:
 
 1. `AirportException` — Base exception class for the airport domain model.
 2. `FlightDelayedException` — Raised when attempting standard operational procedures on a delayed flight.
@@ -92,19 +129,21 @@ The architecture defines an isolated exception hierarchy rooted in `AirportExcep
 
 ## 3. Summary Object Model Statistics
 
+*Note: The statistics below represent the exact sums computed directly from the 56 domain classes in the sub-tables above combined with the 14 custom exception classes.*
+
 | Metric | Assignment Requirement | Actual Value |
 |---|:---:|:---:|
 | **Classes** | $\ge$ 50 | **70** |
-| **Attributes / Fields** | $\ge$ 150 | **335** |
-| **Behaviors / Methods** | $\ge$ 100 | **212** |
-| **Class Associations** | $\ge$ 30 | **68** |
+| **Attributes / Fields** | $\ge$ 150 | **352** |
+| **Behaviors / Methods** | $\ge$ 100 | **215** |
+| **Class Associations** | $\ge$ 30 | **99** |
 | **Custom Domain Exceptions** | $\ge$ 12 | **14** |
 
 ---
 
 ## 4. Documentation Generation
 
-The project utilizes automated API documentation generation via **pdoc**, parsing standard docstrings throughout all packages. The `docs/` directory is treated as a build artifact and excluded from version control.
+The project utilizes automated API documentation generation via **pdoc**, parsing standard docstrings across all modules. The `docs/` directory is treated as a build artifact and excluded from version control.
 
 ### Guide to Generating Documentation:
 
@@ -148,7 +187,7 @@ python -m lab3.cli
 ```
 
 ### Build Standalone Executable Binary
-Automated builds are handled via GitHub Actions. For local compilation using PyInstaller:
+Automated builds are handled via GitHub Actions upon pushing to the repository. For local compilation using PyInstaller:
 ```bash
 pyinstaller --onefile --paths . --collect-all lab3 --name ppois_lab3 lab3/cli.py
 ```
