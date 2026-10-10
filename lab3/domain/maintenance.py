@@ -9,6 +9,7 @@
 """
 
 from __future__ import annotations
+
 import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -106,7 +107,6 @@ class ServiceTask(ABC):
         Полиморфный контракт выполнения конкретной работы.
         Обязателен для переопределения в дочерних классах обслуживания.
         """
-        pass
 
 
 class MaintenanceInspection(ServiceTask):

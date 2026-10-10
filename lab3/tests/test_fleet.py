@@ -1,7 +1,15 @@
 import pytest
+
 from lab3.domain.exceptions import CapacityExceededException
-from lab3.domain.fleet import PassengerAircraft, CargoAircraft, PrivateJet, BaggageTractor, FuelTruck, FollowMeCar, \
-    PassengerBus
+from lab3.domain.fleet import (
+    BaggageTractor,
+    CargoAircraft,
+    FollowMeCar,
+    FuelTruck,
+    PassengerAircraft,
+    PassengerBus,
+    PrivateJet,
+)
 
 
 def test_passenger_aircraft_fuel_and_passengers():

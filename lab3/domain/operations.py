@@ -7,6 +7,7 @@
 """
 
 from __future__ import annotations
+
 import uuid
 from abc import ABC
 from datetime import datetime

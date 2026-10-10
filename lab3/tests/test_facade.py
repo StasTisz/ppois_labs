@@ -1,10 +1,15 @@
-import pytest
 from datetime import datetime
+
+import pytest
+
+from lab3.domain.exceptions import (
+    InvalidTicketException,
+    PassengerNotFoundException,
+)
 from lab3.domain.facade import AirportFacade
-from lab3.domain.exceptions import PassengerNotFoundException, InvalidTicketException, MaintenanceRequiredException
-from lab3.domain.fleet import PassengerAircraft, FuelTruck
-from lab3.domain.people import Employee, Pilot
+from lab3.domain.fleet import FuelTruck, PassengerAircraft
 from lab3.domain.infrastructure import Runway
+from lab3.domain.people import Pilot
 
 
 def test_facade_e2e_departure():
@@ -37,8 +42,8 @@ def test_facade_e2e_departure():
     flight.assign_gate(Gate("1"))
 
     # 3. Регистрация пассажира
-    passenger = facade.register_passenger("John", "Doe", "AB123")
-    ticket = facade.issue_ticket("AB123", "B2-123", "Economy", 200.0)
+    _ = facade.register_passenger("John", "Doe", "AB123")
+    _ = facade.issue_ticket("AB123", "B2-123", "Economy", 200.0)
 
     # 4. Check-in
     boarding_pass = facade.check_in_passenger("AB123", "B2-123", baggage_weight=15.0)

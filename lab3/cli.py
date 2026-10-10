@@ -11,10 +11,15 @@ from lab3.domain.exceptions import AirportException
 from lab3.domain.facade import AirportFacade
 
 # Импорты для Data Seeder и демонстрации работы отдельных модулей
-from lab3.domain.fleet import PassengerAircraft, FuelTruck
-from lab3.domain.infrastructure import Runway, Terminal, Gate
-from lab3.domain.people import Pilot, SecurityOfficer, Passenger
-from lab3.domain.security import CustomsControl, CustomsDeclaration, PassportControl, Visa
+from lab3.domain.fleet import FuelTruck, PassengerAircraft
+from lab3.domain.infrastructure import Gate, Runway, Terminal
+from lab3.domain.people import Passenger, Pilot, SecurityOfficer
+from lab3.domain.security import (
+    CustomsControl,
+    CustomsDeclaration,
+    PassportControl,
+    Visa,
+)
 
 
 def seed_initial_data(facade: AirportFacade) -> None:

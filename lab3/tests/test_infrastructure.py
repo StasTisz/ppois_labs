@@ -1,8 +1,23 @@
 import pytest
-from lab3.domain.exceptions import RunwayBusyException, GateNotAssignedException, CapacityExceededException, \
-    WeatherWarningException
-from lab3.domain.infrastructure import Runway, Gate, CheckInCounter, BaggageCarousel, Lounge, Terminal, ControlTower, \
-    Hangar, ParkingLot, Airport
+
+from lab3.domain.exceptions import (
+    CapacityExceededException,
+    GateNotAssignedException,
+    RunwayBusyException,
+    WeatherWarningException,
+)
+from lab3.domain.infrastructure import (
+    Airport,
+    BaggageCarousel,
+    CheckInCounter,
+    ControlTower,
+    Gate,
+    Hangar,
+    Lounge,
+    ParkingLot,
+    Runway,
+    Terminal,
+)
 
 
 def test_runway_occupy_and_clear():

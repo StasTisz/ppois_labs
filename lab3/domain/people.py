@@ -8,6 +8,7 @@
 """
 
 from __future__ import annotations
+
 import uuid
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
@@ -108,7 +109,6 @@ class Employee(Person, ABC):
         Полиморфный метод выполнения профессиональных обязанностей.
         Каждая должность реализует свою уникальную логику.
         """
-        pass
 
 
 class CrewMember(Employee, ABC):

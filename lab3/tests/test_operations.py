@@ -1,9 +1,23 @@
-import pytest
 from datetime import datetime
-from lab3.domain.exceptions import BaggageOverweightException, InvalidTicketException, FlightDelayedException
-from lab3.domain.operations import Baggage, Ticket, Airline, FlightPlan, DepartureFlight, ArrivalFlight, Schedule
+
+import pytest
+
+from lab3.domain.exceptions import (
+    BaggageOverweightException,
+    FlightDelayedException,
+    InvalidTicketException,
+)
 from lab3.domain.fleet import PassengerAircraft
-from lab3.domain.infrastructure import Gate, BaggageCarousel
+from lab3.domain.infrastructure import BaggageCarousel, Gate
+from lab3.domain.operations import (
+    Airline,
+    ArrivalFlight,
+    Baggage,
+    DepartureFlight,
+    FlightPlan,
+    Schedule,
+    Ticket,
+)
 from lab3.domain.people import Passenger
 
 

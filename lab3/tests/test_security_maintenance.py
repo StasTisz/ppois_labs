@@ -1,11 +1,26 @@
-import pytest
 from datetime import datetime, timedelta
+
+import pytest
+
 from lab3.domain.exceptions import SecurityCheckFailedException, VisaExpiredException
-from lab3.domain.security import Visa, CustomsDeclaration, MetalDetector, XRayScanner, SecurityCheckpoint, \
-    PassportControl, CustomsControl
-from lab3.domain.maintenance import WeatherReport, MaintenanceInspection, RefuelingTask, CleaningTask, CateringTask
-from lab3.domain.fleet import PassengerAircraft, PrivateJet, FuelTruck
-from lab3.domain.people import SecurityOfficer, Pilot
+from lab3.domain.fleet import FuelTruck, PassengerAircraft, PrivateJet
+from lab3.domain.maintenance import (
+    CateringTask,
+    CleaningTask,
+    MaintenanceInspection,
+    RefuelingTask,
+    WeatherReport,
+)
+from lab3.domain.people import Pilot, SecurityOfficer
+from lab3.domain.security import (
+    CustomsControl,
+    CustomsDeclaration,
+    MetalDetector,
+    PassportControl,
+    SecurityCheckpoint,
+    Visa,
+    XRayScanner,
+)
 
 
 def test_visa_validity():

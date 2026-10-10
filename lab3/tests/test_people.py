@@ -1,6 +1,14 @@
 import pytest
-from lab3.domain.people import Passenger, Pilot, FlightAttendant, Dispatcher, SecurityOfficer, CheckInAgent, \
-    BaggageHandler
+
+from lab3.domain.people import (
+    BaggageHandler,
+    CheckInAgent,
+    Dispatcher,
+    FlightAttendant,
+    Passenger,
+    Pilot,
+    SecurityOfficer,
+)
 
 
 def test_passenger_baggage_and_tickets():

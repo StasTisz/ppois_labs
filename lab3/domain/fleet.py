@@ -8,6 +8,7 @@
 """
 
 from __future__ import annotations
+
 import uuid
 from abc import ABC, abstractmethod
 
@@ -40,7 +41,6 @@ class Vehicle(ABC):
         Полиморфный контракт проведения ТО.
         Каждый конкретный тип техники реализует свои уникальные процедуры.
         """
-        pass
 
 
 class Aircraft(Vehicle, ABC):

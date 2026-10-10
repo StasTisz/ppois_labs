@@ -8,6 +8,7 @@
 """
 
 from __future__ import annotations
+
 import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -85,7 +86,6 @@ class Scanner(ABC):
         Полиморфный метод сканирования объекта.
         Возвращает True, если запрещенных предметов не найдено.
         """
-        pass
 
 
 class MetalDetector(Scanner):
