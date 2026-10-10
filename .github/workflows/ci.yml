@@ -139,9 +139,10 @@ jobs:
       - name: Build Standalone Artifacts
         shell: pwsh
         run: |
-          pyinstaller --onefile --name ppois_lab2 lab2/cli.py
+          $env:PYTHONPATH = "."
+          pyinstaller --onefile --paths . --collect-all lab2 --name ppois_lab2 lab2/cli.py
           if (Test-Path "lab3/cli.py") { 
-            pyinstaller --onefile --name ppois_lab3 lab3/cli.py 
+            pyinstaller --onefile --paths . --collect-all lab3 --name ppois_lab3 lab3/cli.py 
           } else {
             Write-Host "Файл lab3/cli.py пока не существует. Сборка пропущена."
           }
@@ -184,14 +185,16 @@ jobs:
 
       - name: Build Lab 2 (Python macOS)
         run: |
-          PYTHONPATH=. pyinstaller --onefile --paths . --name ppois_lab2_macos lab2/cli.py
+          PYTHONPATH=. pyinstaller --onefile --paths . --collect-all lab2 --name ppois_lab2_macos lab2/cli.py
           cp dist/ppois_lab2_macos macos_binaries/
 
       - name: Build Lab 3 (Python macOS)
         run: |
           if [ -f "lab3/cli.py" ]; then
-            PYTHONPATH=. pyinstaller --onefile --paths . --name ppois_lab3_macos lab3/cli.py
+            PYTHONPATH=. pyinstaller --onefile --paths . --collect-all lab3 --name ppois_lab3_macos lab3/cli.py
             cp dist/ppois_lab3_macos macos_binaries/
+          else
+            echo "lab3/cli.py не найден, сборка пропущена"
           fi
 
       - name: Upload macOS Artifacts
