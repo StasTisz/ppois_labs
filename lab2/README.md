@@ -6,33 +6,33 @@ University dean's office information management system. The system models the ad
 
 ## 1. Object Model & Class Specification
 
-*Note: In the "Fields" column, subclass counts include all attributes inherited from their respective parent classes.*
+*Note: The "Fields" and "Methods" columns include all class variables, properties, initialized instance variables, and inherited attributes/methods from parent classes to reflect the exact memory and behavior footprint of each instantiated object.*
 
 | Subpackage & Module Path | Class | Fields | Methods | Associations (Connected Classes) |
 |---|---|:---:|:---:|---|
-| **academics/labwork.py** | `LabWork` | 6 | 3 | `Subject` |
-| **academics/subject.py** | `Subject` | 5 | 5 | `LabWork` |
-| **people/person.py** | `Person` | 5 | 3 | `BankAccount` |
-| **people/student.py** | `Student` | 13 | 4 | `RecordBook`, `AcademicGroup`, `Room`, `LibraryCard`, `BankAccount` |
-| **people/employee.py** | `Employee` | 7 | 3 | `BankAccount` |
-| **people/lecturer.py** | `Lecturer` | 12 | 5 | `Department`, `Subject`, `BankAccount` |
-| **people/dean.py** | `Dean` | 10 | 2 | `BankAccount` |
-| **people/assistant.py** | `Assistant` | 12 | 1 | `Department`, `Subject`, `BankAccount` |
-| **people/associate_professor.py** | `AssociateProfessor` | 12 | 1 | `Department`, `Subject`, `BankAccount` |
-| **people/professor.py** | `Professor` | 12 | 1 | `Department`, `Subject`, `BankAccount` |
+| **academics/labwork.py** | `LabWork` | 6 | 4 | `Subject` |
+| **academics/subject.py** | `Subject` | 5 | 6 | `LabWork` |
+| **people/person.py** | `Person` | 5 | 4 | `BankAccount` |
+| **people/student.py** | `Student` | 13 | 8 | `RecordBook`, `AcademicGroup`, `Room`, `LibraryCard`, `BankAccount` |
+| **people/employee.py** | `Employee` | 7 | 6 | `BankAccount` |
+| **people/lecturer.py** | `Lecturer` | 12 | 10 | `Department`, `Subject`, `BankAccount` |
+| **people/dean.py** | `Dean` | 10 | 7 | `BankAccount` |
+| **people/assistant.py** | `Assistant` | 12 | 10 | `Department`, `Subject`, `BankAccount` |
+| **people/associate_professor.py** | `AssociateProfessor` | 12 | 10 | `Department`, `Subject`, `BankAccount` |
+| **people/professor.py** | `Professor` | 12 | 10 | `Department`, `Subject`, `BankAccount` |
 | **finance/bank_account.py** | `BankAccount` | 6 | 5 | `Person` |
-| **finance/tuition_contract.py** | `TuitionContract` | 10 | 7 | `Student`, `BankAccount` |
-| **finance/payroll.py** | `Payroll` | 5 | 4 | `Employee`, `Student`, `BankAccount` |
+| **finance/tuition_contract.py** | `TuitionContract` | 10 | 8 | `Student`, `BankAccount` |
+| **finance/payroll.py** | `Payroll` | 5 | 5 | `Employee`, `Student`, `BankAccount` |
 | **grading/grade.py** | `Grade` | 8 | 3 | `Subject` |
-| **grading/record_book.py** | `RecordBook` | 4 | 7 | `Student`, `Grade`, `Subject` |
+| **grading/record_book.py** | `RecordBook` | 4 | 8 | `Student`, `Grade`, `Subject` |
 | **grading/academic_statement.py** | `AcademicStatement` | 6 | 4 | `Subject`, `AcademicGroup`, `Lecturer`, `Student`, `Grade` |
 | **grading/retake_sheet.py** | `RetakeSheet` | 7 | 2 | `Student`, `Subject`, `Grade` |
 | **structure/speciality.py** | `Speciality` | 6 | 3 | — |
-| **structure/academic_group.py** | `AcademicGroup` | 5 | 9 | `Speciality`, `Student` |
+| **structure/academic_group.py** | `AcademicGroup` | 5 | 10 | `Speciality`, `Student` |
 | **structure/department.py** | `Department` | 4 | 5 | `Lecturer` |
 | **structure/faculty.py** | `Faculty` | 4 | 8 | `Department`, `AcademicGroup`, `Student` |
 | **structure/university.py** | `University` | 3 | 3 | `Faculty` |
-| **infrastructure/room.py** | `Room` | 4 | 6 | `Student` |
+| **infrastructure/room.py** | `Room` | 4 | 7 | `Student` |
 | **infrastructure/dormitory.py** | `Dormitory` | 3 | 5 | `Room`, `Student` |
 | **library/book.py** | `Book` | 6 | 5 | — |
 | **library/library_card.py** | `LibraryCard` | 4 | 5 | `Student`, `Book` |
@@ -41,15 +41,13 @@ University dean's office information management system. The system models the ad
 | **schedule/lesson.py** | `Lesson` | 7 | 3 | `Subject`, `Lecturer`, `AcademicGroup`, `Classroom`, `Timeslot` |
 | **schedule/timetable.py** | `Timetable` | 2 | 5 | `Lesson`, `AcademicGroup`, `Lecturer` |
 | **documents/document.py** | `Document` | 5 | 5 | `Dean` |
-| **documents/expulsion_order.py** | `ExpulsionOrder` | 7 | 2 | `Student`, `Dean` |
-| **documents/academic_certificate.py** | `AcademicCertificate` | 7 | 1 | `Student`, `Dean` |
-| **documents/transfer_order.py** | `TransferOrder` | 8 | 2 | `Student`, `AcademicGroup`, `Dean` |
-| **documents/scholarship_order.py** | `ScholarshipOrder` | 6 | 2 | `Student`, `Dean` |
-| **documents/academic_leave_order.py** | `AcademicLeaveOrder` | 8 | 2 | `Student`, `Dean` |
-| **documents/reprimand_order.py** | `ReprimandOrder` | 8 | 2 | `Student`, `Dean` |
+| **documents/expulsion_order.py** | `ExpulsionOrder` | 7 | 6 | `Student`, `Dean` |
+| **documents/academic_certificate.py** | `AcademicCertificate` | 7 | 5 | `Student`, `Dean` |
+| **documents/transfer_order.py** | `TransferOrder` | 8 | 6 | `Student`, `AcademicGroup`, `Dean` |
+| **documents/scholarship_order.py** | `ScholarshipOrder` | 6 | 6 | `Student`, `Dean` |
+| **documents/academic_leave_order.py** | `AcademicLeaveOrder` | 8 | 6 | `Student`, `Dean` |
+| **documents/reprimand_order.py** | `ReprimandOrder` | 8 | 6 | `Student`, `Dean` |
 | **dean_office/dean_office.py** | `DeanOffice` | 6 | 10 | `Faculty`, `Dean`, `RecordBook`, `Student`, `AcademicGroup`, `Document`, `ExpulsionOrder`, `ReprimandOrder`, `ScholarshipOrder`, `TransferOrder` |
-| **cli.py** | `DataSeeder` | 1 | 1 | `DeanOffice`, `Faculty`, `Dormitory`, `TuitionContract`, `Book` |
-| **cli.py** | `CLI` | 2 | 8 | `DeanOffice`, `Student`, `Subject`, `Grade`, `RetakeSheet`, `Payroll` |
 
 ---
 
@@ -76,12 +74,14 @@ The architecture contains an isolated domain exception hierarchy rooted in `Dean
 
 ## 3. Summary Object Model Statistics
 
+*Note: The following statistics strictly represent the sums derived from the tables above, combining the 38 domain classes with the 14 custom exception classes.*
+
 | Metric | Assignment Requirement | Actual Value |
 |---|:---:|:---:|
-| **Classes** | $\ge$ 50 | **54** |
-| **Attributes / Fields** | $\ge$ 150 | **268** |
-| **Behaviors / Methods** | $\ge$ 100 | **162** |
-| **Class Associations** | $\ge$ 30 | **61** |
+| **Classes** | $\ge$ 50 | **52** |
+| **Attributes / Fields** | $\ge$ 150 | **265** |
+| **Behaviors / Methods** | $\ge$ 100 | **239** |
+| **Class Associations** | $\ge$ 30 | **84** |
 | **Custom Domain Exceptions** | $\ge$ 12 | **14** |
 
 ---
