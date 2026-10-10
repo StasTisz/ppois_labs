@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 
 from lab2.domain.academics.subject import Subject
+
 from lab2.domain.grading.grade import Grade
 from lab2.domain.people.student import Student
 

@@ -4,6 +4,7 @@ import uuid
 from typing import Any
 
 from lab2.domain.academics.subject import Subject
+
 from lab2.domain.grading.grade import Grade
 from lab2.domain.people.lecturer import Lecturer
 from lab2.domain.people.student import Student

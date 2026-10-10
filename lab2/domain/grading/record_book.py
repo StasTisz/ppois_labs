@@ -6,6 +6,7 @@ from lab2.domain.grading.grade import Grade
 
 if TYPE_CHECKING:
     from lab2.domain.academics.subject import Subject
+
     from lab2.domain.people.student import Student
 
 

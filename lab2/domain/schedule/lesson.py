@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 
 from lab2.domain.academics.subject import Subject
+
 from lab2.domain.people.lecturer import Lecturer
 from lab2.domain.schedule.classroom import Classroom
 from lab2.domain.schedule.timeslot import Timeslot

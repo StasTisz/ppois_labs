@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from lab2.domain.people.lecturer import Lecturer
+from lab2.domain.people.lecturer import Lecturer
 
 
 class Department:
@@ -28,7 +25,7 @@ class Department:
 
     def assign_head(self, head: Lecturer | str) -> None:
         """Назначает заведующего кафедрой."""
-        if hasattr(head, "full_name"):
+        if isinstance(head, Lecturer):
             self.head = head
             self.head_name = head.full_name
             if head not in self._teachers:
