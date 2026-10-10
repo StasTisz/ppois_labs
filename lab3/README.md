@@ -1,6 +1,6 @@
 # Laboratory Work No. 3. Object-Oriented Airport Architecture
 
-Enterprise information management system for a major international airport. The system coordinates airport physical infrastructure (runways, passenger terminals, boarding gates), the aviation and ground vehicle fleet (passenger airliners, cargo aircraft, private jets, fuel trucks, baggage tractors, apron buses), personnel and passenger rosters, operational workflows (flight schedules, e-ticketing, baggage handling, boarding passes), aviation security (metal detectors, X-ray scanners, customs and passport border control), and comprehensive ground maintenance (line inspections, refueling, interior cleaning, catering, weather dispatching).
+Enterprise information management system for a major international airport. The system coordinates airport physical infrastructure (runways, passenger terminals, boarding gates), the aviation and ground vehicle fleet (passenger airliners, cargo aircraft, private jets, fuel trucks, baggage tractors, apron buses), personnel and passenger rosters, operational workflows (flight schedules, e-ticketing, baggage handling, boarding passes), aviation security (metal detectors, X-ray scanners, customs and passport border control), and comprehensive ground maintenance (line inspections, refueling, interior cleaning, catering, weather dispatching)[cite: 2, 3, 4, 5, 6, 7, 8].
 
 ---
 
@@ -97,53 +97,46 @@ Enterprise information management system for a major international airport. The 
 |---|---|:---:|:---:|---|
 | **facade/airport_facade.py** | `AirportFacade` | 9 | 14 | `Airport`, `Schedule`, `Passenger`, `Employee`, `Aircraft`, `FuelTruck`, `Ticket`, `SecurityCheckpoint`, `WeatherReport`, `DepartureFlight`, `BoardingPass`, `Runway`, `Airline`, `FlightPlan`, `Baggage` |
 
-### 1.8 Command Line Interface (`lab3/cli.py`)
-
-| Module Path | Class | Fields | Methods | Associations (Connected Classes) |
-|---|---|:---:|:---:|---|
-| **cli.py** | `DataSeeder` | 1 | 1 | `AirportFacade`, `Runway`, `Terminal`, `Gate`, `PassengerAircraft`, `FuelTruck`, `Pilot`, `SecurityOfficer` |
-| **cli.py** | `CLI` | 2 | 8 | `AirportFacade`, `Passenger`, `CustomsControl`, `PassportControl` |
-
 ---
 
 ## 2. Custom Domain Exceptions (14)
 
-The architecture contains an isolated domain exception hierarchy rooted in `AirportException`:
+The architecture contains an isolated domain exception hierarchy rooted in `AirportException`[cite: 1]:
 
-1. `AirportException` — Base exception class for the airport domain model.
-2. `FlightDelayedException` — Raised when attempting standard operational procedures on a delayed flight.
-3. `BoardingClosedException` — Raised when a passenger attempts to board after gate closure.
-4. `InvalidTicketException` — Raised when ticket verification fails or a duplicate check-in occurs.
-5. `BaggageOverweightException` — Raised when checked luggage exceeds maximum baggage allowance.
-6. `RunwayBusyException` — Raised when an aircraft requests takeoff or landing on an occupied runway.
-7. `SecurityCheckFailedException` — Raised when a passenger or baggage item fails screening.
-8. `VisaExpiredException` — Raised at border control when an entry visa is expired or absent.
-9. `GateNotAssignedException` — Raised when attempting to board without an allocated departure gate.
-10. `MaintenanceRequiredException` — Raised when an aircraft attempts flight without line maintenance clearance.
-11. `NoAvailableCrewException` — Raised when minimum flight crew requirements are not satisfied.
-12. `WeatherWarningException` — Raised by air traffic control when severe weather conditions prohibit operations.
-13. `CapacityExceededException` — Raised when flight booking limits, lounge capacity, or vehicle thresholds are breached.
-14. `PassengerNotFoundException` — Raised when querying a passenger absent from manifests or registries.
+1. `AirportException` — Base exception class for the airport domain model[cite: 1].
+2. `FlightDelayedException` — Raised when attempting standard operational procedures on a delayed flight[cite: 1].
+3. `BoardingClosedException` — Raised when a passenger attempts to board after gate closure[cite: 1].
+4. `InvalidTicketException` — Raised when ticket verification fails or a duplicate check-in occurs[cite: 1].
+5. `BaggageOverweightException` — Raised when checked luggage exceeds maximum baggage allowance[cite: 1].
+6. `RunwayBusyException` — Raised when an aircraft requests takeoff or landing on an occupied runway[cite: 1].
+7. `SecurityCheckFailedException` — Raised when a passenger or baggage item fails screening[cite: 1].
+8. `VisaExpiredException` — Raised at border control when an entry visa is expired or absent[cite: 1].
+9. `GateNotAssignedException` — Raised when attempting to board without an allocated departure gate[cite: 1].
+10. `MaintenanceRequiredException` — Raised when an aircraft attempts flight without line maintenance clearance[cite: 1].
+11. `NoAvailableCrewException` — Raised when minimum flight crew requirements are not satisfied[cite: 1].
+12. `WeatherWarningException` — Raised by air traffic control when severe weather conditions prohibit operations[cite: 1].
+13. `CapacityExceededException` — Raised when flight booking limits, lounge capacity, or vehicle thresholds are breached[cite: 1].
+14. `PassengerNotFoundException` — Raised when querying a passenger absent from manifests or registries[cite: 1].
 
 ---
 
 ## 3. Summary Object Model Statistics
 
-*Note: The statistics below represent the exact sums computed directly from the 56 domain classes in the sub-tables above combined with the 14 custom exception classes.*
+*Note: The statistics below represent the exact sums computed directly from the 54 domain classes in the sub-tables above combined with the 14 custom exception classes.*
 
 | Metric | Assignment Requirement | Actual Value |
 |---|:---:|:---:|
-| **Classes** | $\ge$ 50 | **70** |
-| **Attributes / Fields** | $\ge$ 150 | **352** |
-| **Behaviors / Methods** | $\ge$ 100 | **215** |
-| **Class Associations** | $\ge$ 30 | **99** |
-| **Custom Domain Exceptions** | $\ge$ 12 | **14** |
+| **Classes** | $\ge$ 50[cite: 12] | **68** |
+| **Attributes / Fields** | $\ge$ 150[cite: 12] | **349** |
+| **Behaviors / Methods** | $\ge$ 100[cite: 12] | **206** |
+| **Class Associations** | $\ge$ 30[cite: 12] | **87** |
+| **Custom Domain Exceptions** | $\ge$ 12[cite: 12] | **14**[cite: 9] |
 
 ---
 
 ## 4. Documentation Generation
 
-The project utilizes automated API documentation generation via **pdoc**, parsing standard docstrings across all modules. The `docs/` directory is treated as a build artifact and excluded from version control.
+The project utilizes automated API documentation generation via **pdoc**, parsing standard docstrings across all modules. The `docs/` directory is treated as a build artifact and excluded from version control[cite: 9].
 
 ### Guide to Generating Documentation:
 
@@ -180,15 +173,3 @@ python -m pytest --cov=lab3/domain --cov-fail-under=90 lab3/tests/ -v
 ruff check lab3/
 mypy lab3/ --explicit-package-bases --ignore-missing-imports
 ```
-
-### Run Interactive Console Application (CLI)
-```bash
-python -m lab3.cli
-```
-
-### Build Standalone Executable Binary
-Automated builds are handled via GitHub Actions upon pushing to the repository. For local compilation using PyInstaller:
-```bash
-pyinstaller --onefile --paths . --collect-all lab3 --name ppois_lab3 lab3/cli.py
-```
-The output binary will be located inside the `dist/` directory.
