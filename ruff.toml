@@ -1,0 +1,5 @@
+[lint]
+ignore = [
+"DTZ005", # Разрешить datetime.now() без указания tz
+"SIM103", # Разрешить явный if-else вместо negated condition
+]
