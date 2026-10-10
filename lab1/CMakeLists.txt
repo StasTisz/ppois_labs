@@ -21,8 +21,11 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-# Отдельная программа-тестировщик (Переименовано в lab1_tests)
-add_executable(lab1_tests tests/test.cpp src/Polynomial.cpp)
+add_executable(lab1_tests
+        tests/test_polynomial.cpp
+        tests/test_set.cpp
+        src/Polynomial.cpp
+)
 
 target_link_libraries(lab1_tests gtest_main)
 
