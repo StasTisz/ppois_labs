@@ -28,20 +28,20 @@ class Dean(Employee):
             passport_number=passport_number,
         )
         self.degree = degree
+        self.faculty_name = "ФИТиУ"
+        self.cabinet_number = "215-1"
         self._signed_orders_count = 0
 
     @property
     def signed_orders_count(self) -> int:
         return self._signed_orders_count
 
-    def sign_order(self, order: Document | str) -> str:
+    def sign_order(self, order: Document) -> str:
         self._signed_orders_count += 1
-        if hasattr(order, "sign"):
-            order.sign(self)
-            return (
-                f"ПРИКАЗ УТВЕРЖДЕН: {order.title} | Подписант: декан {self.full_name}"
-            )
-        return f"ПРИКАЗ УТВЕРЖДЕН: {order} | Подписант: декан {self.full_name}"
+        order.sign(self)
+        return (
+            f"ПРИКАЗ УТВЕРЖДЕН: {order.title} | Подписант: декан {self.full_name}"
+        )
 
     def issue_instruction(self, instruction_text: str) -> str:
         if not instruction_text.strip():

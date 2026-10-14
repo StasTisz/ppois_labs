@@ -6,8 +6,15 @@ from lab2.domain.people.student import Student
 
 
 class ExpulsionOrder(Document):
+    MIN_APPEAL_GROUNDS_LENGTH = 10
+    DEFAULT_EFFECTIVE_DATE = "2023-10-01"
+
     def __init__(
-        self, student: Student, reason: str, registration_number: str = ""
+        self,
+        student: Student,
+        reason: str,
+        registration_number: str = "",
+        effective_date: str = DEFAULT_EFFECTIVE_DATE,
     ) -> None:
         super().__init__(
             f"Приказ об отчислении: {student.full_name}",
@@ -15,6 +22,7 @@ class ExpulsionOrder(Document):
         )
         self.student = student
         self.reason = reason
+        self.effective_date = effective_date
 
     def execute(self) -> None:
         self._ensure_signed()
@@ -38,4 +46,4 @@ class ExpulsionOrder(Document):
     def appeal(self, grounds: str) -> bool:
         if not grounds.strip():
             raise ValueError("Основание для апелляции не может быть пустым.")
-        return len(grounds) > 10
+        return len(grounds) > self.MIN_APPEAL_GROUNDS_LENGTH

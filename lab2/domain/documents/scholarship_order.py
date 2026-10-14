@@ -5,11 +5,22 @@ from lab2.domain.people.student import Student
 
 
 class ScholarshipOrder(Document):
-    def __init__(self, students: list[Student], registration_number: str = "") -> None:
+    DEFAULT_MONTHLY_AMOUNT = 120.0
+    DEFAULT_DURATION_MONTHS = 5
+
+    def __init__(
+        self,
+        students: list[Student],
+        registration_number: str = "",
+        monthly_amount: float = DEFAULT_MONTHLY_AMOUNT,
+        duration_months: int = DEFAULT_DURATION_MONTHS,
+    ) -> None:
         super().__init__(
             f"Приказ о стипендии ({len(students)} чел.)",
             registration_number=registration_number,
         )
+        self.monthly_amount = monthly_amount
+        self.duration_months = duration_months
         self._students = list(students)
 
     @property

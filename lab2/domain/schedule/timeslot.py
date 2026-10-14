@@ -2,6 +2,8 @@ from __future__ import annotations
 
 
 class Timeslot:
+    MINUTES_PER_HOUR: int = 60
+
     def __init__(self, sequence_number: int, start_time: str, end_time: str) -> None:
         self.sequence_number = sequence_number
         self.start_time = start_time
@@ -11,7 +13,10 @@ class Timeslot:
     def duration_minutes(self) -> int:
         start_h, start_m = map(int, self.start_time.split(":"))
         end_h, end_m = map(int, self.end_time.split(":"))
-        return (end_h * 60 + end_m) - (start_h * 60 + start_m)
+        return (
+            (end_h * self.MINUTES_PER_HOUR + end_m)
+            - (start_h * self.MINUTES_PER_HOUR + start_m)
+        )
 
     def conflicts_with(self, other: Timeslot) -> bool:
         if self.sequence_number == other.sequence_number:

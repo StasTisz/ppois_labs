@@ -7,17 +7,13 @@ from lab2.domain.people.student import Student
 
 def test_dean():
     dean = Dean("Декан", "Деканов")
-    result = dean.sign_order("Отчислить студента")
-    assert "ПРИКАЗ УТВЕРЖДЕН: Отчислить студента" in result
+    s = Student("Студент", "Студентов")
+    order = ExpulsionOrder(s, "Пропуски занятий длительное время")
+    result = dean.sign_order(order)
+    assert "ПРИКАЗ УТВЕРЖДЕН: Приказ об отчислении" in result
     assert "Деканов Декан" in result
     assert dean.signed_orders_count == 1
-
-    s = Student("Студент", "Студентов")
-    order = ExpulsionOrder(s, "Пропуски занятий")
-    res2 = dean.sign_order(order)
     assert order.is_signed is True
-    assert dean.signed_orders_count == 2
-    assert "ПРИКАЗ УТВЕРЖДЕН" in res2
 
     inst = dean.issue_instruction("Провести старостат в среду")
     assert "Провести старостат" in inst

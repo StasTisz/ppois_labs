@@ -15,12 +15,16 @@ class PassengerAircraft(Aircraft):
         max_passengers: int | None = None,
     ) -> None:
         super().__init__(model, max_speed, tail_number, fuel_capacity)
-        cap = max_passengers if max_passengers is not None else seating_capacity
-        self.seating_capacity = cap
-        self.max_passengers = cap
+        self.seating_capacity = (
+            max_passengers if max_passengers is not None else seating_capacity
+        )
         self._current_passengers = 0
         self.oxygen_masks_tested = False
         self.cabin_pressurization_ok = False
+
+    @property
+    def max_passengers(self) -> int:
+        return self.seating_capacity
 
     @property
     def passengers_count(self) -> int:

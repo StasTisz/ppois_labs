@@ -7,13 +7,13 @@ from lab2.domain.people.student import Student
 
 def test_bank_account():
     s = Student("С", "С")
+    s2 = Student("Б", "Б")
     acc1 = BankAccount(s, "A1")
     assert acc1.owner == s
-    assert acc1.owner_id == s.person_id
     assert s.bank_account == acc1
 
-    acc2 = BankAccount("user2", "A2")
-    assert acc2.owner_id == "user2"
+    acc2 = BankAccount(s2, "A2")
+    assert acc2.owner == s2
 
     with pytest.raises(ValueError):
         acc1.deposit(-10)

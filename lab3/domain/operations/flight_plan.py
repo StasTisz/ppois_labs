@@ -7,6 +7,9 @@ if TYPE_CHECKING:
 
 
 class FlightPlan:
+    INTERNATIONAL_DURATION_HOURS: float = 2.5
+    DOMESTIC_DURATION_HOURS: float = 1.0
+
     def __init__(
         self,
         origin: str,
@@ -23,7 +26,11 @@ class FlightPlan:
 
     def calculate_flight_duration_hours(self) -> float:
         # Условная стандартная оценка длительности межсекторного полета
-        return 2.5 if self.is_international() else 1.0
+        return (
+            self.INTERNATIONAL_DURATION_HOURS
+            if self.is_international()
+            else self.DOMESTIC_DURATION_HOURS
+        )
 
     def change_destination(self, new_destination: str) -> None:
         if not new_destination.strip():

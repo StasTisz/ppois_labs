@@ -12,89 +12,89 @@ University dean's office information management system. The system models the ad
 
 | Module Path | Class | Fields | Methods | Associations (Connected Classes) |
 |---|---|:---:|:---:|---|
-| **academics/labwork.py** | `LabWork` | 6 | 4 | `Subject` |
-| **academics/subject.py** | `Subject` | 5 | 6 | `LabWork` |
+| **academics/labwork.py** | `LabWork` | 5 | 3 | `Subject` |
+| **academics/subject.py** | `Subject` | 5 | 3 | `LabWork` |
 
 ### 1.2 Personnel and Students (`lab2/domain/people/`)
 
 | Module Path | Class | Fields | Methods | Associations (Connected Classes) |
 |---|---|:---:|:---:|---|
-| **people/person.py** | `Person` | 5 | 6 | `BankAccount` |
-| **people/student.py** | `Student` | 8 | 18 | `AcademicGroup`, `LibraryCard`, `RecordBook`, `Room` |
-| **people/employee.py** | `Employee` | 3 | 6 | — |
-| **people/lecturer.py** | `Lecturer` | 5 | 6 | `Department`, `Subject` |
-| **people/dean.py** | `Dean` | 4 | 4 | `Document` |
-| **people/assistant.py** | `Assistant` | 1 | 3 | `AcademicGroup`, `Classroom`, `LabWork`, `Student`, `Subject` |
-| **people/associate_professor.py** | `AssociateProfessor` | 2 | 3 | `AcademicGroup`, `Grade`, `Student`, `Subject` |
-| **people/professor.py** | `Professor` | 2 | 3 | `AcademicGroup`, `Student` |
+| **people/person.py** | `Person` | 5 | 3 | `BankAccount` |
+| **people/student.py** | `Student` | 8 | 10 | `AcademicGroup`, `LibraryCard`, `Person`, `RecordBook`, `Room` |
+| **people/employee.py** | `Employee` | 3 | 4 | `Person` |
+| **people/lecturer.py** | `Lecturer` | 3 | 4 | `Department`, `Employee`, `Subject` |
+| **people/dean.py** | `Dean` | 4 | 3 | `Document`, `Employee` |
+| **people/assistant.py** | `Assistant` | 2 | 4 | `AcademicGroup`, `Classroom`, `LabWork`, `Lecturer`, `Student`, `Subject` |
+| **people/associate_professor.py** | `AssociateProfessor` | 2 | 4 | `AcademicGroup`, `Grade`, `Lecturer`, `Student`, `Subject` |
+| **people/professor.py** | `Professor` | 2 | 4 | `AcademicGroup`, `Lecturer`, `Student` |
 
 ### 1.3 Financial Operations (`lab2/domain/finance/`)
 
 | Module Path | Class | Fields | Methods | Associations (Connected Classes) |
 |---|---|:---:|:---:|---|
-| **finance/bank_account.py** | `BankAccount` | 4 | 8 | `Person` |
-| **finance/tuition_contract.py** | `TuitionContract` | 10 | 11 | `BankAccount`, `Student` |
-| **finance/payroll.py** | `Payroll` | 6 | 7 | `BankAccount`, `Employee`, `Student` |
+| **finance/bank_account.py** | `BankAccount` | 4 | 5 | `Person` |
+| **finance/tuition_contract.py** | `TuitionContract` | 7 | 5 | `BankAccount`, `Student` |
+| **finance/payroll.py** | `Payroll` | 4 | 4 | `BankAccount`, `Employee`, `Student` |
 
 ### 1.4 Examination & Grading (`lab2/domain/grading/`)
 
 | Module Path | Class | Fields | Methods | Associations (Connected Classes) |
 |---|---|:---:|:---:|---|
-| **grading/grade.py** | `Grade` | 8 | 5 | `Employee`, `Subject` |
-| **grading/record_book.py** | `RecordBook` | 3 | 8 | `Grade`, `Student`, `Subject` |
-| **grading/academic_statement.py** | `AcademicStatement` | 6 | 5 | `AcademicGroup`, `Grade`, `Lecturer`, `Student`, `Subject` |
-| **grading/retake_sheet.py** | `RetakeSheet` | 8 | 5 | `Grade`, `Lecturer`, `Student`, `Subject` |
+| **grading/grade.py** | `Grade` | 5 | 3 | `Employee`, `Subject` |
+| **grading/record_book.py** | `RecordBook` | 5 | 4 | `Grade`, `Student`, `Subject` |
+| **grading/academic_statement.py** | `AcademicStatement` | 6 | 3 | `AcademicGroup`, `Grade`, `Lecturer`, `Student`, `Subject` |
+| **grading/retake_sheet.py** | `RetakeSheet` | 7 | 3 | `Grade`, `Lecturer`, `Student`, `Subject` |
 
 ### 1.5 Academic Structure (`lab2/domain/structure/`)
 
 | Module Path | Class | Fields | Methods | Associations (Connected Classes) |
 |---|---|:---:|:---:|---|
-| **structure/speciality.py** | `Speciality` | 6 | 3 | — |
-| **structure/academic_group.py** | `AcademicGroup` | 5 | 9 | `Speciality`, `Student` |
-| **structure/department.py** | `Department` | 4 | 8 | `Lecturer` |
-| **structure/faculty.py** | `Faculty` | 4 | 9 | `AcademicGroup`, `Department`, `Student` |
-| **structure/university.py** | `University` | 3 | 4 | `Faculty` |
+| **structure/speciality.py** | `Speciality` | 5 | 3 | — |
+| **structure/academic_group.py** | `AcademicGroup` | 4 | 5 | `Speciality`, `Student` |
+| **structure/department.py** | `Department` | 5 | 4 | `Lecturer` |
+| **structure/faculty.py** | `Faculty` | 4 | 7 | `AcademicGroup`, `Department`, `Student` |
+| **structure/university.py** | `University` | 5 | 3 | `Faculty` |
 
 ### 1.6 Campus Infrastructure (`lab2/domain/infrastructure/`)
 
 | Module Path | Class | Fields | Methods | Associations (Connected Classes) |
 |---|---|:---:|:---:|---|
-| **infrastructure/room.py** | `Room` | 4 | 7 | `Student` |
-| **infrastructure/dormitory.py** | `Dormitory` | 3 | 7 | `Room`, `Student` |
+| **infrastructure/room.py** | `Room` | 3 | 4 | `Student` |
+| **infrastructure/dormitory.py** | `Dormitory` | 4 | 4 | `Room`, `Student` |
 
 ### 1.7 Library Services (`lab2/domain/library/`)
 
 | Module Path | Class | Fields | Methods | Associations (Connected Classes) |
 |---|---|:---:|:---:|---|
-| **library/book.py** | `Book` | 5 | 6 | — |
-| **library/library_card.py** | `LibraryCard` | 4 | 6 | `Book`, `Student` |
+| **library/book.py** | `Book` | 5 | 3 | — |
+| **library/library_card.py** | `LibraryCard` | 3 | 4 | `Book`, `Student` |
 
 ### 1.8 Course Scheduling (`lab2/domain/schedule/`)
 
 | Module Path | Class | Fields | Methods | Associations (Connected Classes) |
 |---|---|:---:|:---:|---|
-| **schedule/classroom.py** | `Classroom` | 5 | 5 | — |
-| **schedule/timeslot.py** | `Timeslot` | 3 | 3 | — |
-| **schedule/lesson.py** | `Lesson` | 6 | 5 | `AcademicGroup`, `Classroom`, `Lecturer`, `Subject`, `Timeslot` |
-| **schedule/timetable.py** | `Timetable` | 2 | 7 | `AcademicGroup`, `Classroom`, `Lecturer`, `Lesson` |
+| **schedule/classroom.py** | `Classroom` | 5 | 4 | — |
+| **schedule/timeslot.py** | `Timeslot` | 3 | 2 | — |
+| **schedule/lesson.py** | `Lesson` | 6 | 6 | `AcademicGroup`, `Classroom`, `Lecturer`, `Subject`, `Timeslot` |
+| **schedule/timetable.py** | `Timetable` | 4 | 7 | `AcademicGroup`, `Classroom`, `Lecturer`, `Lesson` |
 
 ### 1.9 Administrative Orders & Documents (`lab2/domain/documents/`)
 
 | Module Path | Class | Fields | Methods | Associations (Connected Classes) |
 |---|---|:---:|:---:|---|
-| **documents/document.py** | `Document` | 5 | 7 | `Dean` |
-| **documents/expulsion_order.py** | `ExpulsionOrder` | 2 | 2 | `Dean`, `Student` |
-| **documents/academic_certificate.py** | `AcademicCertificate` | 3 | 3 | `Dean`, `Student` |
-| **documents/transfer_order.py** | `TransferOrder` | 3 | 2 | `AcademicGroup`, `Dean`, `Student` |
-| **documents/scholarship_order.py** | `ScholarshipOrder` | 1 | 4 | `Dean`, `Student` |
-| **documents/academic_leave_order.py** | `AcademicLeaveOrder` | 3 | 2 | `Dean`, `Student` |
-| **documents/reprimand_order.py** | `ReprimandOrder` | 3 | 2 | `Dean`, `Student` |
+| **documents/document.py** | `Document` | 5 | 4 | `Dean` |
+| **documents/expulsion_order.py** | `ExpulsionOrder` | 3 | 2 | `Document`, `Student` |
+| **documents/academic_certificate.py** | `AcademicCertificate` | 3 | 3 | `Document`, `Student` |
+| **documents/transfer_order.py** | `TransferOrder` | 4 | 2 | `AcademicGroup`, `Document`, `Student` |
+| **documents/scholarship_order.py** | `ScholarshipOrder` | 3 | 3 | `Document`, `Student` |
+| **documents/academic_leave_order.py** | `AcademicLeaveOrder` | 3 | 2 | `Document`, `Student` |
+| **documents/reprimand_order.py** | `ReprimandOrder` | 4 | 2 | `Document`, `Student` |
 
 ### 1.10 Main Faculty Controller (`lab2/domain/dean_office/`)
 
 | Module Path | Class | Fields | Methods | Associations (Connected Classes) |
 |---|---|:---:|:---:|---|
-| **dean_office/dean_office.py** | `DeanOffice` | 6 | 10 | `AcademicGroup`, `Dean`, `Document`, `ExpulsionOrder`, `Faculty`, `RecordBook`, `ReprimandOrder`, `ScholarshipOrder`, `Student`, `TransferOrder` |
+| **dean_office/dean_office.py** | `DeanOffice` | 4 | 10 | `AcademicGroup`, `Dean`, `Document`, `ExpulsionOrder`, `Faculty`, `RecordBook`, `ReprimandOrder`, `ScholarshipOrder`, `Student`, `TransferOrder` |
 
 ---
 
@@ -121,14 +121,14 @@ The architecture contains an isolated domain exception hierarchy rooted in `Dean
 
 ## 3. Summary Object Model Statistics
 
-*Note: The statistics below represent the exact sums computed directly from the 38 domain classes in the sub-tables above combined with the 14 custom exception classes.*
+*Note: The "Fields" and "Methods" columns reflect instance attributes initialized in __init__ and public domain behaviors (excluding getters/setters and dunder methods) defined in each class.*
 
 | Metric | Assignment Requirement | Actual Value |
 |---|:---:|:---:|
 | **Classes** | $\ge$ 50 | **52** |
-| **Attributes / Fields** | $\ge$ 150 | **166** |
-| **Behaviors / Methods** | $\ge$ 100 | **219** |
-| **Class Associations** | $\ge$ 30 | **86** |
+| **Attributes / Fields** | $\ge$ 150 | **162** |
+| **Behaviors / Methods** | $\ge$ 100 | **153** |
+| **Class Associations** | $\ge$ 30 | **93** |
 | **Custom Domain Exceptions** | $\ge$ 12 | **14** |
 
 ---

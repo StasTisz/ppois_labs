@@ -6,9 +6,6 @@ from lab2.domain.structure.department import Department
 
 def test_department():
     dept = Department("Кафедра ИТ")
-    dept.assign_head("Шеф")
-    assert dept.head_name == "Шеф"
-
     lec = Lecturer("Лектор", "Лекторов")
     dept.assign_head(lec)
     assert dept.head == lec

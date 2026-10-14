@@ -8,8 +8,8 @@ from lab2.domain.people.student import Student
 
 def test_payroll():
     pay = Payroll(10, 2026)
-    acc = BankAccount("test", "1")
     emp = Employee("E", "E")
+    acc = BankAccount(emp, "1")
     emp.salary = 500.0
 
     pay.pay_salary(emp, acc, bonus=50.0)

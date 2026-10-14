@@ -11,10 +11,16 @@ if TYPE_CHECKING:
 
 class XRayScanner(Scanner):
     def __init__(
-        self, model: str, serial_number: str | None = None, contrast_level: float = 1.0
+        self,
+        model: str,
+        serial_number: str | None = None,
+        contrast_level: float = 1.0,
+        radiation_dose_msv: float = 0.05,
     ) -> None:
         super().__init__(model, serial_number)
         self.contrast_level = contrast_level
+        self.radiation_dose_msv = radiation_dose_msv
+        self.high_penetration_mode: bool = False
 
     def adjust_contrast(self, contrast: float) -> None:
         if contrast <= 0.0:
@@ -24,7 +30,7 @@ class XRayScanner(Scanner):
     def detect_organic_materials(self, baggage: Baggage) -> bool:
         if not self.is_active:
             raise ValueError(f"Интроскоп {self.model} выключен.")
-        return baggage.weight > 0.0
+        return baggage.weight_kg > 0.0
 
     def scan(self, target: Passenger | Baggage | None) -> bool:
         if not self.is_active:

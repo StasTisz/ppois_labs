@@ -44,6 +44,4 @@ def test_timetable():
         tt.add_lesson(coll_lect)
 
     assert len(tt.get_schedule_for_group(g, 1)) == 1
-    assert len(tt.get_schedule_for_group("1", 1)) == 1
     assert len(tt.get_lecturer_schedule(l, 1)) == 1
-    assert len(tt.get_lecturer_schedule(l.person_id, 1)) == 1

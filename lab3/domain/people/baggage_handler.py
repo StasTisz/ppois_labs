@@ -10,6 +10,10 @@ if TYPE_CHECKING:
 
 
 class BaggageHandler(Employee):
+    HEAVY_MACHINERY_LOAD_TONS: float = 2.0
+    MANUAL_LOAD_TONS: float = 0.5
+    KG_PER_TON: float = 1000.0
+
     def __init__(
         self,
         first_name: str,
@@ -28,16 +32,18 @@ class BaggageHandler(Employee):
 
     def perform_duty(self) -> str:
         if self.heavy_machinery_license:
-            self._tons_loaded += 2.0
+            self._tons_loaded += self.HEAVY_MACHINERY_LOAD_TONS
             return f"Грузчик {self.full_name} загружает багаж с помощью погрузчика."
-        self._tons_loaded += 0.5
+        self._tons_loaded += self.MANUAL_LOAD_TONS
         return f"Грузчик {self.full_name} загружает багаж вручную."
 
     def load_to_cargo_hold(self, flight: Flight, baggage: Baggage) -> None:
         if not self.is_on_shift:
             raise ValueError(f"Грузчик {self.full_name} не на смене.")
         baggage.check_weight()
-        self._tons_loaded = round(self._tons_loaded + (baggage.weight_kg / 1000.0), 3)
+        self._tons_loaded = round(
+            self._tons_loaded + (baggage.weight_kg / self.KG_PER_TON), 3
+        )
 
     def unload_from_cargo_hold(self, flight: Flight) -> None:
         if not self.is_on_shift:

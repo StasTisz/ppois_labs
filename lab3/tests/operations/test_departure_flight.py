@@ -35,8 +35,11 @@ def test_departure_flight():
     flight.assign_gate(gate)
 
     p = Passenger("П", "П", "P-10")
-    t_valid = Ticket(p, "B2-10", "Economy", 100.0)
-    t_other = Ticket(p, "XX-99", "Economy", 100.0)
+    flight_other = DepartureFlight(
+        "XX-99", Airline("A", "A"), plane, FlightPlan("O", "D", datetime.now(UTC))
+    )
+    t_valid = Ticket(p, flight, "Economy", 100.0)
+    t_other = Ticket(p, flight_other, "Economy", 100.0)
 
     with pytest.raises(InvalidTicketException):
         flight.check_in_passenger(p, t_other)

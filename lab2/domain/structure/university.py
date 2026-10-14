@@ -4,9 +4,20 @@ from lab2.domain.structure.faculty import Faculty
 
 
 class University:
-    def __init__(self, name: str, abbreviation: str) -> None:
+    DEFAULT_FOUNDED_YEAR = 1964
+    DEFAULT_RECTOR = "Богуш В.А."
+
+    def __init__(
+        self,
+        name: str,
+        abbreviation: str,
+        founded_year: int = DEFAULT_FOUNDED_YEAR,
+        rector_name: str = DEFAULT_RECTOR,
+    ) -> None:
         self.name = name
         self.abbreviation = abbreviation
+        self.founded_year = founded_year
+        self.rector_name = rector_name
         self._faculties: list[Faculty] = []
 
     @property
@@ -21,9 +32,9 @@ class University:
         self._faculties.append(faculty)
 
     def find_faculty(self, short_name: str) -> Faculty | None:
-        for f in self._faculties:
-            if f.short_name == short_name:
-                return f
+        for faculty_item in self._faculties:
+            if faculty_item.short_name == short_name:
+                return faculty_item
         return None
 
     def get_all_students_count(self) -> int:

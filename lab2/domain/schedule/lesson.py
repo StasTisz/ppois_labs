@@ -11,6 +11,9 @@ if TYPE_CHECKING:
 
 
 class Lesson:
+    MIN_DAY_OF_WEEK: int = 1
+    MAX_DAY_OF_WEEK: int = 7
+
     def __init__(
         self,
         subject: Subject,
@@ -26,8 +29,13 @@ class Lesson:
         self.room = room
         self.timeslot = timeslot
         self.day_of_week = day_of_week
+        self._validate_day_of_week()
         self._validate_capacity()
         self._validate_room_equipment()
+
+    def _validate_day_of_week(self) -> None:
+        if not (self.MIN_DAY_OF_WEEK <= self.day_of_week <= self.MAX_DAY_OF_WEEK):
+            raise ValueError(f"Недопустимый день недели: {self.day_of_week}.")
 
     def _validate_capacity(self) -> None:
         if self.group.students_count > self.room.capacity:
@@ -53,7 +61,7 @@ class Lesson:
             raise
 
     def change_timeslot(self, new_slot: Timeslot, day_of_week: int) -> None:
-        if not (1 <= day_of_week <= 7):
+        if not (self.MIN_DAY_OF_WEEK <= day_of_week <= self.MAX_DAY_OF_WEEK):
             raise ValueError(f"Недопустимый день недели: {day_of_week}.")
         self.timeslot = new_slot
         self.day_of_week = day_of_week

@@ -38,9 +38,7 @@ class Grade:
 
     @property
     def subject_name(self) -> str:
-        if hasattr(self.subject, "name"):
-            return self.subject.name
-        return str(self.subject)
+        return self.subject.name
 
     @property
     def is_passed(self) -> bool:

@@ -9,17 +9,27 @@ if TYPE_CHECKING:
 
 
 class CleaningTask(ServiceTask):
+    DEEP_CLEANING_DURATION_MINUTES: int = 45
+    STANDARD_CLEANING_DURATION_MINUTES: int = 20
+
     def __init__(
         self,
         aircraft: Aircraft,
         requires_deep_cleaning: bool = False,
+        cleaning_agent_type: str = "standard",
         task_code: str = "",
     ) -> None:
         super().__init__(aircraft, task_code=task_code)
         self.requires_deep_cleaning = requires_deep_cleaning
+        self.cleaning_agent_type = cleaning_agent_type
+        self.sanitized: bool = False
 
     def calculate_estimated_duration_minutes(self) -> int:
-        return 45 if self.requires_deep_cleaning else 20
+        return (
+            self.DEEP_CLEANING_DURATION_MINUTES
+            if self.requires_deep_cleaning
+            else self.STANDARD_CLEANING_DURATION_MINUTES
+        )
 
     def execute(self) -> str:
         self._start()

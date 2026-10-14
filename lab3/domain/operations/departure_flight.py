@@ -25,6 +25,9 @@ if TYPE_CHECKING:
 
 
 class DepartureFlight(Flight):
+    SEATS_PER_ROW: int = 6
+    ASCII_OFFSET_A: int = 65
+
     def __init__(
         self,
         flight_number: str,
@@ -60,8 +63,8 @@ class DepartureFlight(Flight):
         if passenger not in self._manifest:
             self._manifest.append(passenger)
 
-        row = (self._seat_counter // 6) + 1
-        letter = chr(65 + (self._seat_counter % 6))
+        row = (self._seat_counter // self.SEATS_PER_ROW) + 1
+        letter = chr(self.ASCII_OFFSET_A + (self._seat_counter % self.SEATS_PER_ROW))
         seat_number = f"{row}{letter}"
         self._seat_counter += 1
 
@@ -99,7 +102,9 @@ class DepartureFlight(Flight):
             raise MaintenanceRequiredException(
                 f"Вылет запрещен: борт {self.aircraft.tail_number} требует прохождения ТО."
             )
-        has_captain = any(isinstance(c, Pilot) and c.is_captain for c in self._crew)
+        has_captain = any(
+            isinstance(member, Pilot) and member.is_captain for member in self._crew
+        )
         if not self._crew or not has_captain:
             raise NoAvailableCrewException(
                 f"Вылет запрещен: для рейса {self.flight_number} не укомплектован экипаж с КВС."

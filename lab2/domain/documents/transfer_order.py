@@ -1,4 +1,4 @@
-from __future__ import annotations
+from datetime import UTC, datetime
 
 from lab2.domain.documents.document import Document
 from lab2.domain.people.student import Student
@@ -20,6 +20,7 @@ class TransferOrder(Document):
         self.student = student
         self.from_group = from_group
         self.to_group = to_group
+        self.effective_date = datetime.now(UTC)
 
     def validate_transfer(self) -> bool:
         return self.to_group.has_vacancies and self.from_group.has_student(self.student)

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from typing import TYPE_CHECKING
 
 from lab3.domain.exceptions import InvalidTicketException
@@ -11,15 +10,18 @@ if TYPE_CHECKING:
 
 
 class Ticket:
+    _ticket_counter: int = 100000
+
     def __init__(
         self,
-        passenger: Passenger | str,
-        flight: Flight | str,
+        passenger: Passenger,
+        flight: Flight,
         seat_class: str,
         price: float,
         ticket_number: str | None = None,
     ) -> None:
-        self.ticket_number = ticket_number or f"TK-{str(uuid.uuid4())[:8].upper()}"
+        Ticket._ticket_counter += 1
+        self.ticket_number = ticket_number or f"TK-{Ticket._ticket_counter}"
         self._passenger = passenger
         self._flight = flight
         self._seat_class = seat_class
@@ -27,26 +29,16 @@ class Ticket:
         self._is_used = False
 
     @property
-    def passenger(self) -> Passenger | str:
+    def passenger(self) -> Passenger:
         return self._passenger
 
     @property
-    def passenger_id(self) -> str:
-        if hasattr(self._passenger, "passport_number"):
-            return self._passenger.passport_number
-        if hasattr(self._passenger, "person_id"):
-            return self._passenger.person_id
-        return str(self._passenger)
-
-    @property
-    def flight(self) -> Flight | str:
+    def flight(self) -> Flight:
         return self._flight
 
     @property
     def flight_number(self) -> str:
-        if hasattr(self._flight, "flight_number"):
-            return self._flight.flight_number
-        return str(self._flight)
+        return self._flight.flight_number
 
     @property
     def seat_class(self) -> str:
@@ -88,4 +80,4 @@ class Ticket:
         return self.ticket_number == other.ticket_number
 
     def __repr__(self) -> str:
-        return f"Ticket(number={self.ticket_number!r}, flight={self.flight_number!r}, passenger={self._passenger!r})"
+        return f"Ticket(number={self.ticket_number!r}, flight={self.flight_number!r}, passenger={self._passenger.full_name!r})"

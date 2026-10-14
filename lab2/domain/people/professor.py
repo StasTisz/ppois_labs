@@ -20,6 +20,7 @@ class Professor(Lecturer):
         middle_name: str = "",
         degree: str = DEFAULT_DEGREE,
         passport_number: str = "",
+        doctoral_students_count: int = 2,
     ) -> None:
         super().__init__(
             first_name,
@@ -29,6 +30,12 @@ class Professor(Lecturer):
             position=self.DEFAULT_POSITION,
             passport_number=passport_number,
         )
+        self.doctoral_students_count = doctoral_students_count
+        self.advisees: list[Student] = []
+
+    def assign_advisee(self, student: Student) -> None:
+        if student not in self.advisees:
+            self.advisees.append(student)
 
     def supervise_graduate(self, student: Student, thesis_title: str) -> str:
         if not student.is_active:

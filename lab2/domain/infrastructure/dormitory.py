@@ -9,9 +9,17 @@ if TYPE_CHECKING:
 
 
 class Dormitory:
-    def __init__(self, number: int, address: str) -> None:
+    DEFAULT_COMMANDANT = "Иванова А.В."
+
+    def __init__(
+        self,
+        number: int,
+        address: str,
+        commandant_name: str = DEFAULT_COMMANDANT,
+    ) -> None:
         self.number = number
         self.address = address
+        self.commandant_name = commandant_name
         self._rooms: list[Room] = []
 
     @property
@@ -19,7 +27,7 @@ class Dormitory:
         return list(self._rooms)
 
     def add_room(self, room: Room) -> None:
-        if any(r.number == room.number for r in self._rooms):
+        if any(room_item.number == room.number for room_item in self._rooms):
             raise ValueError(f"Комната {room.number} уже есть в плане общежития.")
         self._rooms.append(room)
 
@@ -49,8 +57,10 @@ class Dormitory:
     def occupancy_rate(self) -> float:
         if not self._rooms:
             return 0.0
-        total_beds = sum(r.capacity for r in self._rooms)
-        taken_beds = sum(r.capacity - r.free_beds for r in self._rooms)
+        total_beds = sum(room_item.capacity for room_item in self._rooms)
+        taken_beds = sum(
+            room_item.capacity - room_item.free_beds for room_item in self._rooms
+        )
         return round((taken_beds / total_beds) * 100.0, 2)
 
     def __repr__(self) -> str:

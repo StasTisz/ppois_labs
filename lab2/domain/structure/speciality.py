@@ -7,11 +7,18 @@ class Speciality:
     MAX_SEMESTERS = 12
 
     def __init__(
-        self, code: str, name: str, semesters_count: int = DEFAULT_SEMESTERS
+        self,
+        code: str,
+        name: str,
+        semesters_count: int = DEFAULT_SEMESTERS,
+        qualification: str = "Инженер-системотехник",
+        faculty_name: str = "ФИТиУ",
     ) -> None:
         self.code = code
         self.name = name
         self.semesters_count = semesters_count
+        self.qualification = qualification
+        self.faculty_name = faculty_name
 
     def update_semesters_count(self, new_count: int) -> None:
         if not (self.MIN_SEMESTERS <= new_count <= self.MAX_SEMESTERS):

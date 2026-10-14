@@ -7,10 +7,16 @@ if TYPE_CHECKING:
 
 
 class Department:
-    def __init__(self, name: str) -> None:
+    def __init__(
+        self,
+        name: str,
+        phone_number: str = "+375-17-293-88-00",
+        room_number: str = "401-2",
+    ) -> None:
         self.name = name
+        self.phone_number = phone_number
+        self.room_number = room_number
         self._head: Lecturer | None = None
-        self._head_str_fallback: str | None = None
         self._teachers: list[Lecturer] = []
 
     @property
@@ -21,7 +27,7 @@ class Department:
     def head_name(self) -> str | None:
         if self._head:
             return self._head.full_name
-        return self._head_str_fallback
+        return None
 
     @property
     def staff_count(self) -> int:
@@ -34,15 +40,10 @@ class Department:
     def has_teacher(self, teacher: Lecturer) -> bool:
         return teacher in self._teachers
 
-    def assign_head(self, head: Lecturer | str) -> None:
-        if isinstance(head, str):
-            self._head = None
-            self._head_str_fallback = head
-        else:
-            self._head = head
-            self._head_str_fallback = head.full_name
-            if not self.has_teacher(head):
-                self.add_teacher(head)
+    def assign_head(self, head: Lecturer) -> None:
+        self._head = head
+        if not self.has_teacher(head):
+            self.add_teacher(head)
 
     def add_teacher(self, teacher: Lecturer) -> None:
         if not self.has_teacher(teacher):

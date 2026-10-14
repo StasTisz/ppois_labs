@@ -10,15 +10,21 @@ if TYPE_CHECKING:
 
 
 class MetalDetector(Scanner):
+    MIN_SENSITIVITY: int = 1
+    MAX_SENSITIVITY: int = 10
+
     def __init__(
         self, model: str, serial_number: str | None = None, sensitivity_level: int = 5
     ) -> None:
         super().__init__(model, serial_number)
         self.sensitivity_level = sensitivity_level
+        self.alarm_triggered_count: int = 0
 
     def set_sensitivity(self, level: int) -> None:
-        if not (1 <= level <= 10):
-            raise ValueError("Уровень чувствительности должен быть от 1 до 10.")
+        if not (self.MIN_SENSITIVITY <= level <= self.MAX_SENSITIVITY):
+            raise ValueError(
+                f"Уровень чувствительности должен быть от {self.MIN_SENSITIVITY} до {self.MAX_SENSITIVITY}."
+            )
         self.sensitivity_level = level
 
     def test_alarm(self) -> bool:

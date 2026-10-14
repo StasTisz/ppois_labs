@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from lab3.domain.people.crew_member import CrewMember
+
+if TYPE_CHECKING:
+    from lab3.domain.people.passenger import Passenger
 
 
 class FlightAttendant(CrewMember):
@@ -30,3 +35,6 @@ class FlightAttendant(CrewMember):
         if passengers_count < 0:
             raise ValueError("Число пассажиров не может быть отрицательным.")
         return f"Бортпроводник {self.full_name} обслужил {passengers_count} пассажиров на борту."
+
+    def assist_passenger(self, passenger: Passenger) -> str:
+        return f"Бортпроводник {self.full_name} оказал помощь пассажиру {passenger.full_name}."

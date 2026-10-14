@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from typing import TYPE_CHECKING
 
 from lab3.domain.operations.ticket import Ticket
@@ -10,25 +9,27 @@ if TYPE_CHECKING:
 
 
 class BoardingPass:
+    _pass_counter: int = 200000
+
     def __init__(
-        self, ticket: Ticket, seat_number: str, gate: Gate | str | None = "TBD"
+        self,
+        ticket: Ticket,
+        seat_number: str,
+        gate: Gate | None = None,
+        pass_id: str | None = None,
     ) -> None:
-        self.pass_id = str(uuid.uuid4())
+        BoardingPass._pass_counter += 1
+        self.pass_id = pass_id or f"BP-{BoardingPass._pass_counter}"
         self.ticket = ticket
         self.seat_number = seat_number
-        if isinstance(gate, str):
-            self.gate: Gate | None = None
-            self._gate_str_fallback: str | None = gate
-        else:
-            self.gate = gate
-            self._gate_str_fallback = None
+        self.gate: Gate | None = gate
         self._is_boarded = False
 
     @property
     def gate_number(self) -> str:
         if self.gate is not None:
             return self.gate.number
-        return self._gate_str_fallback or "TBD"
+        return "TBD"
 
     @property
     def is_boarded(self) -> bool:
@@ -49,11 +50,10 @@ class BoardingPass:
 
     def assign_gate(self, gate: Gate) -> None:
         self.gate = gate
-        self._gate_str_fallback = None
 
     def get_summary(self) -> str:
         return (
-            f"Pass #{self.pass_id[:8]}: Seat {self.seat_number}, Gate {self.gate_number}, "
+            f"Pass #{self.pass_id}: Seat {self.seat_number}, Gate {self.gate_number}, "
             f"Boarded: {self._is_boarded}"
         )
 

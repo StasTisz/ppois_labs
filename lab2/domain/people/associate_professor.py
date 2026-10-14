@@ -22,6 +22,8 @@ class AssociateProfessor(Lecturer):
         middle_name: str = "",
         degree: str = DEFAULT_DEGREE,
         passport_number: str = "",
+        published_papers_count: int = 5,
+        research_field: str = "Информационные технологии",
     ) -> None:
         super().__init__(
             first_name,
@@ -31,6 +33,12 @@ class AssociateProfessor(Lecturer):
             position=self.DEFAULT_POSITION,
             passport_number=passport_number,
         )
+        self.published_papers_count = published_papers_count
+        self.research_field = research_field
+
+    def publish_paper(self, title: str) -> str:
+        self.published_papers_count += 1
+        return f"Опубликована научная статья '{title}' в области '{self.research_field}'."
 
     def conduct_lecture(self, subject: Subject, group: AcademicGroup) -> str:
         return (

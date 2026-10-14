@@ -12,15 +12,20 @@ if TYPE_CHECKING:
 
 
 class ArrivalFlight(Flight):
+    BAGS_PER_PASSENGER: int = 2
+
     def __init__(
         self,
         flight_number: str,
         airline: Airline,
         aircraft: Aircraft,
         plan: FlightPlan,
+        origin_gate: str = "A1",
     ) -> None:
         super().__init__(flight_number, airline, aircraft, plan)
         self.assigned_carousel: BaggageCarousel | None = None
+        self.origin_gate = origin_gate
+        self.customs_cleared: bool = False
 
     def assign_carousel(self, carousel: BaggageCarousel) -> None:
         self.assigned_carousel = carousel
@@ -33,4 +38,4 @@ class ArrivalFlight(Flight):
     def unload_baggage_to_carousel(self) -> int:
         if self.assigned_carousel:
             self.assigned_carousel.activate(self)
-        return len(self._passengers) * 2
+        return len(self._passengers) * self.BAGS_PER_PASSENGER

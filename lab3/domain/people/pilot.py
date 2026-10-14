@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from lab3.domain.people.crew_member import CrewMember
+
+if TYPE_CHECKING:
+    from lab3.domain.operations.flight_plan import FlightPlan
 
 
 class Pilot(CrewMember):
@@ -25,10 +30,11 @@ class Pilot(CrewMember):
         role = "КВС (Капитан)" if self.is_captain else "Второй пилот"
         return f"{role} {self.full_name} выполнил чек-лист и готов к вылету."
 
-    def conduct_preflight_briefing(self) -> str:
+    def conduct_preflight_briefing(self, plan: FlightPlan | None = None) -> str:
         if not self.is_on_shift:
             raise ValueError(f"Пилот {self.full_name} не на смене.")
-        return f"Пилот {self.full_name} провел предполетный брифинг экипажа."
+        corridor_info = f" по коридору {plan.air_corridor}" if plan else ""
+        return f"Пилот {self.full_name} провел предполетный брифинг экипажа{corridor_info}."
 
     def record_landing(self) -> None:
         self.pre_flight_checks_done = False

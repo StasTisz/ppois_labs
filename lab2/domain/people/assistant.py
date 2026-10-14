@@ -22,6 +22,8 @@ class Assistant(Lecturer):
         middle_name: str = "",
         degree: str = "Магистр",
         passport_number: str = "",
+        consultation_hours: int = 4,
+        assigned_labs_count: int = 0,
     ) -> None:
         super().__init__(
             first_name,
@@ -31,6 +33,11 @@ class Assistant(Lecturer):
             position=self.DEFAULT_POSITION,
             passport_number=passport_number,
         )
+        self.consultation_hours = consultation_hours
+        self.assigned_labs_count = assigned_labs_count
+
+    def record_labwork_completed(self) -> None:
+        self.assigned_labs_count += 1
 
     def conduct_lab(self, subject: Subject, lab: LabWork, group: AcademicGroup) -> str:
         return (

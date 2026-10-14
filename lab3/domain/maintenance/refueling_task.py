@@ -10,6 +10,9 @@ if TYPE_CHECKING:
 
 
 class RefuelingTask(ServiceTask):
+    FUEL_RATE_PER_MINUTE: float = 200.0
+    BASE_SETUP_MINUTES: int = 10
+
     def __init__(
         self,
         aircraft: Aircraft,
@@ -28,7 +31,7 @@ class RefuelingTask(ServiceTask):
         )
 
     def calculate_estimated_duration_minutes(self) -> int:
-        return int(self.fuel_amount / 200.0) + 10
+        return int(self.fuel_amount / self.FUEL_RATE_PER_MINUTE) + self.BASE_SETUP_MINUTES
 
     def execute(self) -> str:
         self._start()

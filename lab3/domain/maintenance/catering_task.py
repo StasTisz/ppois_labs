@@ -9,6 +9,9 @@ if TYPE_CHECKING:
 
 
 class CateringTask(ServiceTask):
+    VIP_DURATION_MINUTES: int = 30
+    STANDARD_DURATION_MINUTES: int = 15
+
     def __init__(
         self,
         aircraft: Aircraft,
@@ -21,7 +24,11 @@ class CateringTask(ServiceTask):
         self.includes_vip = includes_vip
 
     def calculate_estimated_duration_minutes(self) -> int:
-        return 30 if self.includes_vip else 15
+        return (
+            self.VIP_DURATION_MINUTES
+            if self.includes_vip
+            else self.STANDARD_DURATION_MINUTES
+        )
 
     def execute(self) -> str:
         self._start()

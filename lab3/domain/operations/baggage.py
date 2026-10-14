@@ -10,33 +10,19 @@ if TYPE_CHECKING:
 
 class Baggage:
     MAX_STANDARD_WEIGHT = 23.0
+    _baggage_counter: int = 300000
 
     def __init__(
         self,
         weight_kg: float,
-        owner: Passenger | str,
+        owner: Passenger,
         tag_number: str = "",
     ) -> None:
+        Baggage._baggage_counter += 1
         self.weight_kg = weight_kg
-        self.weight = weight_kg
-        if isinstance(owner, str):
-            self.owner: Passenger | None = None
-            self._owner_id_fallback: str | None = owner
-        else:
-            self.owner = owner
-            self._owner_id_fallback = None
-
-        owner_ident = getattr(owner, "passport_number", str(owner))
-        self.tag_number = (
-            tag_number or f"BAG-{abs(hash((owner_ident, weight_kg))) % 1000000:06d}"
-        )
+        self.owner = owner
+        self.tag_number = tag_number or f"BAG-{Baggage._baggage_counter}"
         self._is_inspected = False
-
-    @property
-    def owner_id(self) -> str:
-        if self.owner is not None:
-            return getattr(self.owner, "person_id", self.owner.passport_number)
-        return self._owner_id_fallback or ""
 
     @property
     def is_inspected(self) -> bool:
@@ -58,5 +44,4 @@ class Baggage:
         return True
 
     def __repr__(self) -> str:
-        owner_name = self.owner.full_name if self.owner else self._owner_id_fallback
-        return f"Baggage(tag={self.tag_number!r}, weight={self.weight_kg}kg, owner={owner_name!r})"
+        return f"Baggage(tag={self.tag_number!r}, weight={self.weight_kg}kg, owner={self.owner.full_name!r})"

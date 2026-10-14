@@ -5,6 +5,8 @@ from lab2.domain.people.student import Student
 
 
 class AcademicLeaveOrder(Document):
+    ALLOWED_DURATIONS_MONTHS = (6, 12, 24)
+
     def __init__(
         self,
         student: Student,
@@ -21,7 +23,7 @@ class AcademicLeaveOrder(Document):
         self.duration_months = duration_months
 
     def is_eligible(self) -> bool:
-        return self.student.is_active and self.duration_months in (6, 12, 24)
+        return self.student.is_active and self.duration_months in self.ALLOWED_DURATIONS_MONTHS
 
     def execute(self) -> None:
         self._ensure_signed()

@@ -59,9 +59,7 @@ class SecurityCheckpoint:
     def assign_officer(self, officer: SecurityOfficer) -> None:
         self.officer = officer
 
-    def process_passenger(
-        self, passenger: Passenger, carry_on: Baggage | None = None
-    ) -> None:
+    def _validate_readiness(self) -> None:
         if not self._is_open:
             raise ValueError(f"Пункт досмотра {self.number} закрыт.")
         if not self.metal_detector or not self.xray_scanner:
@@ -71,6 +69,11 @@ class SecurityCheckpoint:
         if not self.officer or not self.officer.is_on_shift:
             raise ValueError("Нет дежурного офицера для проведения досмотра.")
 
+    def process_passenger(
+        self, passenger: Passenger, carry_on: Baggage | None = None
+    ) -> None:
+        self._validate_readiness()
+        assert self.metal_detector and self.xray_scanner
         person_clear = self.metal_detector.scan(passenger)
         baggage_clear = self.xray_scanner.scan(carry_on) if carry_on else True
 
@@ -78,7 +81,6 @@ class SecurityCheckpoint:
             raise SecurityCheckFailedException(
                 f"Пассажир {passenger.full_name} не прошел досмотр СБ."
             )
-
         self._processed_passengers_count += 1
 
     def __repr__(self) -> str:

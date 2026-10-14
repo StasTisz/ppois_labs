@@ -17,13 +17,6 @@ class BankAccount:
         if hasattr(owner, "bank_account"):
             owner.bank_account = self
 
-    @property
-    def owner_id(self) -> str:
-        if hasattr(self.owner, "passport_number"):
-            return self.owner.passport_number
-        if hasattr(self.owner, "person_id"):
-            return self.owner.person_id
-        return str(self.owner)
 
     @property
     def balance(self) -> float:

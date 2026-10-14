@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from lab2.domain.people.employee import Employee
 
@@ -41,14 +41,13 @@ class Lecturer(Employee):
     def subjects(self) -> list[Subject]:
         return list(self._subjects)
 
-    def assign_subject(self, subject: Subject | Any) -> None:
+    def assign_subject(self, subject: Subject) -> None:
         if not self.can_teach(subject):
             self._subjects.append(subject)
 
-    def remove_subject(self, subject: Subject | Any) -> None:
-        name = getattr(subject, "name", str(subject))
+    def remove_subject(self, subject: Subject) -> None:
         self._subjects = [
-            s for s in self._subjects if getattr(s, "name", str(s)) != name
+            subj for subj in self._subjects if subj != subject
         ]
 
     def update_degree(self, new_degree: str) -> None:
@@ -56,6 +55,5 @@ class Lecturer(Employee):
             raise ValueError("Ученая степень не может быть пустой строкой")
         self.degree = new_degree
 
-    def can_teach(self, subject: Subject | Any) -> bool:
-        name = getattr(subject, "name", str(subject))
-        return any(getattr(s, "name", str(s)) == name for s in self._subjects)
+    def can_teach(self, subject: Subject) -> bool:
+        return any(subj == subject for subj in self._subjects)

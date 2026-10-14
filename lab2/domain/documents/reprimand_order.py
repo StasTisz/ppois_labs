@@ -1,4 +1,4 @@
-from __future__ import annotations
+from datetime import UTC, datetime
 
 from lab2.domain.documents.document import Document
 from lab2.domain.people.student import Student
@@ -19,6 +19,7 @@ class ReprimandOrder(Document):
         self.student = student
         self.reason = reason
         self.is_strict = is_strict
+        self.issued_date = datetime.now(UTC)
 
     def execute(self) -> None:
         self._ensure_signed()

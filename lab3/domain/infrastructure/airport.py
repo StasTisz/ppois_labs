@@ -23,9 +23,9 @@ class Airport:
         self._terminals.append(terminal)
 
     def get_terminal(self, name: str) -> Terminal | None:
-        for t in self._terminals:
-            if t.name == name:
-                return t
+        for term in self._terminals:
+            if term.name == name:
+                return term
         return None
 
     def __repr__(self) -> str:

@@ -14,11 +14,13 @@ def test_grade():
     assert g1.is_exam is True
     assert g1.is_passed is True
 
-    g2 = Grade("Физика", 3, is_exam=False)
+    phys_subj = Subject("Физика", 1)
+    g2 = Grade(phys_subj, 3, is_exam=False)
     assert g2.subject_name == "Физика"
     assert g2.is_passed is False
 
+    chem_subj = Subject("Химия", 1)
     with pytest.raises(InvalidScoreException):
-        Grade("Химия", -1)
+        Grade(chem_subj, -1)
     with pytest.raises(InvalidScoreException):
-        Grade("Химия", 11)
+        Grade(chem_subj, 11)

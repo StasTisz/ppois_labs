@@ -35,19 +35,19 @@ class AirportFacade:
     def __init__(self, airport_name: str, iata_code: str) -> None:
         self.airport = Airport(airport_name, iata_code)
         self.schedule = Schedule()
-
         self._passengers: list[Passenger] = []
         self._employees: list[Employee] = []
         self._aircrafts: list[Aircraft] = []
         self._fuel_trucks: list[FuelTruck] = []
         self._tickets: list[Ticket] = []
+        self._init_security_and_weather()
 
+    def _init_security_and_weather(self) -> None:
         self.checkpoint = SecurityCheckpoint(number=1)
         self.checkpoint.assign_equipment(
             MetalDetector("Ceia PMD2"),
             XRayScanner("Smiths Heimann"),
         )
-
         self.current_weather = WeatherReport(
             temperature_c=18.0,
             wind_speed_ms=6.0,
@@ -119,13 +119,7 @@ class AirportFacade:
                 return f
         return None
 
-    def issue_ticket(
-        self,
-        passenger: Passenger | str,
-        flight: DepartureFlight | str,
-        seat_class: str,
-        price: float,
-    ) -> Ticket:
+    def _resolve_passenger(self, passenger: Passenger | str) -> Passenger:
         passenger_obj = (
             passenger
             if isinstance(passenger, Passenger)
@@ -135,15 +129,28 @@ class AirportFacade:
             raise PassengerNotFoundException(
                 f"Пассажир с паспортом {passenger} не найден."
             )
+        return passenger_obj
 
+    def _resolve_flight(self, flight: DepartureFlight | str) -> DepartureFlight:
         flight_obj = (
             flight
             if isinstance(flight, DepartureFlight)
             else self.find_departure_flight(str(flight))
         )
-        target_flight = flight_obj if flight_obj is not None else flight
+        if flight_obj is None:
+            raise ValueError(f"Рейс {flight} не найден.")
+        return flight_obj
 
-        ticket = Ticket(passenger_obj, target_flight, seat_class, price)
+    def issue_ticket(
+        self,
+        passenger: Passenger | str,
+        flight: DepartureFlight | str,
+        seat_class: str,
+        price: float,
+    ) -> Ticket:
+        passenger_obj = self._resolve_passenger(passenger)
+        flight_obj = self._resolve_flight(flight)
+        ticket = Ticket(passenger_obj, flight_obj, seat_class, price)
         passenger_obj.buy_ticket(ticket)
         self._tickets.append(ticket)
         return ticket
@@ -168,26 +175,11 @@ class AirportFacade:
         self.schedule.add_flight(flight)
         return flight
 
-    def check_in_passenger(
-        self,
-        passenger: Passenger | str,
-        flight_number: str,
-        baggage_weight: float | None = None,
-    ) -> BoardingPass:
-        passenger_obj = (
-            passenger
-            if isinstance(passenger, Passenger)
-            else self.find_passenger(str(passenger))
-        )
-        if not passenger_obj:
-            raise PassengerNotFoundException(
-                f"Пассажир с паспортом {passenger} не найден."
-            )
-
+    def _find_active_ticket(self, passenger: Passenger, flight_number: str) -> Ticket:
         ticket = next(
             (
                 t
-                for t in passenger_obj.get_tickets()
+                for t in passenger.get_tickets()
                 if t.flight_number == flight_number and not t.is_used
             ),
             None,
@@ -196,7 +188,16 @@ class AirportFacade:
             raise InvalidTicketException(
                 f"У пассажира нет активного билета на рейс {flight_number}."
             )
+        return ticket
 
+    def check_in_passenger(
+        self,
+        passenger: Passenger | str,
+        flight_number: str,
+        baggage_weight: float | None = None,
+    ) -> BoardingPass:
+        passenger_obj = self._resolve_passenger(passenger)
+        ticket = self._find_active_ticket(passenger_obj, flight_number)
         flight = self.find_departure_flight(flight_number)
         if not flight:
             raise ValueError(f"Рейс {flight_number} не найден в расписании вылетов.")

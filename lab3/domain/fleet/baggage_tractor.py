@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from lab3.domain.exceptions import CapacityExceededException
 from lab3.domain.fleet.ground_vehicle import GroundVehicle
+
+if TYPE_CHECKING:
+    from lab3.domain.operations.baggage import Baggage
 
 
 class BaggageTractor(GroundVehicle):
@@ -27,6 +32,9 @@ class BaggageTractor(GroundVehicle):
                 f"Тягач {self.license_plate} не может везти более {self.max_carts} тележек."
             )
         self._current_carts += 1
+
+    def transport_baggage(self, baggage: Baggage) -> None:
+        self.attach_cart()
 
     def detach_all_carts(self) -> None:
         self._current_carts = 0

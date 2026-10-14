@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from lab3.domain.exceptions import CapacityExceededException
 from lab3.domain.fleet.ground_vehicle import GroundVehicle
+
+if TYPE_CHECKING:
+    from lab3.domain.people.passenger import Passenger
 
 
 class PassengerBus(GroundVehicle):
@@ -32,6 +37,9 @@ class PassengerBus(GroundVehicle):
                 f"Автобус {self.license_plate} переполнен (максимум: {self.passenger_capacity} чел.)."
             )
         self._current_passengers += count
+
+    def board_passenger(self, passenger: Passenger) -> None:
+        self.board(1)
 
     def drop_off(self) -> int:
         dropped = self._current_passengers
