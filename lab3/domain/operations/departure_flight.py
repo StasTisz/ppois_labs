@@ -46,7 +46,7 @@ class DepartureFlight(Flight):
     def cargo_hold(self) -> list[Baggage]:
         return list(self._cargo_hold)
 
-    def assign_gate(self, gate: Gate) -> None:
+    def assign_gate(self, gate: Gate | None) -> None:
         self.assigned_gate = gate
         super().assign_gate(gate)
 
@@ -94,7 +94,7 @@ class DepartureFlight(Flight):
             self.assigned_gate.close_gate()
         self._status = "BoardingClosed"
 
-    def authorize_takeoff(self) -> None:
+    def authorize_takeoff(self) -> bool:
         if getattr(self.aircraft, "requires_maintenance", False):
             raise MaintenanceRequiredException(
                 f"Вылет запрещен: борт {self.aircraft.tail_number} требует прохождения ТО."

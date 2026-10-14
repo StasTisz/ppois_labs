@@ -11,13 +11,17 @@ if TYPE_CHECKING:
 
 class BoardingPass:
     def __init__(
-        self, ticket: Ticket, seat_number: str, gate: Gate | str = "TBD"
+        self, ticket: Ticket, seat_number: str, gate: Gate | str | None = "TBD"
     ) -> None:
         self.pass_id = str(uuid.uuid4())
         self.ticket = ticket
         self.seat_number = seat_number
-        self.gate: Gate | None = gate if not isinstance(gate, str) else None
-        self._gate_str_fallback = gate if isinstance(gate, str) else None
+        if isinstance(gate, str):
+            self.gate: Gate | None = None
+            self._gate_str_fallback: str | None = gate
+        else:
+            self.gate = gate
+            self._gate_str_fallback = None
         self._is_boarded = False
 
     @property

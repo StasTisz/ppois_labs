@@ -20,8 +20,8 @@ class Baggage:
         self.weight_kg = weight_kg
         self.weight = weight_kg
         if isinstance(owner, str):
-            self.owner = None
-            self._owner_id_fallback = owner
+            self.owner: Passenger | None = None
+            self._owner_id_fallback: str | None = owner
         else:
             self.owner = owner
             self._owner_id_fallback = None
