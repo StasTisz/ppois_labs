@@ -3,6 +3,7 @@
 #include <iterator>
 #include <functional>
 #include <algorithm>
+#include <type_traits>
 
 namespace detail {
     /**
@@ -73,6 +74,25 @@ void heapsort(RandomIt first, RandomIt last, Compare comp = Compare()) {
  * @brief Удобная обертка Heapsort для целых контейнеров (std::vector, std::array, и т.д.).
  */
 template <typename Container, typename Compare = std::less<>>
+    requires (!std::is_pointer_v<std::decay_t<Container>> && !std::is_integral_v<Compare>)
 void heapsort(Container& c, Compare comp = Compare()) {
     heapsort(std::begin(c), std::end(c), comp);
+}
+
+/**
+ * @brief Перегрузка Heapsort для классических C-массивов фиксированного размера.
+ */
+template <typename T, std::size_t N, typename Compare = std::less<>>
+    requires (!std::is_integral_v<Compare>)
+void heapsort(T (&arr)[N], Compare comp = Compare()) {
+    heapsort(arr, arr + N, comp);
+}
+
+/**
+ * @brief Перегрузка Heapsort для классических C-массивов (указатель и размер).
+ */
+template <typename T, typename Compare = std::less<>>
+void heapsort(T* arr, std::size_t n, Compare comp = Compare()) {
+    if (arr == nullptr || n <= 1) return;
+    heapsort(arr, arr + n, comp);
 }

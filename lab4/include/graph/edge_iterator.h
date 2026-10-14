@@ -47,6 +47,11 @@ public:
     reference operator*() const { return {v_it->data, *e_it}; }
 
     edge_iterator& operator++() { ++e_it; advance_to_valid(); return *this; }
+    edge_iterator operator++(int) {
+        edge_iterator tmp = *this;
+        ++(*this);
+        return tmp;
+    }
     edge_iterator& operator--() {
         if (v_it == v_end || e_it == v_it->adjacencies.begin()) {
             do { --v_it; } while (v_it->adjacencies.empty());
@@ -55,7 +60,15 @@ public:
         --e_it;
         return *this;
     }
-    bool operator==(const edge_iterator& other) const { return v_it == other.v_it && e_it == other.e_it; }
+    edge_iterator operator--(int) {
+        edge_iterator tmp = *this;
+        --(*this);
+        return tmp;
+    }
+    bool operator==(const edge_iterator& other) const {
+        if (v_it == v_end && other.v_it == other.v_end) return true;
+        return v_it == other.v_it && e_it == other.e_it;
+    }
     bool operator!=(const edge_iterator& other) const { return !(*this == other); }
 };
 
@@ -68,6 +81,7 @@ private:
     typename std::list<VertexRecord>::const_iterator v_it;
     typename std::list<VertexRecord>::const_iterator v_end;
     typename std::list<T>::const_iterator e_it;
+    friend class Graph;
 
     void advance_to_valid() {
         while (v_it != v_end && e_it == v_it->adjacencies.end()) {
@@ -96,6 +110,11 @@ public:
 
     reference operator*() const { return {v_it->data, *e_it}; }
     const_edge_iterator& operator++() { ++e_it; advance_to_valid(); return *this; }
+    const_edge_iterator operator++(int) {
+        const_edge_iterator tmp = *this;
+        ++(*this);
+        return tmp;
+    }
     const_edge_iterator& operator--() {
         if (v_it == v_end || e_it == v_it->adjacencies.begin()) {
             do { --v_it; } while (v_it->adjacencies.empty());
@@ -104,7 +123,15 @@ public:
         --e_it;
         return *this;
     }
-    bool operator==(const const_edge_iterator& other) const { return v_it == other.v_it && e_it == other.e_it; }
+    const_edge_iterator operator--(int) {
+        const_edge_iterator tmp = *this;
+        --(*this);
+        return tmp;
+    }
+    bool operator==(const const_edge_iterator& other) const {
+        if (v_it == v_end && other.v_it == other.v_end) return true;
+        return v_it == other.v_it && e_it == other.e_it;
+    }
     bool operator!=(const const_edge_iterator& other) const { return !(*this == other); }
 };
 

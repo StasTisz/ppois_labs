@@ -30,6 +30,11 @@ add_executable(lab4_tests
         include/sortings/heapsort.h
         include/sortings/stooge_sort.h
         include/custom_object.h
+        include/graph/graph.h
+        include/graph/vertex_iterator.h
+        include/graph/edge_iterator.h
+        include/graph/adjacent_iterator.h
+        include/graph/incident_iterator.h
 )
 
 target_link_libraries(lab4_tests PRIVATE GTest::gtest GTest::gtest_main)

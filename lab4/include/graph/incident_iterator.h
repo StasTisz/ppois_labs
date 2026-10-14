@@ -31,9 +31,21 @@ public:
 
     reference operator*() const { return {*source_ptr, *adj_it}; }
     incident_iterator& operator++() { ++adj_it; return *this; }
+    incident_iterator operator++(int) {
+        incident_iterator tmp = *this;
+        ++adj_it;
+        return tmp;
+    }
     incident_iterator& operator--() { --adj_it; return *this; }
-    bool operator==(const incident_iterator& other) const { return adj_it == other.adj_it; }
-    bool operator!=(const incident_iterator& other) const { return adj_it != other.adj_it; }
+    incident_iterator operator--(int) {
+        incident_iterator tmp = *this;
+        --adj_it;
+        return tmp;
+    }
+    bool operator==(const incident_iterator& other) const {
+        return source_ptr == other.source_ptr && adj_it == other.adj_it;
+    }
+    bool operator!=(const incident_iterator& other) const { return !(*this == other); }
 };
 
 using const_incident_iterator = incident_iterator;
