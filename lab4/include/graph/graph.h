@@ -72,7 +72,7 @@ public:
     /** @brief Конструктор копирования */
     Graph(const Graph& other) = default;
 
-    /** @brief Конструктор перемещения (РЕФАКТОРИНГ: Добавлено для ресурсоемких контейнеров) */
+    /** @brief Конструктор перемещения */
     Graph(Graph&& other) noexcept = default;
 
     /** @brief Деструктор */
@@ -81,7 +81,7 @@ public:
     /** @brief Оператор присваивания копированием */
     Graph& operator=(const Graph& other) = default;
 
-    /** @brief Оператор присваивания перемещением (РЕФАКТОРИНГ: Добавлено) */
+    /** @brief Оператор присваивания перемещением */
     Graph& operator=(Graph&& other) noexcept = default;
 
     bool empty() const noexcept { return records.empty(); }

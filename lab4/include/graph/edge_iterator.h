@@ -22,7 +22,7 @@ private:
     typename std::list<VertexRecord>::iterator v_end;
     typename std::list<T>::iterator e_it;
     friend class Graph;
-    friend class const_edge_iterator; // РЕФАКТОРИНГ: Разрешаем доступ для конвертации
+    friend class const_edge_iterator;
 
     void advance_to_valid() {
         while (v_it != v_end && e_it == v_it->adjacencies.end()) {
@@ -104,7 +104,7 @@ public:
     }
 
     const_edge_iterator(const edge_iterator& non_const)
-        : v_it(non_const.v_it), v_end(non_const.v_end), e_it(non_const.e_it) { // Теперь это компилируется
+        : v_it(non_const.v_it), v_end(non_const.v_end), e_it(non_const.e_it) {
         advance_to_valid();
     }
 

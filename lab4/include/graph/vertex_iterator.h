@@ -20,7 +20,7 @@ class vertex_iterator {
 private:
     typename std::list<VertexRecord>::iterator it;
     friend class Graph;
-    friend class const_vertex_iterator; // РЕФАКТОРИНГ: Разрешаем доступ для конвертации
+    friend class const_vertex_iterator;
 public:
     using iterator_category = std::bidirectional_iterator_tag;
     using value_type = T;
@@ -60,7 +60,7 @@ public:
 
     const_vertex_iterator() = default;
     explicit const_vertex_iterator(typename std::list<VertexRecord>::const_iterator iter) : it(iter) {}
-    const_vertex_iterator(const vertex_iterator& non_const) : it(non_const.it) {} // Теперь это компилируется
+    const_vertex_iterator(const vertex_iterator& non_const) : it(non_const.it) {}
 
     reference operator*() const { return it->data; }
     pointer operator->() const { return &(it->data); }
