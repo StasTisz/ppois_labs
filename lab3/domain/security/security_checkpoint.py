@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from typing import TYPE_CHECKING
 
 from lab3.domain.exceptions import SecurityCheckFailedException
@@ -15,22 +14,60 @@ if TYPE_CHECKING:
 
 class SecurityCheckpoint:
     def __init__(self, number: int) -> None:
-        self.checkpoint_id = str(uuid.uuid4())
         self.number = number
         self.metal_detector: MetalDetector | None = None
         self.xray_scanner: XRayScanner | None = None
         self.officer: SecurityOfficer | None = None
+        self._processed_passengers_count = 0
+        self._is_open = True
 
-    def assign_equipment(self, metal_detector: MetalDetector, xray_scanner: XRayScanner) -> None:
+    @property
+    def checkpoint_id(self) -> str:
+        return f"CP-{self.number}"
+
+    @property
+    def processed_passengers_count(self) -> int:
+        return self._processed_passengers_count
+
+    @property
+    def is_open(self) -> bool:
+        return self._is_open
+
+    def is_ready_for_service(self) -> bool:
+        return (
+            self._is_open
+            and self.metal_detector is not None
+            and self.metal_detector.is_active
+            and self.xray_scanner is not None
+            and self.xray_scanner.is_active
+            and self.officer is not None
+            and self.officer.is_on_shift
+        )
+
+    def close_checkpoint(self) -> None:
+        self._is_open = False
+
+    def open_checkpoint(self) -> None:
+        self._is_open = True
+
+    def assign_equipment(
+        self, metal_detector: MetalDetector, xray_scanner: XRayScanner
+    ) -> None:
         self.metal_detector = metal_detector
         self.xray_scanner = xray_scanner
 
     def assign_officer(self, officer: SecurityOfficer) -> None:
         self.officer = officer
 
-    def process_passenger(self, passenger: Passenger, carry_on: Baggage | None = None) -> None:
+    def process_passenger(
+        self, passenger: Passenger, carry_on: Baggage | None = None
+    ) -> None:
+        if not self._is_open:
+            raise ValueError(f"Пункт досмотра {self.number} закрыт.")
         if not self.metal_detector or not self.xray_scanner:
-            raise ValueError(f"Пункт досмотра {self.number} не укомплектован оборудованием.")
+            raise ValueError(
+                f"Пункт досмотра {self.number} не укомплектован оборудованием."
+            )
         if not self.officer or not self.officer.is_on_shift:
             raise ValueError("Нет дежурного офицера для проведения досмотра.")
 
@@ -38,4 +75,14 @@ class SecurityCheckpoint:
         baggage_clear = self.xray_scanner.scan(carry_on) if carry_on else True
 
         if not person_clear or not baggage_clear:
-            raise SecurityCheckFailedException(f"Пассажир {passenger.full_name} не прошел досмотр СБ.")
+            raise SecurityCheckFailedException(
+                f"Пассажир {passenger.full_name} не прошел досмотр СБ."
+            )
+
+        self._processed_passengers_count += 1
+
+    def __repr__(self) -> str:
+        return (
+            f"SecurityCheckpoint(number={self.number}, open={self._is_open}, "
+            f"processed={self._processed_passengers_count})"
+        )

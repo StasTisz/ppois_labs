@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from typing import TYPE_CHECKING
 
 from lab3.domain.exceptions import RunwayBusyException, WeatherWarningException
@@ -11,10 +10,14 @@ if TYPE_CHECKING:
 
 
 class ControlTower:
-    def __init__(self) -> None:
-        self.tower_id = str(uuid.uuid4())
+    def __init__(self, tower_name: str = "Main ATC Tower") -> None:
+        self.tower_name = tower_name
         self._runways: list[Runway] = []
         self.weather_is_safe = True
+
+    @property
+    def runways(self) -> list[Runway]:
+        return list(self._runways)
 
     def add_runway(self, runway: Runway) -> None:
         self._runways.append(runway)
@@ -33,9 +36,14 @@ class ControlTower:
 
     def request_landing(self, aircraft: Aircraft) -> Runway:
         if not self.weather_is_safe:
-            raise WeatherWarningException("Посадка запрещена (аэропорт закрыт по метеоусловиям).")
+            raise WeatherWarningException(
+                "Посадка запрещена (аэропорт закрыт по метеоусловиям)."
+            )
         for runway in self._runways:
             if not runway.is_busy:
                 runway.occupy(aircraft)
                 return runway
         raise RunwayBusyException("Борт отправлен в зону ожидания: все ВПП заняты.")
+
+    def __repr__(self) -> str:
+        return f"ControlTower(name={self.tower_name!r}, runways={len(self._runways)}, safe={self.weather_is_safe})"

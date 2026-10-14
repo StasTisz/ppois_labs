@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -9,15 +8,25 @@ if TYPE_CHECKING:
 
 class BaggageCarousel:
     def __init__(self, number: int) -> None:
-        self.carousel_id = str(uuid.uuid4())
         self.number = number
-        self.is_active = False
-        self.assigned_flight: Flight | None = None
+        self._is_active = False
+        self._assigned_flight: Flight | None = None
 
-    def activate(self, flight: Flight) -> None:
-        self.assigned_flight = flight
-        self.is_active = True
+    @property
+    def is_active(self) -> bool:
+        return self._is_active
+
+    @property
+    def assigned_flight(self) -> Flight | None:
+        return self._assigned_flight
+
+    def activate(self, flight: Flight | None = None) -> None:
+        self._assigned_flight = flight
+        self._is_active = True
 
     def deactivate(self) -> None:
-        self.is_active = False
-        self.assigned_flight = None
+        self._is_active = False
+        self._assigned_flight = None
+
+    def __repr__(self) -> str:
+        return f"BaggageCarousel(number={self.number}, active={self._is_active})"

@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+import os
+import pickle
 import sys
 
 from lab2.domain.academics import LabWork, Subject
@@ -24,10 +28,11 @@ class DataSeeder:
 
     @staticmethod
     def seed() -> dict:
-        state = {}
-
         # 1. СТРУКТУРА (structure.py, people.py)
-        uni = University("Белорусский государственный университет информатики и радиоэлектроники", "БГУИР")
+        uni = University(
+            "Белорусский государственный университет информатики и радиоэлектроники",
+            "БГУИР",
+        )
         fitu = Faculty("Факультет информационных технологий и управления", "ФИТиУ")
         uni.add_faculty(fitu)
 
@@ -46,20 +51,26 @@ class DataSeeder:
         # Кадры
         teacher_oop = AssociateProfessor("Даниил", "Шунчевич", "Вячеславович")
         teacher_math = Assistant("Анна", "Кузнецова", "Ивановна")
-        teacher_oop.assign_subject("ООП")
         dept_iit.add_teacher(teacher_oop)
         dept_iit.add_teacher(teacher_math)
-        dept_iit.assign_head(teacher_oop.full_name)
+        dept_iit.assign_head(teacher_oop)
 
         # 2. УЧЕБНЫЙ ПЛАН И РАСПИСАНИЕ (academics.py, schedule.py)
         subj_oop = Subject("ООП", semester=2, exam_required=True)
-        subj_oop.add_lab(LabWork("Классы и объекты", max_score=10.0))
-        subj_oop.add_lab(LabWork("Наследование и полиморфизм", max_score=10.0))
+        subj_oop.add_lab(LabWork("Классы и объекты", max_score=10.0, lab_number=1))
+        subj_oop.add_lab(
+            LabWork("Наследование и полиморфизм", max_score=10.0, lab_number=2)
+        )
+        teacher_oop.assign_subject(subj_oop)
 
-        room_412 = Classroom("412-2", capacity=30, has_projector=True, has_computers=True)
+        room_412 = Classroom(
+            "412-2", capacity=30, has_projector=True, has_computers=True
+        )
         timeslot_1 = Timeslot(1, "08:00", "09:35")
         timetable = Timetable(semester_number=2)
-        lesson1 = Lesson(subj_oop, teacher_oop, group_ai, room_412, timeslot_1, day_of_week=1)
+        lesson1 = Lesson(
+            subj_oop, teacher_oop, group_ai, room_412, timeslot_1, day_of_week=1
+        )
         timetable.add_lesson(lesson1)
 
         # 3. ИНФРАСТРУКТУРА (infrastructure.py, library.py)
@@ -73,8 +84,8 @@ class DataSeeder:
         # 4. СТУДЕНТЫ (people.py)
         stas = Student("Стас", "Разработчиков", record_book_number="52170201")
         petr = Student("Петр", "Лентяев", record_book_number="52170202")
-        office.enroll_student(stas, "521702")
-        office.enroll_student(petr, "521702")
+        office.enroll_student(stas, group_ai)
+        office.enroll_student(petr, group_ai)
 
         # Общежитие и библиотека
         room_1.check_in(stas)
@@ -82,9 +93,9 @@ class DataSeeder:
         stas_lib.take_book(book_py)
 
         # 5. ФИНАНСЫ (finance.py)
-        BankAccount(petr.person_id, "BY52AKBB-PETR")
-        BankAccount(stas.person_id, "BY52AKBB-STAS")
-        acc_teacher = BankAccount(teacher_oop.person_id, "BY52AKBB-TCHR")
+        BankAccount(petr, "BY52AKBB-PETR")
+        BankAccount(stas, "BY52AKBB-STAS")
+        acc_teacher = BankAccount(teacher_oop, "BY52AKBB-TCHR")
 
         contract = TuitionContract("Д-2026/1", petr, 3500.0)
         contract.sign_contract()
@@ -92,31 +103,59 @@ class DataSeeder:
 
         # 6. УСПЕВАЕМОСТЬ (grading.py)
         # Стас - отличник, Петр - должник
-        stas_rb = office.get_student_record_book(stas.person_id)
-        stas_rb.add_grade(Grade("ООП", 9, is_exam=True))
+        stas_rb = office.get_student_record_book(stas)
+        stas_rb.add_grade(Grade(subj_oop, 9, is_exam=True, examiner=teacher_oop))
 
-        petr_rb = office.get_student_record_book(petr.person_id)
-        petr_rb.add_grade(Grade("ООП", 3, is_exam=True))  # Долг
+        petr_rb = office.get_student_record_book(petr)
+        petr_rb.add_grade(Grade(subj_oop, 3, is_exam=True, examiner=teacher_oop))
 
-        # Сохраняем стейт
-        state = {
-            "uni": uni, "office": office, "dorm": dorm, "payroll": payroll,
-            "contract": contract, "books": [book_py, book_cpp],
-            "subj_oop": subj_oop, "timetable": timetable,
-            "stas": stas, "petr": petr, "teacher_oop": teacher_oop, "acc_teacher": acc_teacher
+        return {
+            "uni": uni,
+            "office": office,
+            "dorm": dorm,
+            "payroll": payroll,
+            "contract": contract,
+            "books": [book_py, book_cpp],
+            "subj_oop": subj_oop,
+            "timetable": timetable,
+            "stas": stas,
+            "petr": petr,
+            "teacher_oop": teacher_oop,
+            "acc_teacher": acc_teacher,
+            "group_ai": group_ai,
+            "group_ai_2": group_ai_2,
         }
-        return state
 
 
 class CLI:
     """Консольный интерфейс управления системой университета."""
 
-    def __init__(self):
+    DEFAULT_STATE_FILE = "lab2_state.pkl"
+
+    def __init__(self, state_file: str | None = None) -> None:
+        self.state_file = state_file or self.DEFAULT_STATE_FILE
         print("Инициализация доменной модели... Загрузка данных.")
         self.state = DataSeeder.seed()
         self.office: DeanOffice = self.state["office"]
 
-    def run(self):
+    def save_state(self, filepath: str | None = None) -> None:
+        path = filepath or self.state_file
+        with open(path, "wb") as f:
+            pickle.dump(self.state, f)
+        print(f"💾 Состояние графа объектов успешно сохранено в '{path}'.")
+
+    def load_state(self, filepath: str | None = None) -> bool:
+        path = filepath or self.state_file
+        if not os.path.exists(path):
+            print(f"⚠️ Файл состояния '{path}' не найден.")
+            return False
+        with open(path, "rb") as f:
+            self.state = pickle.load(f)
+        self.office = self.state["office"]
+        print(f"📂 Состояние графа объектов успешно восстановлено из '{path}'.")
+        return True
+
+    def run(self) -> None:
         while True:
             self._print_main_menu()
             choice = input("\nВыбор > ").strip()
@@ -134,6 +173,10 @@ class CLI:
                     self._menu_infrastructure()
                 elif choice == "6":
                     self._menu_dean_office()
+                elif choice == "7":
+                    self.save_state()
+                elif choice == "8":
+                    self.load_state()
                 elif choice == "0":
                     print("🚪 Завершение работы системы. До свидания!")
                     sys.exit(0)
@@ -146,7 +189,7 @@ class CLI:
             except Exception as e:  # noqa: BLE001
                 print(f"\n🔥 КРИТИЧЕСКАЯ ОШИБКА: {e}")
 
-    def _print_main_menu(self):
+    def _print_main_menu(self) -> None:
         print("\n" + "=" * 55)
         print("🎓 ИНФОРМАЦИОННАЯ СИСТЕМА УНИВЕРСИТЕТА")
         print("=" * 55)
@@ -156,48 +199,58 @@ class CLI:
         print("4. 💰 Бухгалтерия (Контракты, Зарплаты, Стипендии)")
         print("5. 🏢 Инфраструктура (Общежитие, Библиотека)")
         print("6. 👔 Деканат (Приказы, Отчисления, Справки)")
+        print("7. 💾 Сохранить состояние в файл (Pickle State)")
+        print("8. 📂 Загрузить состояние из файла (Pickle State)")
         print("0. Выход")
         print("=" * 55)
 
-     # --- 1. СТРУКТУРА И КАДРЫ ---
-    def _menu_structure(self):
+    def _menu_structure(self) -> None:
         print("\n--- 🏛️ СТРУКТУРА И КАДРЫ ---")
         uni: University = self.state["uni"]
         print(f"Университет: {uni.name} ({uni.abbreviation})")
 
-        for fac in uni._faculties:
+        for fac in uni.faculties:
             print(f"\nФакультет: {fac.name} ({fac.short_name})")
             print(f"Общая вместимость: {fac.get_total_capacity()} чел.")
 
             print("\n Кафедры:")
-            for dept in fac._departments:
+            for dept in fac.departments:
                 print(f" └─ {dept.name} | Зав. кафедрой: {dept.head_name}")
-                for t in dept._teachers:
+                for t in dept.teachers:
                     print(f"    ├─ {t.position} {t.full_name} ({t.degree})")
 
             print("\n Учебные группы:")
             for group in fac.groups:
                 print(
-                    f" └─ Группа {group.number} ({group.speciality.name}) | Студентов: {group.students_count}/{group.max_students}")
+                    f" └─ Группа {group.number} ({group.speciality.name}) | Студентов: {group.students_count}/{group.max_students}"
+                )
                 for student in group.students:
                     status = "✅" if student.is_active else "❌ (Отчислен)"
                     print(f"    ├─ {status} {student.full_name}")
 
-    # --- 2. УЧЕБНЫЙ ПРОЦЕСС И РАСПИСАНИЕ ---
-    def _menu_academics(self):
+    def _menu_academics(self) -> None:
         print("\n--- 📅 УЧЕБНЫЙ ПРОЦЕСС И РАСПИСАНИЕ ---")
         print("1. Посмотреть расписание группы")
         print("2. Структура дисциплины (Лабораторные)")
 
         choice = input("Выбор > ").strip()
         if choice == "1":
-            group_num = input("Введите номер группы (напр. 521702): ")
-            schedule = self.state["timetable"].get_schedule_for_group(group_num, day_of_week=1)
+            group_num = input("Введите номер группы (напр. 521702): ").strip()
+            group = self.office.faculty.find_group(group_num)
+            if not group:
+                print("Группа не найдена.")
+                return
+            schedule = self.state["timetable"].get_schedule_for_group(
+                group, day_of_week=1
+            )
             print(f"\nРасписание на Понедельник для {group_num}:")
-            if not schedule: print("Пар нет.")
+            if not schedule:
+                print("Пар нет.")
             for lesson in schedule:
-                print(f"[{lesson.timeslot.start_time}-{lesson.timeslot.end_time}] "
-                      f"{lesson.subject.name} | Ауд. {lesson.room.number} | Преп. {lesson.lecturer.last_name}")
+                print(
+                    f"[{lesson.timeslot.start_time}-{lesson.timeslot.end_time}] "
+                    f"{lesson.subject.name} | Ауд. {lesson.room.number} | Преп. {lesson.lecturer.last_name}"
+                )
 
         elif choice == "2":
             subj: Subject = self.state["subj_oop"]
@@ -205,8 +258,7 @@ class CLI:
             for lab in subj.get_mandatory_labs():
                 print(f" - {lab.short_info}")
 
-    # --- 3. УСПЕВАЕМОСТЬ ---
-    def _menu_grading(self):
+    def _menu_grading(self) -> None:
         print("\n--- 📝 УСПЕВАЕМОСТЬ ---")
         print("1. Посмотреть зачетку студента")
         print("2. Оформить групповую ведомость (Academic Statement)")
@@ -215,39 +267,55 @@ class CLI:
         choice = input("Выбор > ").strip()
         if choice == "1":
             student = self._select_student()
-            if not student: return
-            rb = self.office.get_student_record_book(student.person_id)
+            if not student:
+                return
+            rb = self.office.get_student_record_book(student)
             print(f"\nЗачетка: {rb.book_number} | Средний балл: {rb.average_score}")
-            print(f"Отличник: {'Да' if rb.is_excellent else 'Нет'} | Долгов: {len(rb.get_debts())}")
-            for grade in rb._grades:
-                print(f" - {grade.subject_name}: {grade.score} ({'Сдан' if grade.is_passed else 'Неуд'})")
+            print(
+                f"Отличник: {'Да' if rb.is_excellent else 'Нет'} | Долгов: {len(rb.get_debts())}"
+            )
+            for grade in rb.grades:
+                print(
+                    f" - {grade.subject_name}: {grade.score} ({'Сдан' if grade.is_passed else 'Неуд'})"
+                )
 
         elif choice == "2":
-            group = self.office.faculty.get_group_strict("252001")
-            statement = AcademicStatement(self.state["subj_oop"], group, self.state["teacher_oop"])
+            group = self.office.faculty.get_group_strict("521702")
+            statement = AcademicStatement(
+                self.state["subj_oop"], group, self.state["teacher_oop"]
+            )
             print("Открыта ведомость. Выставляем оценки...")
             for student in group.students:
-                score = int(input(f"Оценка для {student.full_name} (0-10): "))
+                score_str = input(f"Оценка для {student.full_name} (0-10): ").strip()
+                score = int(score_str) if score_str else 8
                 statement.add_result(student, score)
             statement.close_statement()
             print(f"✅ Ведомость закрыта. Успеваемость: {statement.pass_rate}%")
 
         elif choice == "3":
             student = self.state["petr"]  # Петр - должник
-            sheet = RetakeSheet(student, self.state["subj_oop"])
-            print(f"\nВыдан бегунок студенту {student.full_name} по предмету {sheet.subject.name}")
-            score = int(input("Студент пришел на пересдачу. Введите результат: "))
+            sheet = RetakeSheet(
+                student, self.state["subj_oop"], examiner=self.state["teacher_oop"]
+            )
+            print(
+                f"\nВыдан бегунок студенту {student.full_name} по предмету {sheet.subject.name}"
+            )
+            score_str = input(
+                "Студент пришел на пересдачу. Введите результат (0-10): "
+            ).strip()
+            score = int(score_str) if score_str else 7
             grade = sheet.register_attempt(score)
             if grade.is_passed:
-                rb = self.office.get_student_record_book(student.person_id)
-                rb.clear_debts_for_subject(sheet.subject.name)
+                rb = self.office.get_student_record_book(student)
+                rb.clear_debts_for_subject(sheet.subject)
                 rb.add_grade(grade)
                 print("✅ Пересдача успешна! Долг закрыт.")
             else:
-                print(f"❌ Пересдача провалена. Осталось попыток: {sheet.max_attempts - sheet.attempts_used}")
+                print(
+                    f"❌ Пересдача провалена. Осталось попыток: {sheet.remaining_attempts}"
+                )
 
-    # --- 4. БУХГАЛТЕРИЯ ---
-    def _menu_finance(self):
+    def _menu_finance(self) -> None:
         print("\n--- 💰 БУХГАЛТЕРИЯ ---")
         print("1. Статус контракта Петра (Оплата обучения)")
         print("2. Зарплатный фонд (Выплата зарплат и стипендий)")
@@ -256,10 +324,12 @@ class CLI:
         if choice == "1":
             contract: TuitionContract = self.state["contract"]
             print(
-                f"Договор: {contract.number} | Долг: {contract.debt} BYN | Просрочка: {'Да' if contract.is_overdue else 'Нет'}")
+                f"Договор: {contract.number} | Долг: {contract.debt} BYN | Просрочка: {'Да' if contract.is_overdue else 'Нет'}"
+            )
             if contract.debt > 0:
-                amount = float(input("Сумма к оплате: "))
-                acc = BankAccount(contract.student.person_id, "TEMP")
+                amount_str = input("Сумма к оплате: ").strip()
+                amount = float(amount_str) if amount_str else 500.0
+                acc = BankAccount(contract.student, "BY52TEMP-ACC")
                 acc.deposit(amount)
                 contract.pay_tuition(amount, acc)
                 print("✅ Оплата зачтена.")
@@ -271,27 +341,29 @@ class CLI:
             acc = self.state["acc_teacher"]
 
             payroll.pay_salary(teacher, acc, bonus=300.0)
-            print(f"✅ Зарплата переведена. Общий фонд выплат за месяц: {payroll.total_fund} BYN")
+            print(
+                f"✅ Зарплата переведена. Общий фонд выплат за месяц: {payroll.total_fund} BYN"
+            )
             print("История транзакций фонда:")
             for log in payroll.get_payment_history():
                 print(f" - {log}")
 
-    # --- 5. ИНФРАСТРУКТУРА ---
-    def _menu_infrastructure(self):
+    def _menu_infrastructure(self) -> None:
         print("\n--- 🏢 ИНФРАСТРУКТУРА ---")
         dorm: Dormitory = self.state["dorm"]
         print(f"Общежитие №{dorm.number} | Заполненность: {dorm.occupancy_rate}%")
-        for room in dorm._rooms:
-            print(f"Комната {room.number} | Свободно мест: {room.free_beds}/{room.capacity}")
-            for res in room._residents:
+        for room in dorm.rooms:
+            print(
+                f"Комната {room.number} | Свободно мест: {room.free_beds}/{room.capacity}"
+            )
+            for res in room.residents:
                 print(f"  🛏️ {res.full_name} (Долг: {res.financial_debt})")
 
         print("\nБиблиотека:")
         for book in self.state["books"]:
             print(f" - {book.title} | На руках: {book.popularity_index} шт.")
 
-    # --- 6. ДЕКАНАТ ---
-    def _menu_dean_office(self):
+    def _menu_dean_office(self) -> None:
         print("\n--- 👔 ДЕКАНАТ (ПРИКАЗЫ) ---")
         print("1. Подвести итоги сессии (Отчисление должников + Стипендии)")
         print("2. Перевести студента в другую группу")
@@ -312,7 +384,9 @@ class CLI:
 
         elif choice == "3":
             student = self.state["petr"]
-            self.office.issue_reprimand(student, "Нарушение режима общежития", is_strict=True)
+            self.office.issue_reprimand(
+                student, "Нарушение режима общежития", is_strict=True
+            )
             print(f"✅ Строгий выговор вынесен студенту {student.full_name}.")
 
         elif choice == "4":
@@ -322,12 +396,11 @@ class CLI:
             print(f"✅ {cert.title} выдана для предоставления в {cert.destination}.")
 
         elif choice == "5":
-            for order in self.office._archive_orders:
+            for order in self.office.archive_orders:
                 print(f"📜 [{order.status}] {order.title}")
 
-    # --- ХЕЛПЕРЫ ---
     def _select_student(self) -> Student | None:
-        group_num = input("Номер группы (например, 521702): ")
+        group_num = input("Номер группы (например, 521702): ").strip()
         group = self.office.faculty.find_group(group_num)
         if not group:
             print("Группа не найдена.")

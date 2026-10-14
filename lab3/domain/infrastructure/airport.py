@@ -10,10 +10,14 @@ class Airport:
     def __init__(self, name: str, iata_code: str) -> None:
         self.name = name
         self.iata_code = iata_code
-        self.control_tower = ControlTower()
+        self.control_tower = ControlTower(f"{name} Tower")
+        self.hangar = Hangar(1)
+        self.parking_lot = ParkingLot("Main Zone")
         self._terminals: list[Terminal] = []
-        self._hangars: list[Hangar] = []
-        self._parking_lots: list[ParkingLot] = []
+
+    @property
+    def terminals(self) -> list[Terminal]:
+        return list(self._terminals)
 
     def add_terminal(self, terminal: Terminal) -> None:
         self._terminals.append(terminal)
@@ -23,3 +27,6 @@ class Airport:
             if t.name == name:
                 return t
         return None
+
+    def __repr__(self) -> str:
+        return f"Airport(name={self.name!r}, code={self.iata_code!r}, terminals={len(self._terminals)})"

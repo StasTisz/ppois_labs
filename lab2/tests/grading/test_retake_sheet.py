@@ -1,4 +1,5 @@
 import pytest
+
 from lab2.domain.academics.subject import Subject
 from lab2.domain.grading.retake_sheet import RetakeSheet
 from lab2.domain.people.student import Student

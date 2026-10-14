@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
@@ -10,8 +9,8 @@ if TYPE_CHECKING:
 
 
 class ServiceTask(ABC):
-    def __init__(self, aircraft: Aircraft) -> None:
-        self.task_id = str(uuid.uuid4())
+    def __init__(self, aircraft: Aircraft, task_code: str = "") -> None:
+        self.task_code = task_code or f"TASK-{aircraft.tail_number}"
         self.aircraft = aircraft
         self._status = "Pending"
         self._assigned_staff: list[Employee] = []
@@ -22,13 +21,19 @@ class ServiceTask(ABC):
 
     @property
     def assigned_staff(self) -> list[Employee]:
-        return self._assigned_staff.copy()
+        return list(self._assigned_staff)
 
     def assign_staff(self, employee: Employee) -> None:
         self._assigned_staff.append(employee)
 
+    def validate_prerequisites(self) -> bool:
+        return len(self._assigned_staff) > 0
+
+    def calculate_estimated_duration_minutes(self) -> int:
+        return 30
+
     def _start(self) -> None:
-        if not self._assigned_staff:
+        if not self.validate_prerequisites():
             raise ValueError("Невозможно начать обслуживание: не назначен персонал.")
         self._status = "InProgress"
 

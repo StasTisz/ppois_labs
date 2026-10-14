@@ -1,4 +1,5 @@
 import pytest
+
 from lab3.domain.fleet.passenger_aircraft import PassengerAircraft
 from lab3.domain.maintenance.service_task import ServiceTask
 from lab3.domain.people.security_officer import SecurityOfficer

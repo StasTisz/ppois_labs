@@ -1,4 +1,5 @@
 import pytest
+
 from lab2.domain.academics.subject import Subject
 from lab2.domain.grading.grade import Grade
 from lab2.domain.grading.record_book import RecordBook

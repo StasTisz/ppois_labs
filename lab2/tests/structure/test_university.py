@@ -1,4 +1,5 @@
 import pytest
+
 from lab2.domain.structure.faculty import Faculty
 from lab2.domain.structure.university import University
 

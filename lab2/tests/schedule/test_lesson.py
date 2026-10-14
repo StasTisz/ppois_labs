@@ -1,4 +1,5 @@
 import pytest
+
 from lab2.domain.academics.subject import Subject
 from lab2.domain.people.lecturer import Lecturer
 from lab2.domain.people.student import Student
@@ -18,6 +19,7 @@ def test_lesson():
 
     les = Lesson(subj, l, g, room, ts, 1)
     assert les.subject == subj
+    assert "Lesson" in repr(les)
 
     small_room = Classroom("102", 0)
     g.enroll_student(Student("1", "1"))
@@ -28,3 +30,23 @@ def test_lesson():
     no_pc_room = Classroom("103", 20, has_computers=False)
     with pytest.raises(ValueError, match="нужна компьютерная аудитория"):
         Lesson(lab_subj, l, g, no_pc_room, ts, 1)
+
+    new_room = Classroom("202", 40, has_computers=True)
+    les.change_room(new_room)
+    assert les.room == new_room
+
+    with pytest.raises(ValueError):
+        les.change_room(small_room)
+
+    ts2 = Timeslot(2, "11:45", "13:15")
+    les.change_timeslot(ts2, 3)
+    assert les.day_of_week == 3
+    assert les.timeslot == ts2
+
+    with pytest.raises(ValueError):
+        les.change_timeslot(ts2, 9)
+
+    les.reschedule(room, ts, 1)
+    assert les.room == room
+    assert les.timeslot == ts
+    assert les.day_of_week == 1

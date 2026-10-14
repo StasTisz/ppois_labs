@@ -6,31 +6,41 @@ from lab3.domain.fleet.aircraft import Aircraft
 
 class PassengerAircraft(Aircraft):
     def __init__(
-            self, model: str, max_speed: float, tail_number: str,
-            fuel_capacity: float, max_passengers: int
+        self,
+        model: str,
+        max_speed: float,
+        tail_number: str,
+        fuel_capacity: float,
+        seating_capacity: int = 150,
+        max_passengers: int | None = None,
     ) -> None:
         super().__init__(model, max_speed, tail_number, fuel_capacity)
-        self.max_passengers = max_passengers
-        self._passengers_count = 0
+        cap = max_passengers if max_passengers is not None else seating_capacity
+        self.seating_capacity = cap
+        self.max_passengers = cap
+        self._current_passengers = 0
         self.oxygen_masks_tested = False
-        self.cabin_pressurization_ok = True
+        self.cabin_pressurization_ok = False
 
     @property
     def passengers_count(self) -> int:
-        return self._passengers_count
+        return self._current_passengers
 
     def board_passengers(self, count: int) -> None:
-        if self._passengers_count + count > self.max_passengers:
-            raise CapacityExceededException("Количество пассажиров превышает вместимость салона.")
-        self._passengers_count += count
+        if count <= 0:
+            raise ValueError("Число пассажиров должно быть положительным.")
+        if self._current_passengers + count > self.seating_capacity:
+            raise CapacityExceededException(
+                f"Превышена вместимость салона: {self.seating_capacity} мест."
+            )
+        self._current_passengers += count
 
     def disembark_passengers(self) -> int:
-        count = self._passengers_count
-        self._passengers_count = 0
-        return count
+        disembarked = self._current_passengers
+        self._current_passengers = 0
+        return disembarked
 
     def perform_maintenance(self) -> None:
         self.oxygen_masks_tested = True
         self.cabin_pressurization_ok = True
         self.requires_maintenance = False
-        self.operating_hours = 0.0

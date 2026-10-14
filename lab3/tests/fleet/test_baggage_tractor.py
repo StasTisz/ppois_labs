@@ -1,4 +1,5 @@
 import pytest
+
 from lab3.domain.exceptions import CapacityExceededException
 from lab3.domain.fleet.baggage_tractor import BaggageTractor
 

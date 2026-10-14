@@ -1,4 +1,5 @@
 import pytest
+
 from lab3.domain.people.crew_member import CrewMember
 
 

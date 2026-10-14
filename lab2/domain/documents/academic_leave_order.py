@@ -5,13 +5,28 @@ from lab2.domain.people.student import Student
 
 
 class AcademicLeaveOrder(Document):
-    def __init__(self, student: Student, reason: str, duration_months: int) -> None:
-        super().__init__(f"Академический отпуск: {student.full_name}")
+    def __init__(
+        self,
+        student: Student,
+        reason: str,
+        duration_months: int,
+        registration_number: str = "",
+    ) -> None:
+        super().__init__(
+            f"Академический отпуск: {student.full_name}",
+            registration_number=registration_number,
+        )
         self.student = student
         self.reason = reason
         self.duration_months = duration_months
 
+    def is_eligible(self) -> bool:
+        return self.student.is_active and self.duration_months in (6, 12, 24)
+
     def execute(self) -> None:
         self._ensure_signed()
-        self.student.is_active = False
-        self.student.has_scholarship = False
+        if not self.student.is_active:
+            raise ValueError(
+                f"Студент {self.student.full_name} уже не числится активным."
+            )
+        self.student.grant_academic_leave(self.duration_months)

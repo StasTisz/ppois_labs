@@ -1,4 +1,5 @@
 import pytest
+
 from lab2.domain.dean_office.dean_office import DeanOffice
 from lab2.domain.exceptions import StudentNotFoundException
 from lab2.domain.grading.grade import Grade

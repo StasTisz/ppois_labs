@@ -1,5 +1,7 @@
 from datetime import UTC, datetime
+
 import pytest
+
 from lab3.domain.fleet.passenger_aircraft import PassengerAircraft
 from lab3.domain.infrastructure.check_in_counter import CheckInCounter
 from lab3.domain.operations.airline import Airline
@@ -14,7 +16,9 @@ def test_check_in_counter():
     counter = CheckInCounter(3)
     agent = CheckInAgent("Анна", "А", "P-10", 900.0, 180)
     plane = PassengerAircraft("P", 800.0, "RA-C", 1000.0, 100)
-    flight = DepartureFlight("B2-30", Airline("A", "A"), plane, FlightPlan("O", "D", datetime.now(UTC)))
+    flight = DepartureFlight(
+        "B2-30", Airline("A", "A"), plane, FlightPlan("O", "D", datetime.now(UTC))
+    )
     passenger = Passenger("П", "П", "P-01")
 
     with pytest.raises(ValueError):

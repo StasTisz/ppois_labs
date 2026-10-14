@@ -5,27 +5,39 @@ from lab3.domain.fleet.ground_vehicle import GroundVehicle
 
 
 class PassengerBus(GroundVehicle):
-    def __init__(self, model: str, max_speed: float, license_plate: str, capacity: int) -> None:
+    def __init__(
+        self,
+        model: str,
+        max_speed: float,
+        license_plate: str,
+        passenger_capacity: int = 100,
+        capacity: int | None = None,
+    ) -> None:
         super().__init__(model, max_speed, license_plate)
-        self.capacity = capacity
-        self._passengers_count = 0
+        self.passenger_capacity = (
+            capacity if capacity is not None else passenger_capacity
+        )
+        self._current_passengers = 0
         self.doors_pneumatics_checked = False
 
     @property
     def passengers_count(self) -> int:
-        return self._passengers_count
+        return self._current_passengers
 
     def board(self, count: int) -> None:
-        if self._passengers_count + count > self.capacity:
-            raise CapacityExceededException("Перронный автобус переполнен.")
-        self._passengers_count += count
+        if count <= 0:
+            raise ValueError("Число входящих пассажиров должно быть положительным.")
+        if self._current_passengers + count > self.passenger_capacity:
+            raise CapacityExceededException(
+                f"Автобус {self.license_plate} переполнен (максимум: {self.passenger_capacity} чел.)."
+            )
+        self._current_passengers += count
 
     def drop_off(self) -> int:
-        count = self._passengers_count
-        self._passengers_count = 0
-        return count
+        dropped = self._current_passengers
+        self._current_passengers = 0
+        return dropped
 
     def perform_maintenance(self) -> None:
         self.doors_pneumatics_checked = True
         self.requires_maintenance = False
-        self.operating_hours = 0.0

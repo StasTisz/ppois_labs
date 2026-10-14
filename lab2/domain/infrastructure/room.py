@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from lab2.domain.exceptions import ResidentNotFoundException, RoomCapacityExceededException
+from lab2.domain.exceptions import (
+    ResidentNotFoundException,
+    RoomCapacityExceededException,
+)
 
 if TYPE_CHECKING:
     from lab2.domain.people.student import Student
@@ -17,14 +20,22 @@ class Room:
         self._residents: list[Student] = []
 
     @property
+    def residents(self) -> list[Student]:
+        return list(self._residents)
+
+    @property
     def free_beds(self) -> int:
         return self.capacity - len(self._residents)
 
     def check_in(self, student: Student) -> None:
         if self.has_resident(student):
-            raise ValueError(f"Студент {student.full_name} уже прописан в этой комнате.")
+            raise ValueError(
+                f"Студент {student.full_name} уже прописан в этой комнате."
+            )
         if self.free_beds <= 0:
-            raise RoomCapacityExceededException(f"Блок {self.number} полностью укомплектован.")
+            raise RoomCapacityExceededException(
+                f"Блок {self.number} полностью укомплектован."
+            )
         self._residents.append(student)
         student.room = self
 
@@ -47,3 +58,6 @@ class Room:
             if getattr(student, "room", None) == self:
                 student.room = None
         self._residents.clear()
+
+    def __repr__(self) -> str:
+        return f"Room(number={self.number!r}, capacity={self.capacity}, residents={len(self._residents)})"

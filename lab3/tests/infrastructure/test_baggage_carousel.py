@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+
 from lab3.domain.fleet.passenger_aircraft import PassengerAircraft
 from lab3.domain.infrastructure.baggage_carousel import BaggageCarousel
 from lab3.domain.operations.airline import Airline
@@ -11,7 +12,9 @@ def test_baggage_carousel():
     assert car.is_active is False
 
     plane = PassengerAircraft("P", 800.0, "RA-BC", 1000.0, 100)
-    flight = ArrivalFlight("B2-40", Airline("A", "A"), plane, FlightPlan("O", "D", datetime.now(UTC)))
+    flight = ArrivalFlight(
+        "B2-40", Airline("A", "A"), plane, FlightPlan("O", "D", datetime.now(UTC))
+    )
 
     car.activate(flight)
     assert car.is_active is True

@@ -1,4 +1,5 @@
 import pytest
+
 from lab3.domain.exceptions import CapacityExceededException
 from lab3.domain.fleet.passenger_bus import PassengerBus
 

@@ -1,4 +1,5 @@
 import pytest
+
 from lab2.domain.documents.expulsion_order import ExpulsionOrder
 from lab2.domain.exceptions import DocumentNotSignedException, ExpulsionDeniedException
 from lab2.domain.people.dean import Dean

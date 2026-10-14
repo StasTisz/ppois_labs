@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+
 from lab3.domain.operations.flight_plan import FlightPlan
 
 

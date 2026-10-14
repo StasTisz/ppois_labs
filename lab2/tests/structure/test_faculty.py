@@ -1,4 +1,5 @@
 import pytest
+
 from lab2.domain.exceptions import GroupNotFoundException
 from lab2.domain.people.student import Student
 from lab2.domain.structure.academic_group import AcademicGroup

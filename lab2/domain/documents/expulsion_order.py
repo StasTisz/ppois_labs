@@ -6,18 +6,36 @@ from lab2.domain.people.student import Student
 
 
 class ExpulsionOrder(Document):
-    def __init__(self, student: Student, reason: str) -> None:
-        super().__init__(f"Приказ об отчислении: {student.full_name}")
+    def __init__(
+        self, student: Student, reason: str, registration_number: str = ""
+    ) -> None:
+        super().__init__(
+            f"Приказ об отчислении: {student.full_name}",
+            registration_number=registration_number,
+        )
         self.student = student
         self.reason = reason
 
     def execute(self) -> None:
         self._ensure_signed()
         reason_lower = self.reason.lower()
-        has_academic_ground = "академическ" in reason_lower or "неуспеваемост" in reason_lower
+        has_academic_ground = (
+            "академическ" in reason_lower or "неуспеваемост" in reason_lower
+        )
         is_voluntary = "по собственному" in reason_lower
 
-        if self.student.financial_debt == 0.0 and not has_academic_ground and not is_voluntary:
-            raise ExpulsionDeniedException(f"Нет оснований для отчисления студента {self.student.full_name}")
+        if (
+            self.student.financial_debt == 0.0
+            and not has_academic_ground
+            and not is_voluntary
+        ):
+            raise ExpulsionDeniedException(
+                f"Нет оснований для отчисления студента {self.student.full_name}"
+            )
 
         self.student.expel()
+
+    def appeal(self, grounds: str) -> bool:
+        if not grounds.strip():
+            raise ValueError("Основание для апелляции не может быть пустым.")
+        return len(grounds) > 10

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from typing import TYPE_CHECKING
 
 from lab3.domain.exceptions import CapacityExceededException
@@ -10,22 +9,37 @@ if TYPE_CHECKING:
 
 
 class Lounge:
-    def __init__(self, name: str, capacity: int, is_vip: bool = False) -> None:
-        self.lounge_id = str(uuid.uuid4())
+    def __init__(self, name: str, capacity: int = 50, is_vip: bool = False) -> None:
         self.name = name
         self.capacity = capacity
         self.is_vip = is_vip
-        self._passengers: list[Passenger] = []
-
-    def enter(self, passenger: Passenger) -> None:
-        if len(self._passengers) >= self.capacity:
-            raise CapacityExceededException(f"Зал {self.name} переполнен.")
-        self._passengers.append(passenger)
-
-    def exit(self, passenger: Passenger) -> None:
-        if passenger in self._passengers:
-            self._passengers.remove(passenger)
+        self._guests: list[Passenger] = []
 
     @property
     def current_occupancy(self) -> int:
-        return len(self._passengers)
+        return len(self._guests)
+
+    @property
+    def free_seats(self) -> int:
+        return self.capacity - len(self._guests)
+
+    @property
+    def guests(self) -> list[Passenger]:
+        return list(self._guests)
+
+    def enter(self, passenger: Passenger) -> None:
+        if len(self._guests) >= self.capacity:
+            raise CapacityExceededException(
+                f"Бизнес-зал '{self.name}' переполнен (максимум {self.capacity} гостей)."
+            )
+        if passenger not in self._guests:
+            self._guests.append(passenger)
+
+    def exit(self, passenger: Passenger) -> None:
+        if passenger in self._guests:
+            self._guests.remove(passenger)
+
+    def __repr__(self) -> str:
+        return (
+            f"Lounge(name={self.name!r}, occupancy={len(self._guests)}/{self.capacity})"
+        )

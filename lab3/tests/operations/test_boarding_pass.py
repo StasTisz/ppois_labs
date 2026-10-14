@@ -1,3 +1,5 @@
+import pytest
+
 from lab3.domain.infrastructure.gate import Gate
 from lab3.domain.operations.boarding_pass import BoardingPass
 from lab3.domain.operations.ticket import Ticket
@@ -14,7 +16,26 @@ def test_boarding_pass():
     assert bp1.seat_number == "14B"
     assert bp1.gate == gate
     assert bp1.gate_number == "A03"
+    assert bp1.is_boarded is False
+    assert bp1.verify_gate(gate) is True
+    assert bp1.verify_gate(Gate("B01")) is False
+    assert "BoardingPass" in repr(bp1)
+    assert "Seat 14B" in bp1.get_summary()
+
+    bp1.change_seat("14A")
+    assert bp1.seat_number == "14A"
+
+    bp1.mark_boarded()
+    assert bp1.is_boarded is True
+
+    with pytest.raises(ValueError, match="посадка уже завершена"):
+        bp1.change_seat("15A")
 
     bp2 = BoardingPass(t, "14C", "TBD")
     assert bp2.gate is None
     assert bp2.gate_number == "TBD"
+    assert bp2.verify_gate(gate) is False
+
+    bp2.assign_gate(gate)
+    assert bp2.gate == gate
+    assert bp2.gate_number == "A03"

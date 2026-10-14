@@ -1,4 +1,5 @@
 import pytest
+
 from lab3.domain.exceptions import RunwayBusyException, WeatherWarningException
 from lab3.domain.fleet.passenger_aircraft import PassengerAircraft
 from lab3.domain.infrastructure.control_tower import ControlTower

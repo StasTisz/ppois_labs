@@ -1,4 +1,5 @@
 import pytest
+
 from lab2.domain.people.lecturer import Lecturer
 from lab2.domain.structure.department import Department
 

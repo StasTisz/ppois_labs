@@ -1,3 +1,5 @@
+import pytest
+
 from lab3.domain.fleet.vehicle import Vehicle
 
 
@@ -13,6 +15,19 @@ def test_vehicle():
     assert v.requires_maintenance is False
     assert v.operating_hours == 0.0
 
-    v.requires_maintenance = True
+    v.log_hours(100.0)
+    assert v.operating_hours == 100.0
+    assert v.requires_maintenance is False
+
+    with pytest.raises(ValueError):
+        v.log_hours(-10.0)
+
+    v.log_hours(450.0)
+    assert v.operating_hours == 550.0
+    assert v.requires_maintenance is True
+
     v.perform_maintenance()
     assert v.requires_maintenance is False
+
+    v.mark_for_service()
+    assert v.requires_maintenance is True

@@ -1,8 +1,13 @@
 """
 Консольный интерфейс (CLI) для демонстрации работы системы Аэропорта.
 Охватывает основные модули: инфраструктуру, флот, операции, людей и безопасность.
+Поддерживает сохранение и загрузку состояния через модуль pickle.
 """
 
+from __future__ import annotations
+
+import os
+import pickle
 import sys
 from datetime import datetime, timedelta
 
@@ -20,6 +25,8 @@ from lab3.domain.security import (
     PassportControl,
     Visa,
 )
+
+DEFAULT_STATE_FILE = "airport_state.pkl"
 
 
 def seed_initial_data(facade: AirportFacade) -> None:
@@ -60,10 +67,26 @@ def seed_initial_data(facade: AirportFacade) -> None:
         tail_number="EW-001",
         origin="MSQ",
         destination="SVO",
-        scheduled_time=datetime.now() + timedelta(hours=2)
+        scheduled_time=datetime.now() + timedelta(hours=2),
     )
     flight.assign_gate(gate_a1)
     print(">>> Аэропорт готов к работе. Тестовый рейс B2-100 создан.\n")
+
+
+def save_state(facade: AirportFacade, filepath: str = DEFAULT_STATE_FILE) -> None:
+    with open(filepath, "wb") as f:
+        pickle.dump(facade, f)
+    print(f"💾 Состояние аэропорта успешно сохранено в '{filepath}'.")
+
+
+def load_state(filepath: str = DEFAULT_STATE_FILE) -> AirportFacade | None:
+    if not os.path.exists(filepath):
+        print(f"⚠️ Файл состояния '{filepath}' не найден.")
+        return None
+    with open(filepath, "rb") as f:
+        facade = pickle.load(f)
+    print(f"📂 Состояние аэропорта успешно восстановлено из '{filepath}'.")
+    return facade
 
 
 def print_menu() -> None:
@@ -77,6 +100,8 @@ def print_menu() -> None:
     print("4. Наземное обслуживание (ТО и заправка борта)")
     print("5. Диспетчерская вышка (Запрос на взлет)")
     print("6. Демонстрация модуля безопасности (Таможня/Визы)")
+    print("7. Сохранить состояние системы (pickle)")
+    print("8. Загрузить состояние системы (pickle)")
     print("0. Выход из системы")
     print("=" * 45)
 
@@ -88,8 +113,10 @@ def handle_show_schedule(facade: AirportFacade) -> None:
         print("Нет запланированных рейсов.")
     for f in departures:
         gate_num = f.assigned_gate.number if f.assigned_gate else "TBD"
-        print(f"Рейс: {f.flight_number} | {f.plan.origin} -> {f.plan.destination} | "
-              f"Статус: {f.status} | Борт: {f.aircraft.tail_number} | Гейт: {gate_num}")
+        print(
+            f"Рейс: {f.flight_number} | {f.plan.origin} -> {f.plan.destination} | "
+            f"Статус: {f.status} | Борт: {f.aircraft.tail_number} | Гейт: {gate_num}"
+        )
 
 
 def handle_buy_ticket(facade: AirportFacade) -> None:
@@ -103,7 +130,9 @@ def handle_buy_ticket(facade: AirportFacade) -> None:
 
     try:
         ticket = facade.issue_ticket(passport, flight_num, "Economy", 150.0)
-        print(f"✅ Успешно! Билет #{ticket.ticket_number} оформлен на пассажира {first_name} {last_name}.")
+        print(
+            f"✅ Успешно! Билет #{ticket.ticket_number} оформлен на пассажира {first_name} {last_name}."
+        )
     except AirportException as e:
         print(f"❌ Ошибка доменной логики: {e}")
     except ValueError as e:
@@ -126,7 +155,9 @@ def handle_check_in(facade: AirportFacade) -> None:
         print(f"    Место в салоне: {boarding_pass.seat_number}")
         print(f"    Гейт для посадки: {boarding_pass.gate_number}")
         if baggage_weight:
-            print(f"    💼 Багаж ({baggage_weight} кг) успешно принят в грузовой отсек.")
+            print(
+                f"    💼 Багаж ({baggage_weight} кг) успешно принят в грузовой отсек."
+            )
     except AirportException as e:
         print(f"❌ Отказ в регистрации: {e}")
     except ValueError as e:
@@ -135,7 +166,9 @@ def handle_check_in(facade: AirportFacade) -> None:
 
 def handle_maintenance(facade: AirportFacade) -> None:
     print("\n--- НАЗЕМНОЕ ОБСЛУЖИВАНИЕ ---")
-    flight_num = input("Введите номер рейса для обслуживания (например, B2-100): ").strip()
+    flight_num = input(
+        "Введите номер рейса для обслуживания (например, B2-100): "
+    ).strip()
     try:
         print(f"Запуск бригады техников для рейса {flight_num}...")
         facade.prepare_flight(flight_num, fuel_amount=4000.0)
@@ -149,10 +182,14 @@ def handle_maintenance(facade: AirportFacade) -> None:
 
 def handle_dispatch_takeoff(facade: AirportFacade) -> None:
     print("\n--- ДИСПЕТЧЕРСКАЯ ВЫШКА ---")
-    flight_num = input("Введите номер рейса для запроса взлета (например, B2-100): ").strip()
+    flight_num = input(
+        "Введите номер рейса для запроса взлета (например, B2-100): "
+    ).strip()
     try:
         runway = facade.dispatch_takeoff(flight_num)
-        print(f"🛫 ВЗЛЕТ РАЗРЕШЕН! Рейс {flight_num} успешно покинул ВПП {runway.number}.")
+        print(
+            f"🛫 ВЗЛЕТ РАЗРЕШЕН! Рейс {flight_num} успешно покинул ВПП {runway.number}."
+        )
     except AirportException as e:
         print(f"❌ Взлет запрещен: {e}")
     except ValueError as e:
@@ -185,8 +222,8 @@ def handle_security_demo() -> None:
 
     # 2. Таможня
     customs = CustomsControl()
-    legal_decl = CustomsDeclaration(test_passenger.person_id, ["Часы"], 8000.0)
-    illegal_decl = CustomsDeclaration(test_passenger.person_id, ["Золото"], 15000.0)
+    legal_decl = CustomsDeclaration(test_passenger, ["Часы"], 8000.0)
+    illegal_decl = CustomsDeclaration(test_passenger, ["Золото"], 15000.0)
 
     print("\n[Проверка таможенной декларации (8000$)]")
     try:
@@ -202,27 +239,33 @@ def handle_security_demo() -> None:
         print(f"❌ Контрабанда пресечена: {e}")
 
 
-def main():
+def main() -> None:
     facade = AirportFacade("Minsk National Airport", "MSQ")
     seed_initial_data(facade)
 
     while True:
         print_menu()
-        choice = input("Выберите действие (0-6): ").strip()
+        choice = input("Выберите действие (0-8): ").strip()
 
-        if choice == '1':
+        if choice == "1":
             handle_show_schedule(facade)
-        elif choice == '2':
+        elif choice == "2":
             handle_buy_ticket(facade)
-        elif choice == '3':
+        elif choice == "3":
             handle_check_in(facade)
-        elif choice == '4':
+        elif choice == "4":
             handle_maintenance(facade)
-        elif choice == '5':
+        elif choice == "5":
             handle_dispatch_takeoff(facade)
-        elif choice == '6':
+        elif choice == "6":
             handle_security_demo()
-        elif choice == '0':
+        elif choice == "7":
+            save_state(facade)
+        elif choice == "8":
+            loaded = load_state()
+            if loaded is not None:
+                facade = loaded
+        elif choice == "0":
             print("Завершение работы системы аэропорта. До свидания!")
             sys.exit(0)
         else:

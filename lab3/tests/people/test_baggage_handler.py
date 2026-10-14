@@ -2,7 +2,9 @@ from lab3.domain.people.baggage_handler import BaggageHandler
 
 
 def test_baggage_handler():
-    h_manual = BaggageHandler("Григорий", "Г", "P-555", 850.0, heavy_machinery_license=False)
+    h_manual = BaggageHandler(
+        "Григорий", "Г", "P-555", 850.0, heavy_machinery_license=False
+    )
     assert "вручную" in h_manual.perform_duty()
     assert h_manual.tons_loaded == 0.5
 

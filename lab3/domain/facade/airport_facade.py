@@ -36,75 +36,128 @@ class AirportFacade:
         self.airport = Airport(airport_name, iata_code)
         self.schedule = Schedule()
 
-        self._passengers: dict[str, Passenger] = {}
-        self._employees: dict[str, Employee] = {}
-        self._aircrafts: dict[str, Aircraft] = {}
+        self._passengers: list[Passenger] = []
+        self._employees: list[Employee] = []
+        self._aircrafts: list[Aircraft] = []
         self._fuel_trucks: list[FuelTruck] = []
         self._tickets: list[Ticket] = []
 
         self.checkpoint = SecurityCheckpoint(number=1)
         self.checkpoint.assign_equipment(
             MetalDetector("Ceia PMD2"),
-            XRayScanner("Smiths Heimann")
+            XRayScanner("Smiths Heimann"),
         )
 
         self.current_weather = WeatherReport(
             temperature_c=18.0,
             wind_speed_ms=6.0,
             visibility_m=5000.0,
-            is_stormy=False
+            is_stormy=False,
         )
 
     @property
-    def passengers(self) -> dict[str, Passenger]:
-        return self._passengers.copy()
+    def passengers(self) -> list[Passenger]:
+        return list(self._passengers)
 
     @property
-    def employees(self) -> dict[str, Employee]:
-        return self._employees.copy()
+    def employees(self) -> list[Employee]:
+        return list(self._employees)
 
     @property
-    def aircrafts(self) -> dict[str, Aircraft]:
-        return self._aircrafts.copy()
+    def aircrafts(self) -> list[Aircraft]:
+        return list(self._aircrafts)
 
     @property
     def fuel_trucks(self) -> list[FuelTruck]:
-        return self._fuel_trucks.copy()
+        return list(self._fuel_trucks)
 
     @property
     def tickets(self) -> list[Ticket]:
-        return self._tickets.copy()
+        return list(self._tickets)
 
     def register_aircraft(self, aircraft: Aircraft) -> None:
-        self._aircrafts[aircraft.tail_number] = aircraft
+        if aircraft not in self._aircrafts:
+            self._aircrafts.append(aircraft)
 
     def register_fuel_truck(self, truck: FuelTruck) -> None:
-        self._fuel_trucks.append(truck)
+        if truck not in self._fuel_trucks:
+            self._fuel_trucks.append(truck)
 
-    def register_passenger(self, first_name: str, last_name: str, passport_number: str) -> Passenger:
-        passenger = Passenger(first_name, last_name, passport_number)
-        self._passengers[passenger.passport_number] = passenger
+    def register_passenger(
+        self,
+        first_name: str | Passenger,
+        last_name: str | None = None,
+        passport_number: str | None = None,
+    ) -> Passenger:
+        if isinstance(first_name, Passenger):
+            passenger = first_name
+        else:
+            passenger = Passenger(first_name, last_name or "", passport_number or "")
+        if passenger not in self._passengers:
+            self._passengers.append(passenger)
         return passenger
 
     def register_employee(self, employee: Employee) -> None:
-        self._employees[employee.employee_id] = employee
+        if employee not in self._employees:
+            self._employees.append(employee)
 
-    def issue_ticket(self, passport_number: str, flight_number: str, seat_class: str, price: float) -> Ticket:
-        passenger = self._passengers.get(passport_number)
-        if not passenger:
-            raise PassengerNotFoundException(f"Пассажир с паспортом {passport_number} не найден.")
+    def find_passenger(self, passport_number: str) -> Passenger | None:
+        for p in self._passengers:
+            if p.passport_number == passport_number:
+                return p
+        return None
 
-        flight = next((f for f in self.schedule.get_departures() if f.flight_number == flight_number), flight_number)
-        ticket = Ticket(passenger, flight, seat_class, price)
-        passenger.buy_ticket(ticket)
+    def find_aircraft(self, tail_number: str) -> Aircraft | None:
+        for a in self._aircrafts:
+            if a.tail_number == tail_number:
+                return a
+        return None
+
+    def find_departure_flight(self, flight_number: str) -> DepartureFlight | None:
+        for f in self.schedule.get_departures():
+            if f.flight_number == flight_number:
+                return f
+        return None
+
+    def issue_ticket(
+        self,
+        passenger: Passenger | str,
+        flight: DepartureFlight | str,
+        seat_class: str,
+        price: float,
+    ) -> Ticket:
+        passenger_obj = (
+            passenger
+            if isinstance(passenger, Passenger)
+            else self.find_passenger(str(passenger))
+        )
+        if not passenger_obj:
+            raise PassengerNotFoundException(
+                f"Пассажир с паспортом {passenger} не найден."
+            )
+
+        flight_obj = (
+            flight
+            if isinstance(flight, DepartureFlight)
+            else self.find_departure_flight(str(flight))
+        )
+        target_flight = flight_obj if flight_obj is not None else flight
+
+        ticket = Ticket(passenger_obj, target_flight, seat_class, price)
+        passenger_obj.buy_ticket(ticket)
         self._tickets.append(ticket)
         return ticket
 
     def create_departure_flight(
-            self, flight_number: str, airline_name: str, tail_number: str,
-            origin: str, destination: str, scheduled_time: datetime
+        self,
+        flight_number: str,
+        airline_name: str,
+        tail_number: str,
+        origin: str,
+        destination: str,
+        scheduled_time: datetime,
     ) -> DepartureFlight:
-        aircraft = self._aircrafts.get(tail_number)
+        aircraft = self.find_aircraft(tail_number)
         if not aircraft:
             raise ValueError(f"Самолет {tail_number} не найден во флоте.")
 
@@ -116,43 +169,52 @@ class AirportFacade:
         return flight
 
     def check_in_passenger(
-            self, passport_number: str, flight_number: str, baggage_weight: float | None = None
+        self,
+        passenger: Passenger | str,
+        flight_number: str,
+        baggage_weight: float | None = None,
     ) -> BoardingPass:
-        passenger = self._passengers.get(passport_number)
-        if not passenger:
-            raise PassengerNotFoundException(f"Пассажир с паспортом {passport_number} не найден.")
+        passenger_obj = (
+            passenger
+            if isinstance(passenger, Passenger)
+            else self.find_passenger(str(passenger))
+        )
+        if not passenger_obj:
+            raise PassengerNotFoundException(
+                f"Пассажир с паспортом {passenger} не найден."
+            )
 
         ticket = next(
-            (t for t in passenger.get_tickets() if t.flight_number == flight_number and not t.is_used),
-            None
+            (
+                t
+                for t in passenger_obj.get_tickets()
+                if t.flight_number == flight_number and not t.is_used
+            ),
+            None,
         )
         if not ticket:
-            raise InvalidTicketException(f"У пассажира нет активного билета на рейс {flight_number}.")
+            raise InvalidTicketException(
+                f"У пассажира нет активного билета на рейс {flight_number}."
+            )
 
-        flight = next(
-            (f for f in self.schedule.get_departures() if f.flight_number == flight_number),
-            None
-        )
+        flight = self.find_departure_flight(flight_number)
         if not flight:
             raise ValueError(f"Рейс {flight_number} не найден в расписании вылетов.")
 
         if baggage_weight and baggage_weight > 0:
-            baggage_obj = Baggage(baggage_weight, passenger)
-            passenger.add_baggage(baggage_obj)
+            baggage_obj = Baggage(baggage_weight, passenger_obj)
+            passenger_obj.add_baggage(baggage_obj)
             flight.load_baggage(baggage_obj)
 
-        return flight.check_in_passenger(passenger, ticket)
+        return flight.check_in_passenger(passenger_obj, ticket)
 
     def prepare_flight(self, flight_number: str, fuel_amount: float = 3000.0) -> None:
-        flight = next(
-            (f for f in self.schedule.get_departures() if f.flight_number == flight_number),
-            None
-        )
+        flight = self.find_departure_flight(flight_number)
         if not flight:
             raise ValueError(f"Рейс {flight_number} не найден.")
 
         inspection = MaintenanceInspection(flight.aircraft)
-        tech = next((e for e in self._employees.values() if e.is_on_shift), None)
+        tech = next((e for e in self._employees if e.is_on_shift), None)
         if tech:
             inspection.assign_staff(tech)
             inspection.execute()
@@ -165,19 +227,26 @@ class AirportFacade:
                 refuel.execute()
 
     def dispatch_takeoff(self, flight_number: str) -> Runway:
-        flight = next(
-            (f for f in self.schedule.get_departures() if f.flight_number == flight_number),
-            None
-        )
+        flight = self.find_departure_flight(flight_number)
         if not flight:
             raise ValueError(f"Рейс {flight_number} не найден.")
 
         if flight.aircraft.requires_maintenance:
-            raise MaintenanceRequiredException("Самолет не может взлететь: требуется предполетное ТО.")
+            raise MaintenanceRequiredException(
+                "Самолет не может взлететь: требуется предполетное ТО."
+            )
 
-        self.airport.control_tower.update_weather(self.current_weather.is_safe_for_operations)
+        self.airport.control_tower.update_weather(
+            self.current_weather.is_safe_for_operations
+        )
         runway = self.airport.control_tower.request_takeoff(flight.aircraft)
         flight.aircraft.take_off()
         flight.status = "InFlight"
         runway.clear()
         return runway
+
+    def __repr__(self) -> str:
+        return (
+            f"AirportFacade(airport={self.airport.name!r}, code={self.airport.iata_code!r}, "
+            f"flights={len(self.schedule.get_departures())})"
+        )

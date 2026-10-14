@@ -1,4 +1,5 @@
 import pytest
+
 from lab2.domain.academics.subject import Subject
 from lab2.domain.exceptions import ScheduleCollisionException
 from lab2.domain.people.lecturer import Lecturer

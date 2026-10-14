@@ -1,5 +1,7 @@
 from datetime import UTC, datetime
+
 import pytest
+
 from lab3.domain.exceptions import (
     InvalidTicketException,
     MaintenanceRequiredException,
@@ -47,7 +49,9 @@ def test_airport_facade():
         facade.issue_ticket("UNKNOWN", "B2-973", "Economy", 120.0)
 
     with pytest.raises(ValueError):
-        facade.create_departure_flight("B2-999", "B2", "UNKNOWN", "A", "B", datetime.now(UTC))
+        facade.create_departure_flight(
+            "B2-999", "B2", "UNKNOWN", "A", "B", datetime.now(UTC)
+        )
 
     bp = facade.check_in_passenger("MP1234567", "B2-973", baggage_weight=18.0)
     assert bp.ticket == ticket

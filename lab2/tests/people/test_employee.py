@@ -1,4 +1,5 @@
 import pytest
+
 from lab2.domain.people.employee import Employee
 
 

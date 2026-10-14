@@ -1,4 +1,5 @@
 import pytest
+
 from lab3.domain.exceptions import RunwayBusyException
 from lab3.domain.fleet.passenger_aircraft import PassengerAircraft
 from lab3.domain.infrastructure.runway import Runway

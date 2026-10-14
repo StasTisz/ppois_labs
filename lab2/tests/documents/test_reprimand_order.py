@@ -1,4 +1,5 @@
 import pytest
+
 from lab2.domain.documents.reprimand_order import ReprimandOrder
 from lab2.domain.exceptions import DocumentNotSignedException
 from lab2.domain.people.dean import Dean

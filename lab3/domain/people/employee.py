@@ -1,15 +1,20 @@
 from __future__ import annotations
 
-import uuid
 from abc import ABC, abstractmethod
 
 from lab3.domain.people.person import Person
 
 
 class Employee(Person, ABC):
-    def __init__(self, first_name: str, last_name: str, passport_number: str, salary: float) -> None:
+    def __init__(
+        self,
+        first_name: str,
+        last_name: str,
+        passport_number: str,
+        salary: float,
+    ) -> None:
         super().__init__(first_name, last_name, passport_number)
-        self.employee_id = str(uuid.uuid4())
+        self.employee_id = f"EMP-{passport_number}"
         self.salary = salary
         self.is_on_shift = False
 
@@ -18,6 +23,11 @@ class Employee(Person, ABC):
 
     def clock_out(self) -> None:
         self.is_on_shift = False
+
+    def adjust_salary(self, new_salary: float) -> None:
+        if new_salary < 0:
+            raise ValueError("Оклад не может быть отрицательным.")
+        self.salary = new_salary
 
     @abstractmethod
     def perform_duty(self) -> str:

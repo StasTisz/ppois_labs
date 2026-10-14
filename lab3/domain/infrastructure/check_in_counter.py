@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -11,25 +10,43 @@ if TYPE_CHECKING:
 
 class CheckInCounter:
     def __init__(self, number: int) -> None:
-        self.counter_id = str(uuid.uuid4())
         self.number = number
-        self.is_open = False
-        self.current_agent: CheckInAgent | None = None
-        self.assigned_flight: Flight | None = None
+        self._is_open = False
+        self._current_agent: CheckInAgent | None = None
+        self._assigned_flight: Flight | None = None
         self._accepted_baggage: list[Baggage] = []
 
+    @property
+    def is_open(self) -> bool:
+        return self._is_open
+
+    @property
+    def current_agent(self) -> CheckInAgent | None:
+        return self._current_agent
+
+    @property
+    def assigned_flight(self) -> Flight | None:
+        return self._assigned_flight
+
+    @property
+    def accepted_baggage(self) -> list[Baggage]:
+        return list(self._accepted_baggage)
+
     def open_counter(self, agent: CheckInAgent, flight: Flight) -> None:
-        self.current_agent = agent
-        self.assigned_flight = flight
-        self.is_open = True
+        self._current_agent = agent
+        self._assigned_flight = flight
+        self._is_open = True
 
     def close_counter(self) -> None:
-        self.is_open = False
-        self.current_agent = None
-        self.assigned_flight = None
+        self._is_open = False
+        self._current_agent = None
+        self._assigned_flight = None
         self._accepted_baggage.clear()
 
     def accept_baggage(self, baggage: Baggage) -> None:
-        if not self.is_open:
+        if not self._is_open:
             raise ValueError("Стойка регистрации закрыта.")
         self._accepted_baggage.append(baggage)
+
+    def __repr__(self) -> str:
+        return f"CheckInCounter(number={self.number}, open={self._is_open})"

@@ -1,21 +1,31 @@
 from __future__ import annotations
 
-import uuid
-
 from lab2.domain.academics.labwork import LabWork
 
 
 class Subject:
-    def __init__(self, name: str, semester: int, exam_required: bool = True) -> None:
-        self.subject_id = str(uuid.uuid4())
+    def __init__(
+        self,
+        name: str,
+        semester: int,
+        exam_required: bool = True,
+        code: str = "",
+    ) -> None:
+        self.code = code or f"SUBJ-{abs(hash((name, semester))) % 10000:04d}"
         self.name = name
         self.semester = semester
         self.exam_required = exam_required
         self._labs: list[LabWork] = []
 
+    @property
+    def labs(self) -> list[LabWork]:
+        return list(self._labs)
+
     def add_lab(self, lab: LabWork) -> None:
         if any(existing_lab.title == lab.title for existing_lab in self._labs):
-            raise ValueError(f"Лабораторная '{lab.title}' уже существует в курсе {self.name}")
+            raise ValueError(
+                f"Лабораторная '{lab.title}' уже существует в курсе {self.name}"
+            )
         self._labs.append(lab)
         lab.subject = self
 
@@ -35,3 +45,19 @@ class Subject:
 
     def get_mandatory_labs(self) -> list[LabWork]:
         return [lab for lab in self._labs if lab.is_mandatory]
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return (
+            f"Subject(name={self.name!r}, semester={self.semester}, code={self.code!r})"
+        )
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Subject):
+            return NotImplemented
+        return self.name == other.name and self.semester == other.semester
+
+    def __hash__(self) -> int:
+        return hash((self.name, self.semester))

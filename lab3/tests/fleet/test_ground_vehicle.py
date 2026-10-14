@@ -1,4 +1,5 @@
 import pytest
+
 from lab3.domain.fleet.ground_vehicle import GroundVehicle
 
 

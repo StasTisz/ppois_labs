@@ -1,4 +1,5 @@
 import pytest
+
 from lab2.domain.exceptions import AccountBlockedException, InsufficientFundsException
 from lab2.domain.finance.bank_account import BankAccount
 from lab2.domain.people.student import Student

@@ -1,4 +1,5 @@
 import pytest
+
 from lab2.domain.documents.document import Document
 from lab2.domain.exceptions import DocumentNotSignedException
 from lab2.domain.people.dean import Dean

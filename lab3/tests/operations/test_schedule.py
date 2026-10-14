@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+
 from lab3.domain.fleet.passenger_aircraft import PassengerAircraft
 from lab3.domain.operations.airline import Airline
 from lab3.domain.operations.arrival_flight import ArrivalFlight
@@ -20,3 +21,12 @@ def test_schedule():
     sched.add_flight(arr)
     assert len(sched.get_departures()) == 1
     assert len(sched.get_arrivals()) == 1
+    assert "Schedule" in repr(sched)
+
+    assert sched.find_flight("D-1") == dep
+    assert sched.find_flight("UNKNOWN") is None
+
+    # Test copy protection
+    fl_list = sched.flights
+    fl_list.clear()
+    assert len(sched.flights) == 2

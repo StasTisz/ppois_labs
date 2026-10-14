@@ -9,9 +9,15 @@ class University:
         self.abbreviation = abbreviation
         self._faculties: list[Faculty] = []
 
+    @property
+    def faculties(self) -> list[Faculty]:
+        return list(self._faculties)
+
     def add_faculty(self, faculty: Faculty) -> None:
         if self.find_faculty(faculty.short_name):
-            raise ValueError(f"Факультет '{faculty.short_name}' уже зарегистрирован в {self.abbreviation}")
+            raise ValueError(
+                f"Факультет '{faculty.short_name}' уже зарегистрирован в {self.abbreviation}"
+            )
         self._faculties.append(faculty)
 
     def find_faculty(self, short_name: str) -> Faculty | None:
@@ -19,3 +25,14 @@ class University:
             if f.short_name == short_name:
                 return f
         return None
+
+    def get_all_students_count(self) -> int:
+        return sum(
+            sum(group.students_count for group in faculty.groups)
+            for faculty in self._faculties
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f"University(abbr={self.abbreviation!r}, faculties={len(self._faculties)})"
+        )

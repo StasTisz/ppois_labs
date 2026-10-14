@@ -9,10 +9,19 @@ if TYPE_CHECKING:
 
 
 class CateringTask(ServiceTask):
-    def __init__(self, aircraft: Aircraft, meals_count: int, includes_vip: bool = False) -> None:
-        super().__init__(aircraft)
+    def __init__(
+        self,
+        aircraft: Aircraft,
+        meals_count: int,
+        includes_vip: bool = False,
+        task_code: str = "",
+    ) -> None:
+        super().__init__(aircraft, task_code=task_code)
         self.meals_count = meals_count
         self.includes_vip = includes_vip
+
+    def calculate_estimated_duration_minutes(self) -> int:
+        return 30 if self.includes_vip else 15
 
     def execute(self) -> str:
         self._start()

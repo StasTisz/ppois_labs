@@ -1,4 +1,5 @@
 import pytest
+
 from lab3.domain.exceptions import BaggageOverweightException
 from lab3.domain.operations.baggage import Baggage
 from lab3.domain.people.passenger import Passenger

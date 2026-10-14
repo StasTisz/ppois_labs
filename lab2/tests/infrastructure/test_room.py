@@ -1,5 +1,9 @@
 import pytest
-from lab2.domain.exceptions import ResidentNotFoundException, RoomCapacityExceededException
+
+from lab2.domain.exceptions import (
+    ResidentNotFoundException,
+    RoomCapacityExceededException,
+)
 from lab2.domain.infrastructure.room import Room
 from lab2.domain.people.student import Student
 

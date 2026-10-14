@@ -1,4 +1,5 @@
 import pytest
+
 from lab3.domain.people.flight_attendant import FlightAttendant
 
 
