@@ -63,3 +63,8 @@ htmlcov/
 build/
 dist/
 *.spec
+
+# State persistence
+*.pkl
+*.pickle
+*.dat
