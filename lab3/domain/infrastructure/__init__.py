@@ -1,3 +1,5 @@
+"""Пакет зданий, терминалов, гейтов и взлетно-посадочных полос."""
+
 from lab3.domain.infrastructure.airport import Airport
 from lab3.domain.infrastructure.baggage_carousel import BaggageCarousel
 from lab3.domain.infrastructure.check_in_counter import CheckInCounter

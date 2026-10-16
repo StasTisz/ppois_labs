@@ -21,11 +21,19 @@ constexpr double MIN_DISTANCE = 0.1;
 constexpr int MIN_PRIORITY = 1;
 constexpr int MAX_PRIORITY = 10;
 
+/** @brief Очистка потока ввода cin от ошибок и остаточных символов. */
 void clearInputStream() {
     std::cin.clear();
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
+/**
+ * @brief Безопасное чтение целого числа из потока ввода в заданном диапазоне.
+ * @param prompt Текст подсказки пользователю.
+ * @param min_val Минимальное допустимое значение.
+ * @param max_val Максимальное допустимое значение.
+ * @return Считанное целое число.
+ */
 int readInt(const std::string& prompt, int min_val, int max_val) {
     int value = 0;
     while (true) {
@@ -39,6 +47,12 @@ int readInt(const std::string& prompt, int min_val, int max_val) {
     }
 }
 
+/**
+ * @brief Безопасное чтение вещественного числа из потока ввода.
+ * @param prompt Текст подсказки пользователю.
+ * @param min_val Минимальное допустимое значение.
+ * @return Считанное вещественное число.
+ */
 double readDouble(const std::string& prompt, double min_val) {
     double value = 0.0;
     while (true) {
@@ -52,6 +66,11 @@ double readDouble(const std::string& prompt, double min_val) {
     }
 }
 
+/**
+ * @brief Чтение непустой строки из потока ввода.
+ * @param prompt Текст подсказки пользователю.
+ * @return Считанная строка.
+ */
 std::string readString(const std::string& prompt) {
     std::string line;
     while (true) {
@@ -63,6 +82,10 @@ std::string readString(const std::string& prompt) {
     }
 }
 
+/**
+ * @brief Заполнение вектора рейсов начальными тестовыми данными.
+ * @param list Целевой список рейсов.
+ */
 void seedDefaultData(std::vector<FlightInfo>& list) {
     list.clear();
     list.emplace_back("B2-710", 1250.5, 2);
@@ -73,6 +96,10 @@ void seedDefaultData(std::vector<FlightInfo>& list) {
     list.emplace_back("BA-890", 2100.0, 4);
 }
 
+/**
+ * @brief Отображение форматированного списка авиарейсов.
+ * @param list Список рейсов для отображения.
+ */
 void displayList(const std::vector<FlightInfo>& list) {
     std::cout << "\n---------------- ТЕКУЩИЙ СПИСОК РЕЙСОВ ----------------\n";
     if (list.empty()) {
@@ -85,6 +112,10 @@ void displayList(const std::vector<FlightInfo>& list) {
     std::cout << "-------------------------------------------------------\n";
 }
 
+/**
+ * @brief Интерактивное добавление рейса по полям.
+ * @param list Целевой список рейсов.
+ */
 void addFlightInteractive(std::vector<FlightInfo>& list) {
     std::cout << "\n--- Добавление нового авиарейса ---\n";
     std::string number = readString("Введите номер рейса (например, AF-112): ");
@@ -94,6 +125,10 @@ void addFlightInteractive(std::vector<FlightInfo>& list) {
     std::cout << "Рейс успешно добавлен!\n";
 }
 
+/**
+ * @brief Добавление рейса через потоковый ввод (operator>>).
+ * @param list Целевой список рейсов.
+ */
 void addFlightViaStream(std::vector<FlightInfo>& list) {
     std::cout << "\n--- Добавление рейса через поток ввода (operator>>) ---\n";
     std::cout << "Введите данные через пробел: [Номер] [Дистанция] [Приоритет]\n> ";
@@ -107,6 +142,10 @@ void addFlightViaStream(std::vector<FlightInfo>& list) {
     clearInputStream();
 }
 
+/**
+ * @brief Удаление рейса по индексу из списка.
+ * @param list Целевой список рейсов.
+ */
 void removeFlight(std::vector<FlightInfo>& list) {
     if (list.empty()) {
         std::cout << "Список пуст!\n";
@@ -118,6 +157,7 @@ void removeFlight(std::vector<FlightInfo>& list) {
     std::cout << "Рейс успешно удалён.\n";
 }
 
+/** @brief Демонстрация сортировки фиксированного C-массива. */
 void demoRawArraySort() {
     FlightInfo raw_flights[] = {
         FlightInfo("KL-101", 1300.0, 2),
@@ -133,18 +173,30 @@ void demoRawArraySort() {
     for (std::size_t i = 0; i < n; ++i) std::cout << "  " << raw_flights[i] << "\n";
 }
 
+/**
+ * @brief Демонстрация пирамидальной сортировки (Heapsort).
+ * @param flights Список рейсов для сортировки.
+ */
 void sortHeapsortDemo(std::vector<FlightInfo>& flights) {
     heapsort(flights);
     std::cout << "Отсортировано (Heapsort)!\n";
     displayList(flights);
 }
 
+/**
+ * @brief Демонстрация сортировки Студжа (Stooge sort).
+ * @param flights Список рейсов для сортировки.
+ */
 void sortStoogeDemo(std::vector<FlightInfo>& flights) {
     stooge_sort(flights);
     std::cout << "Отсортировано (Stooge sort)!\n";
     displayList(flights);
 }
 
+/**
+ * @brief Демонстрация сортировки с пользовательским компаратором (лямбда).
+ * @param flights Список рейсов для сортировки.
+ */
 void sortLambdaDemo(std::vector<FlightInfo>& flights) {
     heapsort(flights, [](const FlightInfo& a, const FlightInfo& b) {
         return a.get_distance() > b.get_distance();
@@ -153,6 +205,7 @@ void sortLambdaDemo(std::vector<FlightInfo>& flights) {
     displayList(flights);
 }
 
+/** @brief Вывод меню операций сортировки. */
 void printSortingMenu() {
     std::cout << "\n=== ЗАДАНИЕ 1: СОРТИРОВКИ ===\n"
               << "1. Показать список рейсов\n"
@@ -167,6 +220,11 @@ void printSortingMenu() {
               << "0. Вернуться в главное меню\n";
 }
 
+/**
+ * @brief Обработка выбора пользователя в меню сортировок.
+ * @param choice Выбранный пункт меню.
+ * @param flights Список рейсов.
+ */
 void handleSortingChoice(int choice, std::vector<FlightInfo>& flights) {
     switch (choice) {
         case 1: displayList(flights); break;
@@ -182,6 +240,7 @@ void handleSortingChoice(int choice, std::vector<FlightInfo>& flights) {
     }
 }
 
+/** @brief Меню управления разделом сортировок. */
 void sortingMenu() {
     std::vector<FlightInfo> flights;
     seedDefaultData(flights);
@@ -193,6 +252,10 @@ void sortingMenu() {
     }
 }
 
+/**
+ * @brief Заполнение графа тестовыми маршрутами перелётов.
+ * @param graph Целевой граф.
+ */
 void seedGraphData(Graph<std::string>& graph) {
     graph.clear();
     graph.insert_vertex("MSQ");
@@ -206,6 +269,10 @@ void seedGraphData(Graph<std::string>& graph) {
     std::cout << "Граф заполнен тестовой картой авиамаршрутов.\n";
 }
 
+/**
+ * @brief Добавление новой вершины (аэропорта) в граф.
+ * @param graph Целевой граф.
+ */
 void addVertex(Graph<std::string>& graph) {
     std::string vertex_code = readString("Введите код аэропорта (например, MSQ): ");
     try {
@@ -216,6 +283,10 @@ void addVertex(Graph<std::string>& graph) {
     }
 }
 
+/**
+ * @brief Удаление вершины (аэропорта) из графа.
+ * @param graph Целевой граф.
+ */
 void removeVertex(Graph<std::string>& graph) {
     std::string vertex_code = readString("Введите код аэропорта для удаления: ");
     try {
@@ -226,6 +297,10 @@ void removeVertex(Graph<std::string>& graph) {
     }
 }
 
+/**
+ * @brief Добавление ориентированного ребра (маршрута) в граф.
+ * @param graph Целевой граф.
+ */
 void addEdge(Graph<std::string>& graph) {
     std::string from = readString("Откуда летим (аэропорт): ");
     std::string to = readString("Куда летим (аэропорт): ");
@@ -237,6 +312,10 @@ void addEdge(Graph<std::string>& graph) {
     }
 }
 
+/**
+ * @brief Удаление ориентированного ребра (маршрута) из графа.
+ * @param graph Целевой граф.
+ */
 void removeEdge(Graph<std::string>& graph) {
     std::string from = readString("Откуда летим (аэропорт): ");
     std::string to = readString("Куда летим (аэропорт): ");
@@ -248,6 +327,10 @@ void removeEdge(Graph<std::string>& graph) {
     }
 }
 
+/**
+ * @brief Вывод степени вершины графа.
+ * @param graph Исходный граф.
+ */
 void printVertexInfo(Graph<std::string>& graph) {
     std::string vertex_code = readString("Введите код аэропорта: ");
     if (!graph.has_vertex(vertex_code)) {
@@ -258,6 +341,10 @@ void printVertexInfo(Graph<std::string>& graph) {
               << graph.vertex_degree(vertex_code) << "\n";
 }
 
+/**
+ * @brief Вывод степени ребра графа.
+ * @param graph Исходный граф.
+ */
 void printEdgeDegree(const Graph<std::string>& graph) {
     std::string from = readString("Исходный аэропорт: ");
     std::string to = readString("Целевой аэропорт: ");
@@ -269,6 +356,10 @@ void printEdgeDegree(const Graph<std::string>& graph) {
     }
 }
 
+/**
+ * @brief Демонстрация работы обратных и однонаправленных итераторов.
+ * @param graph Исходный граф.
+ */
 void demoGraphIterators(const Graph<std::string>& graph) {
     std::cout << "\n--- Демонстрация обратных и однонаправленных итераторов ---\n";
     std::cout << "Вершины в обратном порядке (v_crbegin -> v_crend):\n  ";
@@ -286,6 +377,7 @@ void demoGraphIterators(const Graph<std::string>& graph) {
     std::cout << "\n";
 }
 
+/** @brief Вывод меню операций с графом. */
 void printGraphMenu() {
     std::cout << "\n=== ЗАДАНИЕ 2: ГРАФЫ (Карта перелётов) ===\n"
               << "1. Вывести структуру графа\n"
@@ -301,6 +393,11 @@ void printGraphMenu() {
               << "0. Вернуться в главное меню\n";
 }
 
+/**
+ * @brief Обработка выбора пользователя в меню графов.
+ * @param choice Выбранный пункт меню.
+ * @param graph Целевой граф.
+ */
 void handleGraphChoice(int choice, Graph<std::string>& graph) {
     switch (choice) {
         case 1:
@@ -320,6 +417,7 @@ void handleGraphChoice(int choice, Graph<std::string>& graph) {
     }
 }
 
+/** @brief Меню управления разделом графов. */
 void graphMenu() {
     Graph<std::string> graph;
     seedGraphData(graph);
@@ -333,6 +431,7 @@ void graphMenu() {
 
 } // namespace cli
 
+/** @brief Точка входа в программу. */
 int main() {
     int choice = -1;
     while (choice != 0) {

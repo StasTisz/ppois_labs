@@ -1,3 +1,5 @@
+"""Модуль декана факультета."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -9,6 +11,8 @@ if TYPE_CHECKING:
 
 
 class Dean(Employee):
+    """Декан факультета. Подписывает приказы и руководит факультетом."""
+
     DEFAULT_DEGREE = "К.т.н."
     DEFAULT_POSITION = "Декан"
 
@@ -20,6 +24,7 @@ class Dean(Employee):
         degree: str = DEFAULT_DEGREE,
         passport_number: str = "",
     ) -> None:
+        """Инициализирует экземпляр класса Dean."""
         super().__init__(
             first_name,
             last_name,
@@ -34,21 +39,23 @@ class Dean(Employee):
 
     @property
     def signed_orders_count(self) -> int:
+        """Возвращает значение атрибута signed_orders_count."""
         return self._signed_orders_count
 
     def sign_order(self, order: Document) -> str:
+        """Подписывает приказ по факультету."""
         self._signed_orders_count += 1
         order.sign(self)
-        return (
-            f"ПРИКАЗ УТВЕРЖДЕН: {order.title} | Подписант: декан {self.full_name}"
-        )
+        return f"ПРИКАЗ УТВЕРЖДЕН: {order.title} | Подписант: декан {self.full_name}"
 
     def issue_instruction(self, instruction_text: str) -> str:
+        """Издает распоряжение декана факультета."""
         if not instruction_text.strip():
             raise ValueError("Текст распоряжения не может быть пустым.")
         return f"РАСПОРЯЖЕНИЕ ДЕКАНА ({self.full_name}): {instruction_text}"
 
     def veto_order(self, order: Document, reason: str) -> None:
+        """Накладывает вето на проект административного приказа."""
         if not reason.strip():
             raise ValueError("Причина вето должна быть указана.")
         order.cancel_document(f"Вето декана {self.full_name}: {reason}")

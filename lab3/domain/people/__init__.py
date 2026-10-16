@@ -1,3 +1,5 @@
+"""Пакет пассажиров, экипажей и наземного персонала аэропорта."""
+
 from lab3.domain.people.baggage_handler import BaggageHandler
 from lab3.domain.people.check_in_agent import CheckInAgent
 from lab3.domain.people.crew_member import CrewMember

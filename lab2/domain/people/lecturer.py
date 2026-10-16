@@ -1,3 +1,5 @@
+"""Модуль преподавателя кафедры."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -10,6 +12,8 @@ if TYPE_CHECKING:
 
 
 class Lecturer(Employee):
+    """Преподаватель университета (базовый класс для профильных преподавателей)."""
+
     DEFAULT_DEGREE = "Без степени"
     DEFAULT_POSITION = "Преподаватель"
 
@@ -22,6 +26,7 @@ class Lecturer(Employee):
         position: str = DEFAULT_POSITION,
         passport_number: str = "",
     ) -> None:
+        """Инициализирует экземпляр класса Lecturer."""
         super().__init__(
             first_name,
             last_name,
@@ -35,25 +40,30 @@ class Lecturer(Employee):
 
     @property
     def subjects_count(self) -> int:
+        """Агрегация: количество читаемых преподавателем дисциплин."""
         return len(self._subjects)
 
     @property
     def subjects(self) -> list[Subject]:
+        """Возвращает значение атрибута subjects."""
         return list(self._subjects)
 
     def assign_subject(self, subject: Subject) -> None:
+        """Назначает преподавателю новую дисциплину для ведения.
+        Защищает от дублирования одной и той же дисциплины."""
         if not self.can_teach(subject):
             self._subjects.append(subject)
 
     def remove_subject(self, subject: Subject) -> None:
-        self._subjects = [
-            subj for subj in self._subjects if subj != subject
-        ]
+        """Удаляет учебную дисциплину из педагогической нагрузки преподавателя."""
+        self._subjects = [subj for subj in self._subjects if subj != subject]
 
     def update_degree(self, new_degree: str) -> None:
+        """Обновляет ученую степень преподавателя (например, после защиты диссертации)."""
         if not new_degree.strip():
             raise ValueError("Ученая степень не может быть пустой строкой")
         self.degree = new_degree
 
     def can_teach(self, subject: Subject) -> bool:
+        """Проверяет компетенцию: ведет ли преподаватель указанную дисциплину."""
         return any(subj == subject for subj in self._subjects)

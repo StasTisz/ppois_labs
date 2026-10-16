@@ -1,3 +1,5 @@
+"""Модуль сервисной задачи обеспечения рейса бортпитанием."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -9,6 +11,8 @@ if TYPE_CHECKING:
 
 
 class CateringTask(ServiceTask):
+    """Погрузка бортового питания (кейтеринг)."""
+
     VIP_DURATION_MINUTES: int = 30
     STANDARD_DURATION_MINUTES: int = 15
 
@@ -19,11 +23,13 @@ class CateringTask(ServiceTask):
         includes_vip: bool = False,
         task_code: str = "",
     ) -> None:
+        """Инициализирует экземпляр класса CateringTask."""
         super().__init__(aircraft, task_code=task_code)
         self.meals_count = meals_count
         self.includes_vip = includes_vip
 
     def calculate_estimated_duration_minutes(self) -> int:
+        """Рассчитывает плановое время доставки и загрузки бортпитания."""
         return (
             self.VIP_DURATION_MINUTES
             if self.includes_vip
@@ -31,6 +37,7 @@ class CateringTask(ServiceTask):
         )
 
     def execute(self) -> str:
+        """Осуществляет загрузку питания в кухонные блоки судна."""
         self._start()
         if self.includes_vip and hasattr(self.aircraft, "order_vip_catering"):
             self.aircraft.order_vip_catering()

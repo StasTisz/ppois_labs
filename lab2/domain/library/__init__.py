@@ -1,3 +1,5 @@
+"""Пакет университетской библиотеки и читательских билетов."""
+
 from lab2.domain.library.book import Book
 from lab2.domain.library.library_card import LibraryCard
 

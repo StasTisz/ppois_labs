@@ -1,3 +1,5 @@
+"""Модуль пункта предполетного досмотра пассажиров."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -13,7 +15,10 @@ if TYPE_CHECKING:
 
 
 class SecurityCheckpoint:
+    """Зона предполетного досмотра (САБ - служба авиационной безопасности)."""
+
     def __init__(self, number: int) -> None:
+        """Инициализирует экземпляр класса SecurityCheckpoint."""
         self.number = number
         self.metal_detector: MetalDetector | None = None
         self.xray_scanner: XRayScanner | None = None
@@ -23,17 +28,21 @@ class SecurityCheckpoint:
 
     @property
     def checkpoint_id(self) -> str:
+        """Возвращает значение атрибута checkpoint_id."""
         return f"CP-{self.number}"
 
     @property
     def processed_passengers_count(self) -> int:
+        """Возвращает значение атрибута processed_passengers_count."""
         return self._processed_passengers_count
 
     @property
     def is_open(self) -> bool:
+        """Возвращает признак open."""
         return self._is_open
 
     def is_ready_for_service(self) -> bool:
+        """Проверяет готовность пункта досмотра к обслуживанию пассажиропотока."""
         return (
             self._is_open
             and self.metal_detector is not None
@@ -45,21 +54,26 @@ class SecurityCheckpoint:
         )
 
     def close_checkpoint(self) -> None:
+        """Временно закрывает пункт досмотра на технический перерыв."""
         self._is_open = False
 
     def open_checkpoint(self) -> None:
+        """Открывает пункт досмотра для прохождения предполетного контроля."""
         self._is_open = True
 
     def assign_equipment(
         self, metal_detector: MetalDetector, xray_scanner: XRayScanner
     ) -> None:
+        """Комплектует пункт досмотра необходимым оборудованием."""
         self.metal_detector = metal_detector
         self.xray_scanner = xray_scanner
 
     def assign_officer(self, officer: SecurityOfficer) -> None:
+        """Назначает дежурного сотрудника на пункт."""
         self.officer = officer
 
     def _validate_readiness(self) -> None:
+        """Проверяет работоспособность всех сканеров и присутствие офицера безопасности."""
         if not self._is_open:
             raise ValueError(f"Пункт досмотра {self.number} закрыт.")
         if not self.metal_detector or not self.xray_scanner:
@@ -72,6 +86,7 @@ class SecurityCheckpoint:
     def process_passenger(
         self, passenger: Passenger, carry_on: Baggage | None = None
     ) -> None:
+        """Осуществляет комплексный досмотр пассажира и его ручной клади."""
         self._validate_readiness()
         assert self.metal_detector and self.xray_scanner
         person_clear = self.metal_detector.scan(passenger)
@@ -84,6 +99,7 @@ class SecurityCheckpoint:
         self._processed_passengers_count += 1
 
     def __repr__(self) -> str:
+        """Возвращает отладочное строковое представление объекта."""
         return (
             f"SecurityCheckpoint(number={self.number}, open={self._is_open}, "
             f"processed={self._processed_passengers_count})"

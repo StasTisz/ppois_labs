@@ -1,3 +1,5 @@
+"""Пакет наземного технического и сервисного обслуживания судов."""
+
 from lab3.domain.maintenance.catering_task import CateringTask
 from lab3.domain.maintenance.cleaning_task import CleaningTask
 from lab3.domain.maintenance.maintenance_inspection import MaintenanceInspection

@@ -1,3 +1,5 @@
+"""Модуль грузчика службы обработки багажа."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -10,6 +12,8 @@ if TYPE_CHECKING:
 
 
 class BaggageHandler(Employee):
+    """Грузчик багажного отделения."""
+
     HEAVY_MACHINERY_LOAD_TONS: float = 2.0
     MANUAL_LOAD_TONS: float = 0.5
     KG_PER_TON: float = 1000.0
@@ -22,15 +26,18 @@ class BaggageHandler(Employee):
         salary: float,
         heavy_machinery_license: bool = True,
     ) -> None:
+        """Инициализирует экземпляр класса BaggageHandler."""
         super().__init__(first_name, last_name, passport_number, salary)
         self.heavy_machinery_license = heavy_machinery_license
         self._tons_loaded = 0.0
 
     @property
     def tons_loaded(self) -> float:
+        """Общий тоннаж погруженного багажа за смену."""
         return self._tons_loaded
 
     def perform_duty(self) -> str:
+        """Осуществляет погрузку чемоданов в трюм или на тележку."""
         if self.heavy_machinery_license:
             self._tons_loaded += self.HEAVY_MACHINERY_LOAD_TONS
             return f"Грузчик {self.full_name} загружает багаж с помощью погрузчика."
@@ -38,6 +45,7 @@ class BaggageHandler(Employee):
         return f"Грузчик {self.full_name} загружает багаж вручную."
 
     def load_to_cargo_hold(self, flight: Flight, baggage: Baggage) -> None:
+        """Загружает проверенный багаж в грузовой отсек самолета."""
         if not self.is_on_shift:
             raise ValueError(f"Грузчик {self.full_name} не на смене.")
         baggage.check_weight()
@@ -46,5 +54,6 @@ class BaggageHandler(Employee):
         )
 
     def unload_from_cargo_hold(self, flight: Flight) -> None:
+        """Выгружает багаж из грузового отсека самолета на перрон."""
         if not self.is_on_shift:
             raise ValueError(f"Грузчик {self.full_name} не на смене.")

@@ -1,18 +1,25 @@
+"""Модуль базового транспортного средства аэропорта."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
 
 class Vehicle(ABC):
+    """Базовый абстрактный класс для любого транспортного средства в аэропорту.
+    Определяет общий контракт технического обслуживания."""
+
     MAX_OPERATING_HOURS_THRESHOLD: float = 500.0
 
     def __init__(self, model: str, max_speed: float) -> None:
+        """Инициализирует экземпляр класса Vehicle."""
         self.model = model
         self.max_speed = max_speed
         self.requires_maintenance = False
         self.operating_hours = 0.0
 
     def log_hours(self, hours: float) -> None:
+        """Учитывает наработанные моточасы транспортного средства."""
         if hours < 0:
             raise ValueError("Отработанные часы не могут быть отрицательными.")
         self.operating_hours += hours
@@ -20,6 +27,7 @@ class Vehicle(ABC):
             self.requires_maintenance = True
 
     def mark_for_service(self) -> None:
+        """Отправляет транспортное средство на плановое техобслуживание."""
         self.requires_maintenance = True
 
     @abstractmethod

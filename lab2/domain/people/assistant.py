@@ -1,3 +1,5 @@
+"""Модуль преподавателя-ассистента кафедры."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -13,6 +15,8 @@ if TYPE_CHECKING:
 
 
 class Assistant(Lecturer):
+    """Ассистент кафедры. Обычно ведет лабораторные и практические занятия."""
+
     DEFAULT_POSITION = "Преподаватель"
 
     def __init__(
@@ -25,6 +29,7 @@ class Assistant(Lecturer):
         consultation_hours: int = 4,
         assigned_labs_count: int = 0,
     ) -> None:
+        """Инициализирует экземпляр класса Assistant."""
         super().__init__(
             first_name,
             last_name,
@@ -37,15 +42,18 @@ class Assistant(Lecturer):
         self.assigned_labs_count = assigned_labs_count
 
     def record_labwork_completed(self) -> None:
+        """Фиксирует успешное выполнение лабораторной работы студентом."""
         self.assigned_labs_count += 1
 
     def conduct_lab(self, subject: Subject, lab: LabWork, group: AcademicGroup) -> str:
+        """Проводит лабораторное занятие для академической группы в аудитории."""
         return (
             f"Ассистент {self.full_name} провел лабораторную работу '{lab.title}' "
             f"по дисциплине '{subject.name}' в группе {group.number}."
         )
 
     def grade_labwork(self, student: Student, lab: LabWork, score: float) -> float:
+        """Выставляет и регистрирует балл за лабораторную работу в ведомость."""
         if not (0 <= score <= lab.max_score):
             raise ValueError(
                 f"Оценка {score} выходит за пределы шкалы лабораторной (0 - {lab.max_score})."
@@ -53,6 +61,7 @@ class Assistant(Lecturer):
         return score
 
     def prepare_lab_equipment(self, classroom: Classroom) -> bool:
+        """Проверяет и подготавливает оборудование в лаборатории перед занятием."""
         if not classroom.is_available:
             raise ValueError(f"Аудитория {classroom.number} недоступна для подготовки.")
         return classroom.has_computers

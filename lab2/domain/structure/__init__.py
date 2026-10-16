@@ -1,3 +1,5 @@
+"""Пакет организационной структуры университета и факультетов."""
+
 from lab2.domain.structure.academic_group import AcademicGroup
 from lab2.domain.structure.department import Department
 from lab2.domain.structure.faculty import Faculty

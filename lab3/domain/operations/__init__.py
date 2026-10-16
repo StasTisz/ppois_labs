@@ -1,3 +1,5 @@
+"""Пакет авиационных рейсов, билетов, багажа и расписаний."""
+
 from lab3.domain.operations.airline import Airline
 from lab3.domain.operations.arrival_flight import ArrivalFlight
 from lab3.domain.operations.baggage import Baggage

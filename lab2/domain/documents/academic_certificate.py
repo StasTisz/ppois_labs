@@ -1,3 +1,5 @@
+"""Модуль архивной академической справки."""
+
 from __future__ import annotations
 
 from lab2.domain.documents.document import Document
@@ -5,6 +7,9 @@ from lab2.domain.people.student import Student
 
 
 class AcademicCertificate(Document):
+    """Справка об обучении (например, по месту требования).
+    Не требует метода execute, так как имеет исключительно информационный характер."""
+
     def __init__(
         self,
         student: Student,
@@ -12,6 +17,7 @@ class AcademicCertificate(Document):
         purpose: str = "По месту требования",
         registration_number: str = "",
     ) -> None:
+        """Инициализирует экземпляр класса AcademicCertificate."""
         super().__init__(
             f"Справка об обучении: {student.full_name}",
             registration_number=registration_number,
@@ -21,9 +27,11 @@ class AcademicCertificate(Document):
         self.purpose = purpose
 
     def verify_student_status(self) -> bool:
+        """Проверяет актуальность статуса студента перед формированием справки."""
         return self.student.is_active
 
     def generate_text(self) -> str:
+        """Генерирует официальный текст академической архивной справки."""
         status = (
             "действительно является студентом" if self.student.is_active else "отчислен"
         )
@@ -36,6 +44,7 @@ class AcademicCertificate(Document):
         )
 
     def issue(self) -> str:
+        """Выдает академическую справку студенту с фиксацией в реестре."""
         self._ensure_signed()
         if not self.verify_student_status():
             raise ValueError(

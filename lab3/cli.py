@@ -229,9 +229,12 @@ def handle_security_demo() -> None:
 
 def _dispatch_command(facade: AirportFacade, choice: str) -> AirportFacade:
     actions = {
-        "1": lambda: handle_show_schedule(facade), "2": lambda: handle_buy_ticket(facade),
-        "3": lambda: handle_check_in(facade), "4": lambda: handle_maintenance(facade),
-        "5": lambda: handle_dispatch_takeoff(facade), "6": handle_security_demo,
+        "1": lambda: handle_show_schedule(facade),
+        "2": lambda: handle_buy_ticket(facade),
+        "3": lambda: handle_check_in(facade),
+        "4": lambda: handle_maintenance(facade),
+        "5": lambda: handle_dispatch_takeoff(facade),
+        "6": handle_security_demo,
         "7": lambda: save_state(facade),
     }
     if choice in actions:

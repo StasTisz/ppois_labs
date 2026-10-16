@@ -1,3 +1,5 @@
+"""Модуль вылетающего авиарейса."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -25,6 +27,8 @@ if TYPE_CHECKING:
 
 
 class DepartureFlight(Flight):
+    """Вылетающий рейс. Управляет процессом регистрации, багажом и посадкой."""
+
     SEATS_PER_ROW: int = 6
     ASCII_OFFSET_A: int = 65
 
@@ -35,6 +39,7 @@ class DepartureFlight(Flight):
         aircraft: Aircraft,
         plan: FlightPlan,
     ) -> None:
+        """Инициализирует экземпляр класса DepartureFlight."""
         super().__init__(flight_number, airline, aircraft, plan)
         self.assigned_gate: Gate | None = None
         self._manifest: list[Passenger] = []
@@ -43,17 +48,21 @@ class DepartureFlight(Flight):
 
     @property
     def manifest(self) -> list[Passenger]:
+        """Безопасная копия списка зарегистрированных пассажиров."""
         return list(self._manifest)
 
     @property
     def cargo_hold(self) -> list[Baggage]:
+        """Безопасная копия списка загруженного багажа."""
         return list(self._cargo_hold)
 
     def assign_gate(self, gate: Gate | None) -> None:
+        """Привязывает инфраструктурный гейт к текущему рейсу."""
         self.assigned_gate = gate
         super().assign_gate(gate)
 
     def check_in_passenger(self, passenger: Passenger, ticket: Ticket) -> BoardingPass:
+        """Регистрирует пассажира на рейс, гасит билет и генерирует посадочный талон."""
         if self.status in ["Delayed", "Cancelled"]:
             raise FlightDelayedException(f"Регистрация невозможна: рейс {self.status}.")
         if ticket.flight_number != self.flight_number:
@@ -73,6 +82,7 @@ class DepartureFlight(Flight):
     def board_passenger(
         self, passenger: Passenger, boarding_pass: BoardingPass
     ) -> None:
+        """Регистрирует посадку пассажира по посадочному талону."""
         if not self.assigned_gate or not self.assigned_gate.is_open:
             raise BoardingClosedException(
                 f"Посадка на рейс {self.flight_number} окончена или гейт закрыт."
@@ -83,21 +93,25 @@ class DepartureFlight(Flight):
             self._passengers.append(passenger)
 
     def load_baggage(self, baggage: Baggage) -> None:
+        """Грузит проверенный багаж в трюм самолета."""
         baggage.check_weight()
         self._cargo_hold.append(baggage)
 
     def start_boarding(self) -> None:
+        """Объявляет посадку и открывает привязанный гейт."""
         if not self.assigned_gate:
             raise GateNotAssignedException("Гейт не назначен.")
         self._status = "Boarding"
         self.assigned_gate.open_gate()
 
     def close_boarding(self) -> None:
+        """Закрывает выход на посадку перед вылетом воздушного судна."""
         if self.assigned_gate:
             self.assigned_gate.close_gate()
         self._status = "BoardingClosed"
 
     def authorize_takeoff(self) -> bool:
+        """Выдает разрешение на взлет рейса при выполнении всех предполетных условий."""
         if getattr(self.aircraft, "requires_maintenance", False):
             raise MaintenanceRequiredException(
                 f"Вылет запрещен: борт {self.aircraft.tail_number} требует прохождения ТО."

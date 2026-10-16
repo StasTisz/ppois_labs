@@ -1,3 +1,5 @@
+"""Модуль факультета университета."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -11,7 +13,10 @@ if TYPE_CHECKING:
 
 
 class Faculty:
+    """Учебный факультет университета."""
+
     def __init__(self, name: str, short_name: str) -> None:
+        """Инициализирует экземпляр класса Faculty."""
         self.name = name
         self.short_name = short_name
         self._departments: list[Department] = []
@@ -19,16 +24,20 @@ class Faculty:
 
     @property
     def departments(self) -> list[Department]:
+        """Возвращает значение атрибута departments."""
         return list(self._departments)
 
     @property
     def groups(self) -> list[AcademicGroup]:
+        """Возвращает защищенную копию списка групп."""
         return list(self._groups)
 
     def add_department(self, department: Department) -> None:
+        """Прикрепляет кафедру к факультету."""
         self._departments.append(department)
 
     def add_group(self, group: AcademicGroup) -> None:
+        """Регистрирует новую академическую группу на факультете."""
         if self.find_group(group.number):
             raise ValueError(
                 f"Группа {group.number} уже существует на {self.short_name}"
@@ -36,12 +45,14 @@ class Faculty:
         self._groups.append(group)
 
     def find_group(self, number: str) -> AcademicGroup | None:
+        """Мягкий поиск группы по номеру (возвращает None, если не найдена)."""
         for group in self._groups:
             if group.number == number:
                 return group
         return None
 
     def get_group_strict(self, number: str) -> AcademicGroup:
+        """Строгий поиск группы по номеру (для бизнес-логики, требующей гарантии существования)."""
         group = self.find_group(number)
         if not group:
             raise GroupNotFoundException(
@@ -50,9 +61,11 @@ class Faculty:
         return group
 
     def get_total_capacity(self) -> int:
+        """Подсчитывает максимальную суммарную вместимость всех групп факультета."""
         return sum(group.max_students for group in self._groups)
 
     def find_student_by_record_book(self, record_book_number: str) -> Student | None:
+        """Находит студента факультета по номеру зачетной книжки."""
         for group in self._groups:
             for student in group.students:
                 if student.record_book_number == record_book_number:
@@ -60,6 +73,7 @@ class Faculty:
         return None
 
     def find_student_by_id(self, student_id: str) -> Student | None:
+        """Сквозной поиск студента по номеру билета/идентификатору среди всех групп факультета."""
         for group in self._groups:
             for student in group.students:
                 if (
@@ -71,4 +85,5 @@ class Faculty:
         return None
 
     def __repr__(self) -> str:
+        """Возвращает отладочное строковое представление объекта."""
         return f"Faculty(name={self.short_name!r}, groups={len(self._groups)}, depts={len(self._departments)})"

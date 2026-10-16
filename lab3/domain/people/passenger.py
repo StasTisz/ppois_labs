@@ -1,3 +1,5 @@
+"""Модуль пассажира авиарейса."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -10,7 +12,10 @@ if TYPE_CHECKING:
 
 
 class Passenger(Person):
+    """Клиент аэропорта (пассажир). Управляет своими билетами и багажом."""
+
     def __init__(self, first_name: str, last_name: str, passport_number: str) -> None:
+        """Инициализирует экземпляр класса Passenger."""
         super().__init__(first_name, last_name, passport_number)
         self._is_boarded = False
         self._tickets: list[Ticket] = []
@@ -18,39 +23,51 @@ class Passenger(Person):
 
     @property
     def is_boarded(self) -> bool:
+        """Возвращает признак boarded."""
         return self._is_boarded
 
     @is_boarded.setter
     def is_boarded(self, value: bool) -> None:
+        """Устанавливает значение атрибута is_boarded."""
         self._is_boarded = value
 
     @property
     def tickets(self) -> list[Ticket]:
+        """Возвращает значение атрибута tickets."""
         return list(self._tickets)
 
     @property
     def baggage(self) -> list[Baggage]:
+        """Возвращает значение атрибута baggage."""
         return list(self._baggage)
 
     def buy_ticket(self, ticket: Ticket) -> None:
+        """Привязывает купленный билет к профилю пассажира."""
         self._tickets.append(ticket)
 
     def add_baggage(self, baggage_item: Baggage) -> None:
+        """Регистрирует единицу багажа на пассажира."""
         self._baggage.append(baggage_item)
 
     def board(self) -> None:
+        """Регистрирует факт посадки пассажира на борт воздушного судна."""
         self._is_boarded = True
 
     def disembark(self) -> None:
+        """Регистрирует высадку пассажира с борта самолета в терминал."""
         self._is_boarded = False
 
     @property
     def has_tickets(self) -> bool:
+        """Проверяет наличие хотя бы одного билета."""
         return len(self._tickets) > 0
 
     @property
     def baggage_count(self) -> int:
+        """Возвращает количество мест багажа."""
         return len(self._baggage)
 
     def get_tickets(self) -> list[Ticket]:
+        """Возвращает копию списка билетов.
+        Копия гарантирует, что внешний код не сможет изменить оригинальный список."""
         return list(self._tickets)

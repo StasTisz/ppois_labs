@@ -1,3 +1,5 @@
+"""Пакет студентов, преподавателей и сотрудников деканата."""
+
 from lab2.domain.people.assistant import Assistant
 from lab2.domain.people.associate_professor import AssociateProfessor
 from lab2.domain.people.dean import Dean

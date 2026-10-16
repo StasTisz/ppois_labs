@@ -1,3 +1,5 @@
+"""Пакет воздушного и наземного парка техники аэропорта."""
+
 from lab3.domain.fleet.aircraft import Aircraft
 from lab3.domain.fleet.baggage_tractor import BaggageTractor
 from lab3.domain.fleet.cargo_aircraft import CargoAircraft

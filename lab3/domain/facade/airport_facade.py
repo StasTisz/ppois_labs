@@ -1,3 +1,5 @@
+"""Модуль унифицированного фасада управления процессами аэропорта."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -32,7 +34,11 @@ if TYPE_CHECKING:
 
 
 class AirportFacade:
+    """Главный контроллер аэропорта.
+    Оркестрирует реестры пассажиров, техники, расписание и погодные условия."""
+
     def __init__(self, airport_name: str, iata_code: str) -> None:
+        """Инициализирует экземпляр класса AirportFacade."""
         self.airport = Airport(airport_name, iata_code)
         self.schedule = Schedule()
         self._passengers: list[Passenger] = []
@@ -43,6 +49,7 @@ class AirportFacade:
         self._init_security_and_weather()
 
     def _init_security_and_weather(self) -> None:
+        """Инициализирует базовые службы безопасности и метеостанцию аэропорта."""
         self.checkpoint = SecurityCheckpoint(number=1)
         self.checkpoint.assign_equipment(
             MetalDetector("Ceia PMD2"),
@@ -57,29 +64,36 @@ class AirportFacade:
 
     @property
     def passengers(self) -> list[Passenger]:
+        """Безопасная копия реестра зарегистрированных пассажиров."""
         return list(self._passengers)
 
     @property
     def employees(self) -> list[Employee]:
+        """Безопасная копия реестра сотрудников аэропорта."""
         return list(self._employees)
 
     @property
     def aircrafts(self) -> list[Aircraft]:
+        """Безопасная копия реестра флота воздушных судов."""
         return list(self._aircrafts)
 
     @property
     def fuel_trucks(self) -> list[FuelTruck]:
+        """Безопасная копия списка доступных топливозаправщиков."""
         return list(self._fuel_trucks)
 
     @property
     def tickets(self) -> list[Ticket]:
+        """Безопасная копия реестра выпущенных билетов."""
         return list(self._tickets)
 
     def register_aircraft(self, aircraft: Aircraft) -> None:
+        """Добавляет воздушное судно в реестр аэропорта."""
         if aircraft not in self._aircrafts:
             self._aircrafts.append(aircraft)
 
     def register_fuel_truck(self, truck: FuelTruck) -> None:
+        """Добавляет топливозаправщик в перронную службу."""
         if truck not in self._fuel_trucks:
             self._fuel_trucks.append(truck)
 
@@ -89,6 +103,7 @@ class AirportFacade:
         last_name: str | None = None,
         passport_number: str | None = None,
     ) -> Passenger:
+        """Создает и регистрирует нового пассажира в системе."""
         if isinstance(first_name, Passenger):
             passenger = first_name
         else:
@@ -98,28 +113,33 @@ class AirportFacade:
         return passenger
 
     def register_employee(self, employee: Employee) -> None:
+        """Принимает сотрудника на работу (добавляет в реестр)."""
         if employee not in self._employees:
             self._employees.append(employee)
 
     def find_passenger(self, passport_number: str) -> Passenger | None:
+        """Находит пассажира в реестре аэропорта по номеру паспорта."""
         for p in self._passengers:
             if p.passport_number == passport_number:
                 return p
         return None
 
     def find_aircraft(self, tail_number: str) -> Aircraft | None:
+        """Находит воздушное судно в парке флота по бортовому номеру."""
         for a in self._aircrafts:
             if a.tail_number == tail_number:
                 return a
         return None
 
     def find_departure_flight(self, flight_number: str) -> DepartureFlight | None:
+        """Находит рейс вылета по его уникальному номеру."""
         for f in self.schedule.get_departures():
             if f.flight_number == flight_number:
                 return f
         return None
 
     def _resolve_passenger(self, passenger: Passenger | str) -> Passenger:
+        """Разрешает объект пассажира из реестра по номеру паспорта."""
         passenger_obj = (
             passenger
             if isinstance(passenger, Passenger)
@@ -132,6 +152,7 @@ class AirportFacade:
         return passenger_obj
 
     def _resolve_flight(self, flight: DepartureFlight | str) -> DepartureFlight:
+        """Разрешает объект рейса вылета из расписания по номеру."""
         flight_obj = (
             flight
             if isinstance(flight, DepartureFlight)
@@ -148,6 +169,7 @@ class AirportFacade:
         seat_class: str,
         price: float,
     ) -> Ticket:
+        """Оформляет и продает билет на рейс существующему пассажиру."""
         passenger_obj = self._resolve_passenger(passenger)
         flight_obj = self._resolve_flight(flight)
         ticket = Ticket(passenger_obj, flight_obj, seat_class, price)
@@ -164,6 +186,7 @@ class AirportFacade:
         destination: str,
         scheduled_time: datetime,
     ) -> DepartureFlight:
+        """Формирует вылетающий рейс и добавляет его в расписание."""
         aircraft = self.find_aircraft(tail_number)
         if not aircraft:
             raise ValueError(f"Самолет {tail_number} не найден во флоте.")
@@ -176,6 +199,7 @@ class AirportFacade:
         return flight
 
     def _find_active_ticket(self, passenger: Passenger, flight_number: str) -> Ticket:
+        """Находит действующий билет пассажира на указанный рейс."""
         ticket = next(
             (
                 t
@@ -196,6 +220,7 @@ class AirportFacade:
         flight_number: str,
         baggage_weight: float | None = None,
     ) -> BoardingPass:
+        """Сквозной бизнес-процесс: поиск билета -> регистрация багажа -> выдача талона."""
         passenger_obj = self._resolve_passenger(passenger)
         ticket = self._find_active_ticket(passenger_obj, flight_number)
         flight = self.find_departure_flight(flight_number)
@@ -210,6 +235,7 @@ class AirportFacade:
         return flight.check_in_passenger(passenger_obj, ticket)
 
     def prepare_flight(self, flight_number: str, fuel_amount: float = 3000.0) -> None:
+        """Наземное обслуживание борта перед вылетом (ТО и дозаправка)."""
         flight = self.find_departure_flight(flight_number)
         if not flight:
             raise ValueError(f"Рейс {flight_number} не найден.")
@@ -228,6 +254,7 @@ class AirportFacade:
                 refuel.execute()
 
     def dispatch_takeoff(self, flight_number: str) -> Runway:
+        """Запрашивает коридор у вышки и отправляет борт в рейс."""
         flight = self.find_departure_flight(flight_number)
         if not flight:
             raise ValueError(f"Рейс {flight_number} не найден.")
@@ -247,6 +274,7 @@ class AirportFacade:
         return runway
 
     def __repr__(self) -> str:
+        """Возвращает отладочное строковое представление объекта."""
         return (
             f"AirportFacade(airport={self.airport.name!r}, code={self.airport.iata_code!r}, "
             f"flights={len(self.schedule.get_departures())})"

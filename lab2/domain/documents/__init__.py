@@ -1,3 +1,5 @@
+"""Пакет нормативных и административных документов деканата."""
+
 from lab2.domain.documents.academic_certificate import AcademicCertificate
 from lab2.domain.documents.academic_leave_order import AcademicLeaveOrder
 from lab2.domain.documents.document import Document

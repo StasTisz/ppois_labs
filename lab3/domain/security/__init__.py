@@ -1,3 +1,5 @@
+"""Пакет досмотра, пограничного и таможенного контроля безопасности."""
+
 from lab3.domain.security.customs_control import CustomsControl
 from lab3.domain.security.customs_declaration import CustomsDeclaration
 from lab3.domain.security.metal_detector import MetalDetector

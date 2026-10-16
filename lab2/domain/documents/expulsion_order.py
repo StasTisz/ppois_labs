@@ -1,3 +1,5 @@
+"""Модуль приказа об отчислении студента."""
+
 from __future__ import annotations
 
 from lab2.domain.documents.document import Document
@@ -6,6 +8,8 @@ from lab2.domain.people.student import Student
 
 
 class ExpulsionOrder(Document):
+    """Приказ об отчислении студента."""
+
     MIN_APPEAL_GROUNDS_LENGTH = 10
     DEFAULT_EFFECTIVE_DATE = "2023-10-01"
 
@@ -16,6 +20,7 @@ class ExpulsionOrder(Document):
         registration_number: str = "",
         effective_date: str = DEFAULT_EFFECTIVE_DATE,
     ) -> None:
+        """Инициализирует экземпляр класса ExpulsionOrder."""
         super().__init__(
             f"Приказ об отчислении: {student.full_name}",
             registration_number=registration_number,
@@ -25,6 +30,7 @@ class ExpulsionOrder(Document):
         self.effective_date = effective_date
 
     def execute(self) -> None:
+        """Применяет приказ: проверяет законность оснований и меняет статус студента."""
         self._ensure_signed()
         reason_lower = self.reason.lower()
         has_academic_ground = (
@@ -44,6 +50,7 @@ class ExpulsionOrder(Document):
         self.student.expel()
 
     def appeal(self, grounds: str) -> bool:
+        """Подает апелляцию на решение об отчислении студента."""
         if not grounds.strip():
             raise ValueError("Основание для апелляции не может быть пустым.")
         return len(grounds) > self.MIN_APPEAL_GROUNDS_LENGTH
