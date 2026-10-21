@@ -71,8 +71,6 @@ dist/
 *.pickle
 *.dat
 
-# Text files & Repomix output (preserving CMakeLists.txt)
-*.txt
-!CMakeLists.txt
-!**/CMakeLists.txt
+# Repomix outputs (local AI planning artifacts)
 repomix-output.*
+**/repomix-output.*
