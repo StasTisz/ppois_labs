@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from lab2.domain.people.employee import Employee
 
@@ -25,6 +25,7 @@ class Lecturer(Employee):
         degree: str = DEFAULT_DEGREE,
         position: str = DEFAULT_POSITION,
         passport_number: str = "",
+        **kwargs: Any,
     ) -> None:
         """Инициализирует экземпляр класса Lecturer."""
         super().__init__(

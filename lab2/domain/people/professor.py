@@ -27,14 +27,23 @@ class Professor(Lecturer):
         doctoral_students_count: int = 2,
     ) -> None:
         """Инициализирует экземпляр класса Professor."""
-        super().__init__(
-            first_name,
-            last_name,
-            middle_name,
-            degree=degree,
-            position=self.DEFAULT_POSITION,
-            passport_number=passport_number,
-        )
+        try:
+            super().__init__(
+                first_name,
+                last_name,
+                middle_name,
+                degree=degree,
+                position=self.DEFAULT_POSITION,
+                passport_number=passport_number,
+            )
+        except TypeError:
+            super().__init__(
+                first_name,
+                last_name,
+                middle_name,
+                degree=degree,
+                passport_number=passport_number,
+            )
         self.doctoral_students_count = doctoral_students_count
         self.advisees: list[Student] = []
 

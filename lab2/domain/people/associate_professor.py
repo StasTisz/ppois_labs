@@ -30,14 +30,23 @@ class AssociateProfessor(Lecturer):
         research_field: str = "Информационные технологии",
     ) -> None:
         """Инициализирует экземпляр класса AssociateProfessor."""
-        super().__init__(
-            first_name,
-            last_name,
-            middle_name,
-            degree=degree,
-            position=self.DEFAULT_POSITION,
-            passport_number=passport_number,
-        )
+        try:
+            super().__init__(
+                first_name,
+                last_name,
+                middle_name,
+                degree=degree,
+                position=self.DEFAULT_POSITION,
+                passport_number=passport_number,
+            )
+        except TypeError:
+            super().__init__(
+                first_name,
+                last_name,
+                middle_name,
+                degree=degree,
+                passport_number=passport_number,
+            )
         self.published_papers_count = published_papers_count
         self.research_field = research_field
 

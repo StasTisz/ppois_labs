@@ -30,14 +30,23 @@ class Assistant(Lecturer):
         assigned_labs_count: int = 0,
     ) -> None:
         """Инициализирует экземпляр класса Assistant."""
-        super().__init__(
-            first_name,
-            last_name,
-            middle_name,
-            degree=degree,
-            position=self.DEFAULT_POSITION,
-            passport_number=passport_number,
-        )
+        try:
+            super().__init__(
+                first_name,
+                last_name,
+                middle_name,
+                degree=degree,
+                position=self.DEFAULT_POSITION,
+                passport_number=passport_number,
+            )
+        except TypeError:
+            super().__init__(
+                first_name,
+                last_name,
+                middle_name,
+                degree=degree,
+                passport_number=passport_number,
+            )
         self.consultation_hours = consultation_hours
         self.assigned_labs_count = assigned_labs_count
 
