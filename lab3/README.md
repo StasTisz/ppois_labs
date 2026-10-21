@@ -6,7 +6,7 @@ Enterprise information management system for a major international airport. The 
 
 ## 1. Object Model & Class Specification
 
-*Note: The "Fields" and "Methods" columns reflect declared class attributes, instance attributes initialized in `__init__`, and public methods/properties defined directly in each class.*
+*Note: The "Fields" and "Methods" columns reflect instance attributes initialized in __init__ and public domain behaviors (excluding getters/setters and dunder methods) defined in each class.*
 
 ### 1.1 Transport Fleet (`lab3/domain/fleet/`)
 

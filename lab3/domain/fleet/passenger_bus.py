@@ -46,7 +46,9 @@ class PassengerBus(GroundVehicle):
         self._current_passengers += count
 
     def board_passenger(self, passenger: Passenger) -> None:
-        """Осуществляет посадку пассажира в перронный автобус."""
+        """Осуществляет посадку конкретного пассажира в перронный автобус."""
+        if not passenger.passport_number:
+            raise ValueError("Невозможно посадить пассажира без паспорта.")
         self.board(1)
 
     def drop_off(self) -> int:

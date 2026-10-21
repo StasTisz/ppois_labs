@@ -1,4 +1,10 @@
+from datetime import UTC, datetime
+
+from lab3.domain.fleet.passenger_aircraft import PassengerAircraft
+from lab3.domain.operations.airline import Airline
 from lab3.domain.operations.baggage import Baggage
+from lab3.domain.operations.departure_flight import DepartureFlight
+from lab3.domain.operations.flight_plan import FlightPlan
 from lab3.domain.operations.ticket import Ticket
 from lab3.domain.people.passenger import Passenger
 
@@ -9,7 +15,11 @@ def test_passenger():
     assert p.baggage_count == 0
     assert p.is_boarded is False
 
-    t = Ticket(p, "B2-101", "Economy", 150.0)
+    plane = PassengerAircraft("B737", 850.0, "EW-101PA", 20000.0, 180)
+    flight = DepartureFlight(
+        "B2-101", Airline("Belavia", "B2"), plane, FlightPlan("MSQ", "DXB", datetime.now(UTC))
+    )
+    t = Ticket(p, flight, "Economy", 150.0)
     p.buy_ticket(t)
     assert p.has_tickets is True
     assert len(p.get_tickets()) == 1

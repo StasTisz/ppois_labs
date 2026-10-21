@@ -41,7 +41,8 @@ class BaggageTractor(GroundVehicle):
         self._current_carts += 1
 
     def transport_baggage(self, baggage: Baggage) -> None:
-        """Транспортирует багажные тележки между терминалом и стоянкой самолета."""
+        """Транспортирует проверенный багаж между терминалом и стоянкой самолета."""
+        baggage.check_weight()
         self.attach_cart()
 
     def detach_all_carts(self) -> None:

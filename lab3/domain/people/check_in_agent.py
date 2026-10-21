@@ -46,9 +46,13 @@ class CheckInAgent(Employee):
         return f"Агент {self.full_name} регистрирует пассажиров и багаж {counter_str} (итого: {self._passengers_processed})."
 
     def issue_boarding_pass(self, passenger: Passenger, flight: Flight) -> None:
-        """Оформляет и выдает посадочный талон пассажиру на стойке регистрации."""
+        """Оформляет регистрацию пассажира на указанный рейс за стойкой."""
         if not self.is_on_shift:
             raise ValueError(f"Агент {self.full_name} не на смене.")
+        if flight.status == "Cancelled":
+            raise ValueError(f"Рейс {flight.flight_number} отменен.")
+        if not passenger.passport_number:
+            raise ValueError("Паспортные данные пассажира некорректны.")
         self._passengers_processed += 1
 
     def tag_baggage(self, baggage: Baggage) -> None:

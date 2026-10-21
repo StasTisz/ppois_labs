@@ -48,6 +48,10 @@ class BaggageHandler(Employee):
         """Загружает проверенный багаж в грузовой отсек самолета."""
         if not self.is_on_shift:
             raise ValueError(f"Грузчик {self.full_name} не на смене.")
+        if flight.status == "Cancelled":
+            raise ValueError(f"Рейс {flight.flight_number} отменен.")
+        if hasattr(flight, "load_baggage"):
+            flight.load_baggage(baggage)
         baggage.check_weight()
         self._tons_loaded = round(
             self._tons_loaded + (baggage.weight_kg / self.KG_PER_TON), 3
@@ -57,3 +61,5 @@ class BaggageHandler(Employee):
         """Выгружает багаж из грузового отсека самолета на перрон."""
         if not self.is_on_shift:
             raise ValueError(f"Грузчик {self.full_name} не на смене.")
+        if flight.status == "InFlight":
+            raise ValueError(f"Рейс {flight.flight_number} еще в воздухе.")

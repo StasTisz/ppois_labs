@@ -14,7 +14,7 @@ class CustomsDeclaration:
 
     def __init__(
         self,
-        passenger: Passenger | str,
+        passenger: Passenger,
         declared_items: list[str],
         cash_amount: float,
         declaration_number: str | None = None,
@@ -34,18 +34,14 @@ class CustomsDeclaration:
         return self.declaration_number
 
     @property
-    def passenger(self) -> Passenger | str:
+    def passenger(self) -> Passenger:
         """Возвращает значение атрибута passenger."""
         return self._passenger
 
     @property
     def passenger_id(self) -> str:
         """Возвращает значение атрибута passenger_id."""
-        if hasattr(self._passenger, "passport_number"):
-            return self._passenger.passport_number
-        if hasattr(self._passenger, "person_id"):
-            return self._passenger.person_id
-        return str(self._passenger)
+        return self._passenger.passport_number
 
     @property
     def declared_items(self) -> list[str]:

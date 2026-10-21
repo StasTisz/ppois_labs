@@ -41,4 +41,6 @@ class MetalDetector(Scanner):
         """Анализирует наличие металла у пассажира."""
         if not self.is_active:
             raise ValueError(f"Детектор {self.model} выключен.")
+        if target is not None and hasattr(target, "inspect_contents"):
+            target.inspect_contents()
         return True

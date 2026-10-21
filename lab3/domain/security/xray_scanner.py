@@ -43,4 +43,6 @@ class XRayScanner(Scanner):
         """Просвечивает багаж на наличие запрещенных к перевозке веществ."""
         if not self.is_active:
             raise ValueError(f"Интроскоп {self.model} выключен.")
+        if target is not None and hasattr(target, "inspect_contents"):
+            target.inspect_contents()
         return True
