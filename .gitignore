@@ -13,6 +13,7 @@ build/
 
 # CMake
 cmake-build-*/
+cmake-build-*
 build/
 CMakeFiles/
 CMakeCache.txt
