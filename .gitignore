@@ -70,3 +70,9 @@ dist/
 *.pkl
 *.pickle
 *.dat
+
+# Text files & Repomix output (preserving CMakeLists.txt)
+*.txt
+!CMakeLists.txt
+!**/CMakeLists.txt
+repomix-output.*
