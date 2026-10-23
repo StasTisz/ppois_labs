@@ -1,7 +1,13 @@
-"""
-Консольный интерфейс (CLI) для демонстрации работы системы Аэропорта.
-Охватывает основные модули: инфраструктуру, флот, операции, людей и безопасность.
-Поддерживает сохранение и загрузку состояния через модуль pickle.
+"""Консольный интерфейс (CLI) для демонстрации работы системы Аэропорта (Лаба №3).
+
+Покрывает все подсистемы и полиморфные иерархии:
+- fleet/ (самолеты и перронная спецтехника)
+- infrastructure/ (терминал, ВПП, гейты, ангар, карусель, зал)
+- people/ (пилоты, бортпроводники, грузчики, инспекторы безопасности)
+- operations/ (рейсы, билеты, посадочные, расписание)
+- security/ (рамки металлодетектора, рентген-сканеры, визы, таможня)
+- maintenance/ (регламентные задачи ТО, клининг, заправка, метеосводки)
+- facade/ (сквозной координатор бизнес-процессов)
 """
 
 from __future__ import annotations
@@ -9,259 +15,419 @@ from __future__ import annotations
 import os
 import pickle
 import sys
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
-# Импортируем базовое исключение и фасад
 from lab3.domain.exceptions import AirportException
 from lab3.domain.facade import AirportFacade
-
-# Импорты для Data Seeder и демонстрации работы отдельных модулей
-from lab3.domain.fleet import FuelTruck, PassengerAircraft
-from lab3.domain.infrastructure import Gate, Runway, Terminal
-from lab3.domain.operations import BoardingPass
-from lab3.domain.people import Passenger, Pilot, SecurityOfficer
+from lab3.domain.fleet import (
+    BaggageTractor,
+    CargoAircraft,
+    FollowMeCar,
+    FuelTruck,
+    PassengerAircraft,
+    PassengerBus,
+    PrivateJet,
+)
+from lab3.domain.infrastructure import (
+    BaggageCarousel,
+    CheckInCounter,
+    Gate,
+    Hangar,
+    Lounge,
+    ParkingLot,
+    Runway,
+    Terminal,
+)
+from lab3.domain.maintenance import (
+    CateringTask,
+    CleaningTask,
+    MaintenanceInspection,
+    RefuelingTask,
+    WeatherReport,
+)
+from lab3.domain.operations import (
+    ArrivalFlight,
+    Baggage,
+    BoardingPass,
+    DepartureFlight,
+    FlightPlan,
+    Ticket,
+)
+from lab3.domain.people import (
+    BaggageHandler,
+    CheckInAgent,
+    Dispatcher,
+    FlightAttendant,
+    Passenger,
+    Pilot,
+    SecurityOfficer,
+)
 from lab3.domain.security import (
     CustomsControl,
     CustomsDeclaration,
+    MetalDetector,
     PassportControl,
+    SecurityCheckpoint,
     Visa,
+    XRayScanner,
 )
 
 DEFAULT_STATE_FILE = "airport_state.pkl"
 
 
-def _seed_infrastructure_and_fleet(facade: AirportFacade) -> Gate:
-    facade.airport.control_tower.add_runway(Runway("01L", 3500))
-    facade.airport.control_tower.add_runway(Runway("01R", 3000))
-    terminal = Terminal("Terminal 1")
-    gate_a1 = Gate("A1")
-    terminal.add_gate(gate_a1)
-    facade.airport.add_terminal(terminal)
-    plane = PassengerAircraft("Boeing 737", 850.0, "EW-001", 15000.0, 150)
-    plane.requires_maintenance = True
-    facade.register_aircraft(plane)
-    facade.register_fuel_truck(FuelTruck("Volvo", 60.0, "FT-01", 20000.0))
-    return gate_a1
+class AirportDataSeeder:
+    """Генератор масштабной доменной модели аэропорта со всеми сущностями."""
 
+    @staticmethod
+    def _seed_fleet() -> tuple[
+        PassengerAircraft, CargoAircraft, PrivateJet,
+        PassengerBus, BaggageTractor, FuelTruck, FollowMeCar,
+    ]:
+        plane = PassengerAircraft("Boeing 737-800", 850.0, "EW-001", 18000.0, 150)
+        cargo = CargoAircraft("Ил-76ТД", 750.0, "EW-760", 42000.0, 35000.0)
+        jet = PrivateJet("Gulfstream G650", 950.0, "EW-007", 9000.0, "VIP Aviation")
+        bus = PassengerBus("МАЗ-171", 45.0, "BUS-01", 100)
+        tractor = BaggageTractor("БелАЗ-Тягач", 25.0, "TR-01", 4)
+        truck = FuelTruck("Volvo-Refueler", 60.0, "FT-01", 25000.0)
+        follow = FollowMeCar("Geely-Leader", 120.0, "FM-01")
+        return plane, cargo, jet, bus, tractor, truck, follow
 
-def seed_initial_data(facade: AirportFacade) -> None:
-    """Генерирует начальные данные (инфраструктуру, флот, рейсы) для демонстрации."""
-    print(">>> Инициализация систем аэропорта...")
-    gate_a1 = _seed_infrastructure_and_fleet(facade)
-    pilot = Pilot("Иван", "Иванов", "PP-111", 5000.0, "ATPL", is_captain=True)
-    pilot.clock_in()
-    facade.register_employee(pilot)
-    security = SecurityOfficer("Анна", "Смирнова", "PP-999", 2000.0)
-    security.clock_in()
-    facade.checkpoint.assign_officer(security)
-    flight = facade.create_departure_flight(
-        flight_number="B2-100",
-        airline_name="Belavia",
-        tail_number="EW-001",
-        origin="MSQ",
-        destination="SVO",
-        scheduled_time=datetime.now() + timedelta(hours=2),
-    )
-    flight.assign_gate(gate_a1)
-    print(">>> Аэропорт готов к работе. Тестовый рейс B2-100 создан.\n")
+    @staticmethod
+    def _seed_staff() -> tuple[
+        Pilot, FlightAttendant, BaggageHandler, SecurityOfficer, Dispatcher, CheckInAgent,
+    ]:
+        pilot = Pilot("Иван", "Иванов", "PP-101", 5200.0, "ATPL", is_captain=True)
+        attendant = FlightAttendant("Ольга", "Петрова", "PP-202", 2600.0)
+        handler = BaggageHandler("Сергей", "Сидоров", "PP-303", 1900.0)
+        officer = SecurityOfficer("Анна", "Смирнова", "PP-404", 2100.0)
+        dispatcher = Dispatcher("Михаил", "Козлов", "PP-505", 3100.0)
+        agent = CheckInAgent("Елена", "Васильева", "PP-606", 2300.0)
+        for emp in (pilot, attendant, handler, officer, dispatcher, agent):
+            emp.clock_in()
+        return pilot, attendant, handler, officer, dispatcher, agent
 
+    @staticmethod
+    def _seed_infra(facade: AirportFacade) -> tuple[
+        Terminal, Gate, Runway, Hangar, BaggageCarousel, CheckInCounter, Lounge, ParkingLot,
+    ]:
+        term = Terminal("Терминал 1")
+        gate_a1 = Gate("A1")
+        term.add_gate(gate_a1)
+        carousel = BaggageCarousel(1)
+        term.add_carousel(carousel)
+        counter = CheckInCounter(1)
+        term.add_counter(counter)
+        lounge = Lounge("VIP Lounge Belavia", capacity=40, is_vip=True)
+        term.add_lounge(lounge)
+        facade.airport.add_terminal(term)
+        runway = Runway("01L", 3500)
+        facade.airport.control_tower.add_runway(runway)
+        hangar = Hangar(1, capacity=3)
+        parking = ParkingLot("P1", total_spaces=150)
+        return term, gate_a1, runway, hangar, carousel, counter, lounge, parking
 
-def save_state(facade: AirportFacade, filepath: str = DEFAULT_STATE_FILE) -> None:
-    with open(filepath, "wb") as f:
-        pickle.dump(facade, f)
-    print(f"💾 Состояние аэропорта успешно сохранено в '{filepath}'.")
-
-
-def load_state(filepath: str = DEFAULT_STATE_FILE) -> AirportFacade | None:
-    if not os.path.exists(filepath):
-        print(f"⚠️ Файл состояния '{filepath}' не найден.")
-        return None
-    with open(filepath, "rb") as f:
-        facade = pickle.load(f)
-    print(f"📂 Состояние аэропорта успешно восстановлено из '{filepath}'.")
-    return facade
-
-
-def print_menu() -> None:
-    """Выводит главное меню в консоль."""
-    print("\n" + "=" * 45)
-    print(" ✈️   АЭРОПОРТ МИНСК - ПАНЕЛЬ УПРАВЛЕНИЯ ")
-    print("=" * 45)
-    print("1. Табло рейсов (Расписание)")
-    print("2. Продажа билета (Регистрация нового пассажира)")
-    print("3. Стойка регистрации и сдача багажа")
-    print("4. Наземное обслуживание (ТО и заправка борта)")
-    print("5. Диспетчерская вышка (Запрос на взлет)")
-    print("6. Демонстрация модуля безопасности (Таможня/Визы)")
-    print("7. Сохранить состояние системы (pickle)")
-    print("8. Загрузить состояние системы (pickle)")
-    print("0. Выход из системы")
-    print("=" * 45)
-
-
-def handle_show_schedule(facade: AirportFacade) -> None:
-    print("\n--- ТАБЛО ВЫЛЕТОВ ---")
-    departures = facade.schedule.get_departures()
-    if not departures:
-        print("Нет запланированных рейсов.")
-    for f in departures:
-        gate_num = f.assigned_gate.number if f.assigned_gate else "TBD"
-        print(
-            f"Рейс: {f.flight_number} | {f.plan.origin} -> {f.plan.destination} | "
-            f"Статус: {f.status} | Борт: {f.aircraft.tail_number} | Гейт: {gate_num}"
+    @staticmethod
+    def seed(facade: AirportFacade) -> dict:
+        plane, cargo, jet, bus, tractor, truck, follow = AirportDataSeeder._seed_fleet()
+        pilot, att, handler, officer, disp, agent = AirportDataSeeder._seed_staff()
+        term, gate_a1, rwy, hng, car, cnt, lng, prk = AirportDataSeeder._seed_infra(facade)
+        facade.register_aircraft(plane)
+        facade.register_fuel_truck(truck)
+        facade.register_employee(pilot)
+        facade.checkpoint.assign_officer(officer)
+        passenger = Passenger("Стас", "Разработчиков", "MP-1234567")
+        facade.register_passenger(passenger.first_name, passenger.last_name, passenger.passport_number)
+        dep_flight = facade.create_departure_flight(
+            "B2-100", "Belavia", "EW-001", "MSQ", "SVO", datetime.now() + timedelta(hours=2)
         )
+        dep_flight.assign_gate(gate_a1)
+        passenger = Passenger("Стас", "Разработчиков", "MP-1234567")
+        return {
+            "plane": plane, "cargo": cargo, "jet": jet,
+            "bus": bus, "tractor": tractor, "truck": truck, "follow": follow,
+            "pilot": pilot, "attendant": att, "handler": handler,
+            "officer": officer, "dispatcher": disp, "agent": agent,
+            "terminal": term, "gate": gate_a1, "runway": rwy,
+            "hangar": hng, "carousel": car, "counter": cnt,
+            "lounge": lng, "parking": prk, "dep_flight": dep_flight,
+            "passenger": passenger,
+        }
 
 
-def handle_buy_ticket(facade: AirportFacade) -> None:
-    print("\n--- ОФОРМЛЕНИЕ БИЛЕТА ---")
-    first_name = input("Имя пассажира: ").strip()
-    last_name = input("Фамилия пассажира: ").strip()
-    passport = input("Номер паспорта: ").strip()
+class AirportCLI:
+    """Консольный интерфейс системы управления Международным Аэропортом (Лаба №3)."""
 
-    facade.register_passenger(first_name, last_name, passport)
-    flight_num = input("Номер рейса (например, B2-100): ").strip()
+    def __init__(self, state_file: str = DEFAULT_STATE_FILE) -> None:
+        self.state_file = state_file
+        print(">>> Инициализация доменной модели Аэропорта (MSQ)...")
+        self.facade = AirportFacade("Национальный аэропорт Минск", "MSQ")
+        self.state = AirportDataSeeder.seed(self.facade)
+        print(">>> Все службы и полиморфные подсистемы готовы к работе.\n")
 
-    try:
-        ticket = facade.issue_ticket(passport, flight_num, "Economy", 150.0)
-        print(
-            f"✅ Успешно! Билет #{ticket.ticket_number} оформлен на пассажира {first_name} {last_name}."
-        )
-    except AirportException as e:
-        print(f"❌ Ошибка доменной логики: {e}")
-    except ValueError as e:
-        print(f"❌ Ошибка данных: {e}")
+    def save(self) -> None:
+        with open(self.state_file, "wb") as f:
+            pickle.dump((self.facade, self.state), f)
+        print(f"💾 Полное состояние аэропорта сохранено в '{self.state_file}'.")
 
+    def load(self) -> None:
+        if not os.path.exists(self.state_file):
+            print(f"⚠️ Файл '{self.state_file}' не найден.")
+            return
+        with open(self.state_file, "rb") as f:
+            self.facade, self.state = pickle.load(f)
+        print(f"📂 Состояние аэропорта успешно восстановлено из '{self.state_file}'.")
 
-def _print_boarding_pass(
-    boarding_pass: BoardingPass, baggage_weight: float | None
-) -> None:
-    print("\n🎟️  ПОСАДОЧНЫЙ ТАЛОН СГЕНЕРИРОВАН:")
-    print(f"    Рейс: {boarding_pass.ticket.flight_number}")
-    print(f"    Билет: {boarding_pass.ticket.ticket_number}")
-    print(f"    Место в салоне: {boarding_pass.seat_number}")
-    print(f"    Гейт для посадки: {boarding_pass.gate_number}")
-    if baggage_weight:
-        print(f"    💼 Багаж ({baggage_weight} кг) успешно принят в грузовой отсек.")
+    def run(self) -> None:
+        menu_map = {
+            "1": self._menu_fleet,
+            "2": self._menu_infrastructure,
+            "3": self._menu_people,
+            "4": self._menu_operations,
+            "5": self._menu_security,
+            "6": self._menu_maintenance,
+            "7": self._menu_facade,
+            "8": self.save,
+            "9": self.load,
+        }
+        while True:
+            self._print_main_menu()
+            choice = input("\nВыберите раздел (0-9): ").strip()
+            if choice == "0":
+                print("🚪 Завершение работы системы Аэропорта. До свидания!")
+                sys.exit(0)
+            if choice in menu_map:
+                try:
+                    menu_map[choice]()
+                except AirportException as e:
+                    print(f"\n❌ ОШИБКА АВИАЦИОННОЙ ЛОГИКИ: {e}")
+                except Exception as e:  # noqa: BLE001
+                    print(f"\n🔥 СБОЙ ОПЕРАЦИИ: {e}")
+            else:
+                print("⚠️ Неизвестная команда.")
 
+    def _print_main_menu(self) -> None:
+        print("\n" + "=" * 65)
+        print(" ✈️   АЭРОПОРТ МИНСК - УПРАВЛЕНИЕ АВИАУЗЛОМ (LAB 3 ENTERPRISE)")
+        print("=" * 65)
+        print("1. 🛫 Авиапарк и Перрон (fleet/: полиморфизм самолетов и техники)")
+        print("2. 🏛️ Инфраструктура (infrastructure/: ВПП, гейты, ангар, карусель)")
+        print("3. 👥 Персонал и Экипажи (people/: пилот, стюардесса, грузчик, офицер)")
+        print("4. 📋 Полетные операции (operations/: рейсы, билеты, багаж)")
+        print("5. 🛡️ Авиационная безопасность (security/: рамки, рентген, визы)")
+        print("6. 🔧 Наземное ТО (maintenance/: регламентные задачи, погода METAR)")
+        print("7. 🚀 Сквозной бизнес-процесс (facade/: комплексный цикл вылета)")
+        print("8. 💾 Сохранить состояние системы (pickle)")
+        print("9. 📂 Загрузить состояние системы (pickle)")
+        print("0. Выход\n" + "=" * 65)
 
-def handle_check_in(facade: AirportFacade) -> None:
-    print("\n--- СТОЙКА РЕГИСТРАЦИИ (CHECK-IN) ---")
-    passport = input("Введите номер паспорта: ").strip()
-    flight_num = input("Введите номер рейса (например, B2-100): ").strip()
-    bag_input = input("Вес багажа в кг (оставьте пустым, если без багажа): ").strip()
-    baggage_weight = float(bag_input) if bag_input else None
-    try:
-        boarding_pass = facade.check_in_passenger(passport, flight_num, baggage_weight)
-        _print_boarding_pass(boarding_pass, baggage_weight)
-    except (AirportException, ValueError) as e:
-        print(f"❌ Ошибка регистрации: {e}")
+    # ---------------- 1. АВИАПАРК (fleet/) ----------------
+    def _demo_aircraft_polymorphism(self) -> None:
+        plane: PassengerAircraft = self.state["plane"]
+        cargo: CargoAircraft = self.state["cargo"]
+        jet: PrivateJet = self.state["jet"]
+        print("\n[Полиморфизм воздушных судов (Aircraft)]:")
+        plane.board_passengers(142)
+        print(f" -> Пассажирский {plane.model} ({plane.tail_number}): на борту {plane.passengers_count} пасс.")
+        cargo.load_cargo(28500.0)
+        print(f" -> Грузовой {cargo.model} ({cargo.tail_number}): карго {cargo.current_payload_kg}/{cargo.max_payload_kg} кг.")
+        jet.order_vip_catering()
+        print(f" -> Бизнес-джет {jet.model} ({jet.tail_number}): владелец '{jet.owner_name}', кейтеринг={jet.is_vip_catered}")
 
+    def _demo_ground_vehicles(self) -> None:
+        bus: PassengerBus = self.state["bus"]
+        tractor: BaggageTractor = self.state["tractor"]
+        truck: FuelTruck = self.state["truck"]
+        follow: FollowMeCar = self.state["follow"]
+        p: Passenger = self.state["passenger"]
+        plane: PassengerAircraft = self.state["plane"]
+        print("\n[Полиморфизм перронной техники (GroundVehicle)]:")
+        bus.board_passenger(p)
+        print(f" -> Автобус {bus.model}: посажен пассажир {p.full_name}")
+        tractor.attach_cart()
+        bag = Baggage(21.0, p, "BG-TR-01")
+        tractor.transport_baggage(bag)
+        print(f" -> Тягач {tractor.model}: доставка багажа к борту (прицепов: {tractor.current_carts})")
+        truck.refuel_aircraft(plane, 3500.0)
+        print(f" -> Топливозаправщик {truck.model}: заправлено 3500 л (в баках борта {plane.current_fuel} л)")
+        follow.toggle_lights()
+        follow.lead_aircraft(plane, "Стоянка 12")
+        print(f" -> Машина сопровождения {follow.model}: борт лидирован на стоянку")
 
-def handle_maintenance(facade: AirportFacade) -> None:
-    print("\n--- НАЗЕМНОЕ ОБСЛУЖИВАНИЕ ---")
-    flight_num = input(
-        "Введите номер рейса для обслуживания (например, B2-100): "
-    ).strip()
-    try:
-        print(f"Запуск бригады техников для рейса {flight_num}...")
-        facade.prepare_flight(flight_num, fuel_amount=4000.0)
-        print("✅ Технический осмотр (Line Maintenance) пройден.")
-        print("✅ Борт успешно дозаправлен. Самолет готов к вылету.")
-    except AirportException as e:
-        print(f"❌ Ошибка обслуживания: {e}")
-    except ValueError as e:
-        print(f"❌ Ошибка данных: {e}")
+    def _menu_fleet(self) -> None:
+        print("\n--- 🛫 АВИАПАРК И ПЕРРОННАЯ ТЕХНИКА (fleet/) ---")
+        self._demo_aircraft_polymorphism()
+        self._demo_ground_vehicles()
 
+    # ---------------- 2. ИНФРАСТРУКТУРА (infrastructure/) ----------------
+    def _demo_runway_and_tower(self) -> None:
+        tower = self.facade.airport.control_tower
+        rwy: Runway = self.state["runway"]
+        plane: PassengerAircraft = self.state["plane"]
+        print(f"1. Вышка УВД '{tower.tower_name}':")
+        assigned_rwy = tower.request_takeoff(plane)
+        print(f" └─ Диспетчер выделил ВПП: {assigned_rwy.number} (длина: {assigned_rwy.length} м)")
+        rwy.clear()
 
-def handle_dispatch_takeoff(facade: AirportFacade) -> None:
-    print("\n--- ДИСПЕТЧЕРСКАЯ ВЫШКА ---")
-    flight_num = input(
-        "Введите номер рейса для запроса взлета (например, B2-100): "
-    ).strip()
-    try:
-        runway = facade.dispatch_takeoff(flight_num)
-        print(
-            f"🛫 ВЗЛЕТ РАЗРЕШЕН! Рейс {flight_num} успешно покинул ВПП {runway.number}."
-        )
-    except AirportException as e:
-        print(f"❌ Взлет запрещен: {e}")
-    except ValueError as e:
-        print(f"❌ Системная ошибка: {e}")
+    def _demo_terminal_facilities(self) -> None:
+        gate: Gate = self.state["gate"]
+        hng: Hangar = self.state["hangar"]
+        car: BaggageCarousel = self.state["carousel"]
+        lng: Lounge = self.state["lounge"]
+        prk: ParkingLot = self.state["parking"]
+        cargo: CargoAircraft = self.state["cargo"]
+        follow: FollowMeCar = self.state["follow"]
+        print(f"2. Гейт {gate.number}: открыт={gate.is_open}, привязан рейс={gate.current_flight is not None}")
+        hng.store_aircraft(cargo)
+        print(f"3. Ангар #{hng.number}: борт {cargo.model} на регламенте (в ангаре: {len(hng.stored_aircraft)}/{hng.capacity})")
+        hng.release_aircraft(cargo)
+        car.activate()
+        print(f"4. Багажная лента #{car.number}: статус транспортера = {car.is_active}")
+        car.deactivate()
+        p: Passenger = self.state["passenger"]
+        lng.enter(p)
+        print(f"5. Бизнес-зал '{lng.name}': гостей {lng.current_occupancy}/{lng.capacity}")
+        lng.exit(p)
+        prk.park_car(follow)
+        print(f"6. Парковка '{prk.zone_code}': свободных мест = {prk.available_spaces}/{prk.total_spaces}")
 
+    def _menu_infrastructure(self) -> None:
+        print("\n--- 🏛️ ИНФРАСТРУКТУРА АЭРОПОРТА (infrastructure/) ---")
+        self._demo_runway_and_tower()
+        self._demo_terminal_facilities()
 
-def _demo_passport_control(test_passenger: Passenger) -> None:
-    border_control = PassportControl(booth_number=3)
-    valid_visa = Visa("UK", datetime.now() + timedelta(days=30))
-    expired_visa = Visa("UK", datetime.now() - timedelta(days=5))
-    try:
-        border_control.check_documents(test_passenger, valid_visa, "UK")
-        print("✅ Граница пройдена успешно.")
-    except AirportException as e:
-        print(f"❌ {e}")
-    try:
-        border_control.check_documents(test_passenger, expired_visa, "UK")
-    except AirportException as e:
-        print(f"❌ Нарушение визового режима поймано: {e}")
+    # ---------------- 3. ПЕРСОНАЛ (people/) ----------------
+    def _demo_cockpit_cabin_crew(self) -> None:
+        pilot: Pilot = self.state["pilot"]
+        att: FlightAttendant = self.state["attendant"]
+        dep: DepartureFlight = self.state["dep_flight"]
+        print("[Летный состав]:")
+        pilot.conduct_preflight_briefing(dep.plan)
+        pilot.log_flight_hours(3)
+        print(f" -> КВС {pilot.full_name}: предполетный брифинг проведен, налет {pilot.flight_hours} ч.")
+        att.demonstrate_safety_equipment()
+        att.serve_passengers(120)
+        print(f" -> Бортпроводник {att.full_name}: инструктаж показан, 120 рационов роздано")
 
+    def _demo_ground_staff(self) -> None:
+        handler: BaggageHandler = self.state["handler"]
+        officer: SecurityOfficer = self.state["officer"]
+        disp: Dispatcher = self.state["dispatcher"]
+        agent: CheckInAgent = self.state["agent"]
+        p: Passenger = self.state["passenger"]
+        dep: DepartureFlight = self.state["dep_flight"]
+        bag = Baggage(18.5, p, "BG-001")
+        print("\n[Наземные службы]:")
+        handler.load_to_cargo_hold(dep, bag)
+        print(f" -> Грузчик {handler.full_name}: погрузил сумку {bag.tag_number} в багажный отсек рейса")
+        disp.issue_weather_alert("Боковой ветер 12 м/с на ВПП 01L")
+        print(f" -> Диспетчер {disp.full_name}: метео-оповещение выпущено")
+        agent.tag_baggage(bag)
+        print(f" -> Агент регистрации {agent.full_name}: багаж зарегистрирован")
+        print(f" -> Инспектор безопасности {officer.full_name}: дежурство = {officer.is_on_shift}")
 
-def _demo_customs_control(test_passenger: Passenger) -> None:
-    customs = CustomsControl()
-    try:
-        decl = CustomsDeclaration(test_passenger, ["Часы"], 8000.0)
+    def _menu_people(self) -> None:
+        print("\n--- 👥 ПЕРСОНАЛ И ЭКИПАЖИ (people/) ---")
+        self._demo_cockpit_cabin_crew()
+        self._demo_ground_staff()
+
+    # ---------------- 4. ОПЕРАЦИИ (operations/) ----------------
+    def _menu_operations(self) -> None:
+        print("\n--- 📋 ПОЛЕТНЫЕ ОПЕРАЦИИ (operations/) ---")
+        dep: DepartureFlight = self.state["dep_flight"]
+        p: Passenger = self.state["passenger"]
+        plan: FlightPlan = dep.plan
+        gate: Gate = self.state["gate"]
+        print(f"1. План полета {dep.flight_number}: {plan.origin} -> {plan.destination}")
+        print(f" └─ Международный: {plan.is_international()} | Расчетное время: {plan.calculate_flight_duration_hours():.1f} ч.")
+        ticket = Ticket(p, dep, "Economy", 180.0, "TK-888999")
+        ticket.upgrade_class("Business")
+        print(f"2. Электронный билет #{ticket.ticket_number}: класс повышен до '{ticket.seat_class}'")
+        bp = BoardingPass(ticket, "02B", gate)
+        bp.change_seat("01A")
+        bp.mark_boarded()
+        print(f"3. Посадочный талон: кресло {bp.seat_number}, гейт {bp.gate_number}, посажен={bp.is_boarded}")
+        bag = Baggage(16.0, p, "BG-VIP")
+        bag.attach_tag("RUSH-PRIORITY")
+        bag.check_weight()
+        print(f"4. Багаж: {bag.tag_number} (вес: {bag.weight_kg} кг, проверен: {bag.is_inspected})")
+        arr = ArrivalFlight("SU-1830", dep.airline, dep.aircraft, FlightPlan("SVO", "MSQ", datetime.now()))
+        print(f"5. Входящий рейс: {arr.flight_number} ({arr.plan.origin} -> {arr.plan.destination})")
+
+    # ---------------- 5. БЕЗОПАСНОСТЬ (security/) ----------------
+    def _menu_security(self) -> None:
+        print("\n--- 🛡️ АВИАЦИОННАЯ БЕЗОПАСНОСТЬ (security/) ---")
+        p: Passenger = self.state["passenger"]
+        detector = MetalDetector("Ceia-01", sensitivity_level=4)
+        detector.calibrate()
+        print(f"1. Стационарный металлодетектор: {detector.model} откалиброван, тест={detector.test_alarm()}")
+        detector.scan(p)
+        print(f" └─ Пассажир {p.full_name} прошел через рамку чисто")
+        xray = XRayScanner("Heimann-XR", contrast_level=1.2)
+        bag = Baggage(12.0, p, "BG-SEC")
+        xray.scan(bag)
+        print(f"2. Интроскоп багажа: рентген-досмотр чемодана {bag.tag_number} завершен")
+        checkpoint = SecurityCheckpoint(1)
+        checkpoint.assign_equipment(detector, xray)
+        checkpoint.assign_officer(self.state["officer"])
+        checkpoint.open_checkpoint()
+        checkpoint.process_passenger(p, bag)
+        print(" └─ Досмотровый пункт: пассажир и ручная кладь допущены в чистую зону")
+        self._demo_border_customs(p)
+
+    def _demo_border_customs(self, p: Passenger) -> None:
+        passport_ctrl = PassportControl(booth_number=2)
+        visa = Visa("UAE", datetime.now(UTC) + timedelta(days=90))
+        passport_ctrl.check_documents(p, visa, "UAE")
+        passport_ctrl.stamp_entry(p)
+        print(f"3. Паспортный контроль: виза {visa.country} проверена, въездной штамп проставлен")
+        customs = CustomsControl(control_number=1)
+        decl = CustomsDeclaration(p, ["MacBook Pro", "Часы"], 4500.0)
         customs.inspect_declaration(decl)
-        print("✅ Таможня дает добро.")
-    except AirportException as e:
-        print(f"❌ {e}")
-    try:
-        decl = CustomsDeclaration(test_passenger, ["Золото"], 15000.0)
-        customs.inspect_declaration(decl)
-    except AirportException as e:
-        print(f"❌ Контрабанда пресечена: {e}")
+        customs.stamp_passport(p)
+        print("4. Таможенный контроль: декларация проверена, лимиты в норме")
 
+    # ---------------- 6. ТЕХНИЧЕСКОЕ ОБСЛУЖИВАНИЕ (maintenance/) ----------------
+    def _menu_maintenance(self) -> None:
+        print("\n--- 🔧 НАЗЕМНОЕ ОБСЛУЖИВАНИЕ И METAR (maintenance/) ---")
+        plane: PassengerAircraft = self.state["plane"]
+        truck: FuelTruck = self.state["truck"]
+        handler: BaggageHandler = self.state["handler"]
+        task_insp = MaintenanceInspection(plane, "MI-01", inspector_license="EASA-PART66")
+        task_refuel = RefuelingTask(plane, truck, 4000.0, "RF-01")
+        task_clean = CleaningTask(plane, requires_deep_cleaning=True, task_code="CL-01")
+        task_cater = CateringTask(plane, meals_count=150, includes_vip=True, task_code="CT-01")
+        tasks = [task_insp, task_refuel, task_clean, task_cater]
+        print("Полиморфные задачи наземного обслуживания (ServiceTask):")
+        for t in tasks:
+            t.assign_staff(handler)
+            est_time = t.calculate_estimated_duration_minutes()
+            print(f" └─ Задача [{t.task_code}]: расчетная длительность = {est_time} мин.")
+            res = t.execute()
+            print(f"    ├─ Результат выполнения: {res}")
+        print(" -> Все регламентные задачи выполнены инженерной бригадой")
+        metar = WeatherReport(temperature_c=17.5, wind_speed_ms=6.0, visibility_m=10000.0, is_stormy=False)
+        print(f"\nМетеосводка: {metar.format_metar()}")
+        print(f"Допуск метеоусловий к выполнению взлета: {metar.is_acceptable_for_takeoff()}")
 
-def handle_security_demo() -> None:
-    print("\n--- ПОГРАНИЧНЫЙ И ТАМОЖЕННЫЙ КОНТРОЛЬ ---")
-    print("Демонстрация работы модулей службы безопасности напрямую (без фасада):")
-    test_passenger = Passenger("Джеймс", "Бонд", "007")
-    _demo_passport_control(test_passenger)
-    _demo_customs_control(test_passenger)
-
-
-def _dispatch_command(facade: AirportFacade, choice: str) -> AirportFacade:
-    actions = {
-        "1": lambda: handle_show_schedule(facade),
-        "2": lambda: handle_buy_ticket(facade),
-        "3": lambda: handle_check_in(facade),
-        "4": lambda: handle_maintenance(facade),
-        "5": lambda: handle_dispatch_takeoff(facade),
-        "6": handle_security_demo,
-        "7": lambda: save_state(facade),
-    }
-    if choice in actions:
-        actions[choice]()
-    elif choice == "8":
-        loaded = load_state()
-        return loaded if loaded is not None else facade
-    elif choice == "0":
-        print("Завершение работы. До свидания!")
-        sys.exit(0)
-    else:
-        print("❌ Неизвестная команда.")
-    return facade
-
-
-def main() -> None:
-    facade = AirportFacade("Minsk National Airport", "MSQ")
-    seed_initial_data(facade)
-    while True:
-        print_menu()
-        choice = input("Выберите действие (0-8): ").strip()
-        facade = _dispatch_command(facade, choice)
+    # ---------------- 7. СКВОЗНОЙ СЦЕНАРИЙ (facade/) ----------------
+    def _menu_facade(self) -> None:
+        print("\n--- 🚀 СКВОЗНОЙ СЦЕНАРИЙ ОБСЛУЖИВАНИЯ РЕЙСА (facade/) ---")
+        p: Passenger = self.state["passenger"]
+        flight_num = "B2-100"
+        print("1. Оформление электронного билета через фасад...")
+        ticket = self.facade.issue_ticket(p.passport_number, flight_num, "Economy", 160.0)
+        print(f" └─ Билет #{ticket.ticket_number} выписан на рейс {flight_num}")
+        print("2. Регистрация на стойке и сдача багажа...")
+        bp = self.facade.check_in_passenger(p.passport_number, flight_num, baggage_weight=19.5)
+        print(f" └─ Посадочный талон: кресло {bp.seat_number}, гейт {bp.gate_number}")
+        print("3. Комплексная предполетная подготовка воздушного судна...")
+        self.facade.prepare_flight(flight_num, fuel_amount=4200.0)
+        print(" └─ Техосмотр пройден, заправка завершена")
+        print("4. Запрос диспетчерской вышке на вылет...")
+        rwy = self.facade.dispatch_takeoff(flight_num)
+        print(f" 🛫 ВЗЛЕТ РАЗРЕШЕН! Рейс {flight_num} произвел взлет с ВПП {rwy.number}!")
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print("\nАварийный выход из системы.")
-        sys.exit(0)
+    app = AirportCLI()
+    app.run()
