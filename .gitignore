@@ -13,6 +13,7 @@ build/
 
 # CMake
 cmake-build-*/
+cmake-build-*
 build/
 CMakeFiles/
 CMakeCache.txt
@@ -38,6 +39,7 @@ coverage/
 
 # Python
 __pycache__/
+**/__pycache__/
 *.py[cod]
 .venv/
 venv/
@@ -49,3 +51,26 @@ docs/html/
 docs/latex/
 **/docs/html/
 **/docs/latex/
+# Documentation build artifacts
+**/docs/
+
+# Python caches and testing
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build and PyInstaller artifacts
+build/
+dist/
+*.spec
+
+# State persistence
+*.pkl
+*.pickle
+*.dat
+
+# Repomix outputs (local AI planning artifacts)
+repomix-output.*
+**/repomix-output.*

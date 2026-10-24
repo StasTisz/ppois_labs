@@ -302,3 +302,177 @@ TEST(GraphTest, CustomObjectFlightInfo) {
     auto inc_it = g.inc_begin(f1);
     EXPECT_EQ((*inc_it).second.get_number(), "SVO");
 }
+
+// ==========================================
+// 9. ДОПОЛНИТЕЛЬНЫЕ ИТЕРАТОРЫ И ГРАНИЧНЫЕ СЛУЧАИ
+// ==========================================
+
+TEST(GraphTest, PostfixOperatorsAndReverseIterators) {
+    Graph<int> g;
+    g.insert_vertex(1);
+    g.insert_vertex(2);
+    g.insert_vertex(3);
+    g.insert_edge(1, 2);
+    g.insert_edge(1, 3);
+    g.insert_edge(2, 3);
+
+    // 1. Постфиксные операторы вершинных итераторов
+    auto vit = g.v_begin();
+    auto vit_post = vit++;
+    EXPECT_EQ(*vit_post, 1);
+    EXPECT_EQ(*vit, 2);
+    auto vit_dec = vit--;
+    EXPECT_EQ(*vit_dec, 2);
+    EXPECT_EQ(*vit, 1);
+
+    // Константные вершинные итераторы (постфикс)
+    auto cvit = g.v_cbegin();
+    auto cvit_post = cvit++;
+    EXPECT_EQ(*cvit_post, 1);
+    EXPECT_EQ(*cvit, 2);
+    auto cvit_dec = cvit--;
+    EXPECT_EQ(*cvit_dec, 2);
+    EXPECT_EQ(*cvit, 1);
+
+    // 2. Постфиксные операторы рёберных итераторов
+    auto eit = g.e_begin();
+    auto eit_post = eit++;
+    EXPECT_EQ(*eit_post, (std::pair<int, int>{1, 2}));
+    EXPECT_EQ(*eit, (std::pair<int, int>{1, 3}));
+    auto eit_dec = eit--;
+    EXPECT_EQ(*eit_dec, (std::pair<int, int>{1, 3}));
+    EXPECT_EQ(*eit, (std::pair<int, int>{1, 2}));
+
+    // Константные рёберные итераторы
+    auto ceit = g.e_cbegin();
+    auto ceit_post = ceit++;
+    EXPECT_EQ(*ceit_post, (std::pair<int, int>{1, 2}));
+    EXPECT_EQ(*ceit, (std::pair<int, int>{1, 3}));
+    auto ceit_dec = ceit--;
+    EXPECT_EQ(*ceit_dec, (std::pair<int, int>{1, 3}));
+    EXPECT_EQ(*ceit, (std::pair<int, int>{1, 2}));
+
+    // 3. Постфиксные операторы инцидентных итераторов
+    auto inc_it = g.inc_begin(1);
+    auto inc_post = inc_it++;
+    EXPECT_EQ(*inc_post, (std::pair<int, int>{1, 2}));
+    EXPECT_EQ(*inc_it, (std::pair<int, int>{1, 3}));
+    auto inc_dec = inc_it--;
+    EXPECT_EQ(*inc_dec, (std::pair<int, int>{1, 3}));
+    EXPECT_EQ(*inc_it, (std::pair<int, int>{1, 2}));
+
+    // 4. Обратные итераторы
+    // Вершины в обратном порядке
+    std::vector<int> rev_v;
+    for (auto it = g.v_rbegin(); it != g.v_rend(); ++it) rev_v.push_back(*it);
+    EXPECT_EQ(rev_v, (std::vector<int>{3, 2, 1}));
+
+    std::vector<int> crev_v;
+    for (auto it = g.v_crbegin(); it != g.v_crend(); ++it) crev_v.push_back(*it);
+    EXPECT_EQ(crev_v, (std::vector<int>{3, 2, 1}));
+
+    // Рёбра в обратном порядке
+    std::vector<std::pair<int, int>> rev_e;
+    for (auto it = g.e_rbegin(); it != g.e_rend(); ++it) rev_e.push_back(*it);
+    EXPECT_EQ(rev_e.size(), 3);
+    EXPECT_EQ(rev_e.front(), (std::pair<int, int>{2, 3}));
+
+    std::vector<std::pair<int, int>> crev_e;
+    for (auto it = g.e_crbegin(); it != g.e_crend(); ++it) crev_e.push_back(*it);
+    EXPECT_EQ(crev_e.size(), 3);
+
+    // Смежные в обратном порядке
+    std::vector<int> rev_adj;
+    for (auto it = g.adj_rbegin(1); it != g.adj_rend(1); ++it) rev_adj.push_back(*it);
+    EXPECT_EQ(rev_adj, (std::vector<int>{3, 2}));
+
+    std::vector<int> crev_adj;
+    for (auto it = g.adj_crbegin(1); it != g.adj_crend(1); ++it) crev_adj.push_back(*it);
+    EXPECT_EQ(crev_adj, (std::vector<int>{3, 2}));
+
+    // Инцидентные в обратном порядке
+    std::vector<std::pair<int, int>> rev_inc;
+    for (auto it = g.inc_rbegin(1); it != g.inc_rend(1); ++it) rev_inc.push_back(*it);
+    EXPECT_EQ(rev_inc.size(), 2);
+    EXPECT_EQ(rev_inc.front(), (std::pair<int, int>{1, 3}));
+
+    std::vector<std::pair<int, int>> crev_inc;
+    for (auto it = g.inc_crbegin(1); it != g.inc_crend(1); ++it) crev_inc.push_back(*it);
+    EXPECT_EQ(crev_inc.size(), 2);
+}
+
+TEST(GraphTest, ForwardAdjacentIterator) {
+    Graph<int> g;
+    g.insert_vertex(10);
+    g.insert_vertex(20);
+    g.insert_vertex(30);
+    g.insert_edge(10, 20);
+    g.insert_edge(10, 30);
+
+    std::vector<int> adj_nodes;
+    for (auto it = g.f_adj_begin(10); it != g.f_adj_end(10); ++it) {
+        adj_nodes.push_back(*it);
+    }
+    EXPECT_EQ(adj_nodes, (std::vector<int>{20, 30}));
+
+    // Проверка постфиксного инкремента и равенства
+    auto fit = g.f_adj_begin(10);
+    auto fit_post = fit++;
+    EXPECT_EQ(*fit_post, 20);
+    EXPECT_EQ(*fit, 30);
+    EXPECT_FALSE(fit == fit_post);
+    EXPECT_TRUE(fit != fit_post);
+}
+
+TEST(GraphTest, ComparisonOperatorsGreaterAndEqual) {
+    Graph<int> g1, g2;
+    g1.insert_vertex(1);
+    g2.insert_vertex(1);
+
+    EXPECT_TRUE(g1 >= g2);
+    EXPECT_FALSE(g1 > g2);
+
+    g1.insert_vertex(2);
+    EXPECT_TRUE(g1 > g2);
+    EXPECT_TRUE(g1 >= g2);
+    EXPECT_FALSE(g2 >= g1);
+}
+
+TEST(GraphTest, EraseInvalidIteratorExceptions) {
+    Graph<int> g;
+    g.insert_vertex(1);
+    g.insert_vertex(2);
+    g.insert_edge(1, 2);
+
+    // Удаление через end() вершины
+    EXPECT_THROW(g.erase_vertex(g.v_end()), std::invalid_argument);
+    EXPECT_THROW(g.erase_vertex(g.v_cend()), std::invalid_argument);
+
+    // Удаление через end() ребра
+    EXPECT_THROW(g.erase_edge(g.e_end()), std::invalid_argument);
+    EXPECT_THROW(g.erase_edge(g.e_cend()), std::invalid_argument);
+
+    // Валидное удаление по итератору
+    g.erase_edge(g.e_begin());
+    EXPECT_EQ(g.edge_count(), 0);
+
+    g.erase_vertex(g.v_begin());
+    EXPECT_EQ(g.vertex_count(), 1);
+}
+
+TEST(GraphTest, EdgeDegreeCalculation) {
+    Graph<int> g;
+    g.insert_vertex(1);
+    g.insert_vertex(2);
+    g.insert_vertex(3);
+    g.insert_edge(1, 2);
+    g.insert_edge(2, 3);
+
+    // vertex_degree(1) = 1 (исходящее 1->2)
+    // vertex_degree(2) = 2 (входящее 1->2, исходящее 2->3)
+    // edge_degree(1, 2) = vertex_degree(1) + vertex_degree(2) = 1 + 2 = 3
+    EXPECT_EQ(g.edge_degree(1, 2), 3);
+
+    // Несуществующее ребро
+    EXPECT_THROW(g.edge_degree(1, 3), std::invalid_argument);
+}

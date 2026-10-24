@@ -3,6 +3,7 @@
 #include <iterator>
 #include <functional>
 #include <algorithm>
+#include <type_traits>
 
 namespace detail {
     /**
@@ -46,6 +47,9 @@ namespace detail {
  * 
  * @tparam RandomIt Тип итератора произвольного доступа.
  * @tparam Compare Тип компаратора (по умолчанию std::less<>).
+ * @param first Итератор на начало сортируемого диапазона.
+ * @param last Итератор на конец диапазона (эксклюзивный).
+ * @param comp Функция-компаратор.
  */
 template <typename RandomIt, typename Compare = std::less<>>
 void heapsort(RandomIt first, RandomIt last, Compare comp = Compare()) {
@@ -71,8 +75,44 @@ void heapsort(RandomIt first, RandomIt last, Compare comp = Compare()) {
 
 /**
  * @brief Удобная обертка Heapsort для целых контейнеров (std::vector, std::array, и т.д.).
+ * 
+ * @tparam Container Тип контейнера.
+ * @tparam Compare Тип компаратора (по умолчанию std::less<>).
+ * @param c Контейнер для сортировки.
+ * @param comp Функция-компаратор.
  */
 template <typename Container, typename Compare = std::less<>>
+    requires (!std::is_pointer_v<std::decay_t<Container>> && !std::is_integral_v<Compare>)
 void heapsort(Container& c, Compare comp = Compare()) {
     heapsort(std::begin(c), std::end(c), comp);
+}
+
+/**
+ * @brief Перегрузка Heapsort для классических C-массивов фиксированного размера.
+ * 
+ * @tparam T Тип элементов массива.
+ * @tparam N Размер массива.
+ * @tparam Compare Тип компаратора (по умолчанию std::less<>).
+ * @param arr Массив для сортировки.
+ * @param comp Функция-компаратор.
+ */
+template <typename T, std::size_t N, typename Compare = std::less<>>
+    requires (!std::is_integral_v<Compare>)
+void heapsort(T (&arr)[N], Compare comp = Compare()) {
+    heapsort(arr, arr + N, comp);
+}
+
+/**
+ * @brief Перегрузка Heapsort для классических C-массивов (указатель и размер).
+ * 
+ * @tparam T Тип элементов массива.
+ * @tparam Compare Тип компаратора (по умолчанию std::less<>).
+ * @param arr Указатель на начало массива.
+ * @param n Количество элементов в массиве.
+ * @param comp Функция-компаратор.
+ */
+template <typename T, typename Compare = std::less<>>
+void heapsort(T* arr, std::size_t n, Compare comp = Compare()) {
+    if (arr == nullptr || n <= 1) return;
+    heapsort(arr, arr + n, comp);
 }

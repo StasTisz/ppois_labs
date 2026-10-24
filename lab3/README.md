@@ -1,151 +1,175 @@
-# Лабораторная работа №3. Объектно-ориентированная архитектура аэропорта
+# Laboratory Work No. 3. Object-Oriented Airport Architecture
 
-Информационная система крупного аэропорта. Система управляет инфраструктурой (взлетно-посадочные полосы, терминалы, гейты), воздушным и наземным флотом (пассажирские лайнеры, грузовые борта, заправщики, багажные тягачи), контингентом пассажиров и персонала, операционной деятельностью (расписание рейсов, билеты, посадочные талоны, багаж), службой безопасности (рамки, сканеры, визовый и таможенный контроль) и наземным обслуживанием (регламентное ТО, заправка, метеоусловия).
-
----
-
-## 1. Спецификация классов объектной модели
-
-*Примечание: в столбце «Поля» для дочерних классов учитываются атрибуты, унаследованные от базовых.*
-
-| Класс | Поля | Методы | Ассоциации (связанные классы) |
-|---|:---:|:---:|---|
-| **Runway** | 5 | 2 | Aircraft |
-| **Gate** | 4 | 4 | Flight |
-| **CheckInCounter** | 6 | 3 | CheckInAgent, Flight, Baggage |
-| **BaggageCarousel** | 4 | 2 | Flight |
-| **Lounge** | 5 | 3 | Passenger |
-| **Terminal** | 6 | 5 | Gate, CheckInCounter, BaggageCarousel, Lounge |
-| **ControlTower** | 3 | 4 | Runway, Aircraft |
-| **Hangar** | 4 | 2 | Aircraft |
-| **ParkingLot** | 4 | 2 | — |
-| **Airport** | 6 | 2 | ControlTower, Terminal, Hangar, ParkingLot |
-| **Vehicle** | 5 | 1 | — |
-| **Aircraft** | 9 | 5 | — |
-| **PassengerAircraft** | 13 | 8 | — |
-| **CargoAircraft** | 13 | 8 | — |
-| **PrivateJet** | 12 | 6 | — |
-| **GroundVehicle** | 7 | 3 | — |
-| **BaggageTractor** | 10 | 6 | — |
-| **FuelTruck** | 11 | 5 | Aircraft |
-| **FollowMeCar** | 8 | 4 | Aircraft |
-| **PassengerBus** | 10 | 6 | — |
-| **Person** | 4 | 1 | — |
-| **Passenger** | 7 | 6 | Ticket, Baggage |
-| **Employee** | 7 | 4 | — |
-| **CrewMember** | 9 | 6 | — |
-| **Pilot** | 12 | 6 | — |
-| **FlightAttendant** | 11 | 6 | — |
-| **Dispatcher** | 9 | 4 | — |
-| **SecurityOfficer** | 7 | 4 | — |
-| **CheckInAgent** | 9 | 5 | — |
-| **BaggageHandler** | 9 | 5 | — |
-| **Baggage** | 4 | 1 | — |
-| **Ticket** | 6 | 1 | — |
-| **BoardingPass** | 4 | 0 | Ticket |
-| **Airline** | 4 | 3 | Aircraft |
-| **FlightPlan** | 5 | 0 | — |
-| **Flight** | 7 | 2 | Airline, Aircraft, FlightPlan |
-| **DepartureFlight** | 11 | 8 | Gate, Passenger, Baggage, Ticket, BoardingPass |
-| **ArrivalFlight** | 8 | 4 | BaggageCarousel |
-| **Schedule** | 1 | 3 | Flight, DepartureFlight, ArrivalFlight |
-| **Visa** | 3 | 1 | — |
-| **CustomsDeclaration** | 5 | 2 | — |
-| **Scanner** | 3 | 1 | Passenger, Baggage |
-| **MetalDetector** | 3 | 1 | Passenger, Baggage |
-| **XRayScanner** | 3 | 1 | Passenger, Baggage |
-| **SecurityCheckpoint** | 5 | 3 | MetalDetector, XRayScanner, SecurityOfficer, Passenger, Baggage |
-| **PassportControl** | 2 | 1 | Passenger, Visa |
-| **CustomsControl** | 2 | 1 | CustomsDeclaration |
-| **WeatherReport** | 6 | 1 | — |
-| **ServiceTask** | 4 | 6 | Aircraft, Employee |
-| **MaintenanceInspection** | 4 | 6 | Aircraft |
-| **RefuelingTask** | 6 | 6 | Aircraft, FuelTruck |
-| **CleaningTask** | 5 | 6 | Aircraft |
-| **CateringTask** | 6 | 6 | Aircraft |
-| **AirportFacade** | 9 | 14 | Airport, Schedule, Passenger, Employee, Aircraft, FuelTruck, Ticket, SecurityCheckpoint, WeatherReport, DepartureFlight, BoardingPass, Runway |
-| **DataSeeder** | 1 | 1 | AirportFacade, Runway, Terminal, Gate, PassengerAircraft, FuelTruck, Pilot, SecurityOfficer |
-| **CLI** | 1 | 8 | AirportFacade, Passenger, CustomsControl, PassportControl |
+Enterprise information management system for a major international airport. The system coordinates airport physical infrastructure (runways, passenger terminals, boarding gates), the aviation and ground vehicle fleet (passenger airliners, cargo aircraft, private jets, fuel trucks, baggage tractors, apron buses), personnel and passenger rosters, operational workflows (flight schedules, e-ticketing, baggage handling, boarding passes), aviation security (metal detectors, X-ray scanners, customs and passport border control), and comprehensive ground maintenance (line inspections, refueling, interior cleaning, catering, weather dispatching).
 
 ---
 
-## 2. Пользовательские исключения (14)
+## 1. Object Model & Class Specification
 
-Архитектура содержит собственную иерархию исключений с базовым классом `AirportException`:
+*Note: The "Fields" and "Methods" columns reflect instance attributes initialized in __init__ and public domain behaviors (excluding getters/setters and dunder methods) defined in each class.*
 
-1. `AirportException` — базовое исключение доменной модели аэропорта.
-2. `FlightDelayedException` — выбрасывается при попытке выполнить штатные операции с отложенным рейсом.
-3. `BoardingClosedException` — выбрасывается при попытке посадки пассажира после закрытия гейта.
-4. `InvalidTicketException` — выбрасывается при несовпадении данных билета и пассажира или отсутствии брони.
-5. `BaggageOverweightException` — выбрасывается при превышении допустимого веса багажа.
-6. `RunwayBusyException` — выбрасывается при попытке посадки или взлета на занятую взлетно-посадочную полосу.
-7. `SecurityCheckFailedException` — выбрасывается, если пассажир или багаж не прошли досмотр службы безопасности.
-8. `VisaExpiredException` — выбрасывается на пограничном контроле при отсутствии или просрочке визы.
-9. `GateNotAssignedException` — выбрасывается при попытке начать посадку без привязки рейса к конкретному гейту.
-10. `MaintenanceRequiredException` — выбрасывается при попытке отправить в рейс борт, не прошедший технический осмотр.
-11. `NoAvailableCrewException` — выбрасывается при нехватке пилотов или бортпроводников для формирования экипажа.
-12. `WeatherWarningException` — выбрасывается диспетчерской вышкой при запрете вылетов из-за плохих метеоусловий.
-13. `CapacityExceededException` — выбрасывается при попытке продать билет на полностью заполненный рейс или переполнить зал ожидания.
-14. `PassengerNotFoundException` — выбрасывается при поиске несуществующего пассажира в манифесте рейса.
+### 1.1 Transport Fleet (`lab3/domain/fleet/`)
+
+| Module Path | Class | Fields | Methods | Associations (Connected Classes) |
+|---|---|:---:|:---:|---|
+| **fleet/vehicle.py** | `Vehicle` | 4 | 3 | — |
+| **fleet/aircraft.py** | `Aircraft` | 5 | 4 | `Vehicle` |
+| **fleet/passenger_aircraft.py** | `PassengerAircraft` | 4 | 3 | `Aircraft` |
+| **fleet/cargo_aircraft.py** | `CargoAircraft` | 4 | 3 | `Aircraft` |
+| **fleet/private_jet.py** | `PrivateJet` | 3 | 3 | `Aircraft` |
+| **fleet/ground_vehicle.py** | `GroundVehicle` | 2 | 3 | `Vehicle` |
+| **fleet/baggage_tractor.py** | `BaggageTractor` | 3 | 4 | `Baggage`, `GroundVehicle` |
+| **fleet/fuel_truck.py** | `FuelTruck` | 4 | 3 | `Aircraft`, `GroundVehicle` |
+| **fleet/follow_me_car.py** | `FollowMeCar` | 2 | 3 | `Aircraft`, `GroundVehicle` |
+| **fleet/passenger_bus.py** | `PassengerBus` | 3 | 4 | `GroundVehicle`, `Passenger` |
+
+### 1.2 Airport Infrastructure (`lab3/domain/infrastructure/`)
+
+| Module Path | Class | Fields | Methods | Associations (Connected Classes) |
+|---|---|:---:|:---:|---|
+| **infrastructure/runway.py** | `Runway` | 4 | 2 | `Aircraft` |
+| **infrastructure/gate.py** | `Gate` | 3 | 4 | `Flight` |
+| **infrastructure/check_in_counter.py** | `CheckInCounter` | 5 | 3 | `Baggage`, `CheckInAgent`, `Flight` |
+| **infrastructure/baggage_carousel.py** | `BaggageCarousel` | 3 | 2 | `Flight` |
+| **infrastructure/lounge.py** | `Lounge` | 4 | 2 | `Passenger` |
+| **infrastructure/terminal.py** | `Terminal` | 5 | 5 | `BaggageCarousel`, `CheckInCounter`, `Gate`, `Lounge` |
+| **infrastructure/control_tower.py** | `ControlTower` | 3 | 4 | `Aircraft`, `Runway` |
+| **infrastructure/hangar.py** | `Hangar` | 3 | 2 | `Aircraft` |
+| **infrastructure/parking_lot.py** | `ParkingLot` | 3 | 2 | `GroundVehicle` |
+| **infrastructure/airport.py** | `Airport` | 6 | 2 | `ControlTower`, `Hangar`, `ParkingLot`, `Terminal` |
+
+### 1.3 Ground Maintenance (`lab3/domain/maintenance/`)
+
+| Module Path | Class | Fields | Methods | Associations (Connected Classes) |
+|---|---|:---:|:---:|---|
+| **maintenance/weather_report.py** | `WeatherReport` | 6 | 3 | — |
+| **maintenance/service_task.py** | `ServiceTask` | 4 | 6 | `Aircraft`, `Employee` |
+| **maintenance/maintenance_inspection.py** | `MaintenanceInspection` | 3 | 3 | `Aircraft`, `ServiceTask` |
+| **maintenance/refueling_task.py** | `RefuelingTask` | 2 | 3 | `Aircraft`, `FuelTruck`, `ServiceTask` |
+| **maintenance/cleaning_task.py** | `CleaningTask` | 3 | 2 | `Aircraft`, `ServiceTask` |
+| **maintenance/catering_task.py** | `CateringTask` | 2 | 2 | `Aircraft`, `ServiceTask` |
+
+### 1.4 Flight Operations (`lab3/domain/operations/`)
+
+| Module Path | Class | Fields | Methods | Associations (Connected Classes) |
+|---|---|:---:|:---:|---|
+| **operations/baggage.py** | `Baggage` | 4 | 3 | `Passenger` |
+| **operations/ticket.py** | `Ticket` | 6 | 3 | `Flight`, `Passenger` |
+| **operations/boarding_pass.py** | `BoardingPass` | 5 | 5 | `Gate`, `Ticket` |
+| **operations/airline.py** | `Airline` | 3 | 3 | `Aircraft` |
+| **operations/flight_plan.py** | `FlightPlan` | 5 | 3 | — |
+| **operations/flight.py** | `Flight` | 10 | 5 | `Aircraft`, `Airline`, `CrewMember`, `FlightPlan`, `Gate`, `Passenger`, `Runway` |
+| **operations/departure_flight.py** | `DepartureFlight` | 4 | 7 | `Aircraft`, `Airline`, `Baggage`, `BoardingPass`, `Flight`, `FlightPlan`, `Gate`, `Passenger`, `Pilot`, `Ticket` |
+| **operations/arrival_flight.py** | `ArrivalFlight` | 3 | 3 | `Aircraft`, `Airline`, `BaggageCarousel`, `Flight`, `FlightPlan` |
+| **operations/schedule.py** | `Schedule` | 3 | 4 | `ArrivalFlight`, `DepartureFlight`, `Flight` |
+
+### 1.5 Personnel and Passengers (`lab3/domain/people/`)
+
+| Module Path | Class | Fields | Methods | Associations (Connected Classes) |
+|---|---|:---:|:---:|---|
+| **people/person.py** | `Person` | 4 | 3 | — |
+| **people/passenger.py** | `Passenger` | 3 | 5 | `Baggage`, `Person`, `Ticket` |
+| **people/employee.py** | `Employee` | 3 | 4 | `Person` |
+| **people/crew_member.py** | `CrewMember` | 2 | 3 | `Employee` |
+| **people/pilot.py** | `Pilot` | 3 | 3 | `CrewMember`, `FlightPlan` |
+| **people/flight_attendant.py** | `FlightAttendant` | 2 | 4 | `CrewMember`, `Passenger` |
+| **people/dispatcher.py** | `Dispatcher` | 3 | 3 | `Employee`, `Flight` |
+| **people/security_officer.py** | `SecurityOfficer` | 2 | 3 | `Employee`, `Passenger` |
+| **people/check_in_agent.py** | `CheckInAgent` | 3 | 3 | `Baggage`, `Employee`, `Flight`, `Passenger` |
+| **people/baggage_handler.py** | `BaggageHandler` | 2 | 3 | `Baggage`, `Employee`, `Flight` |
+
+### 1.6 Border & Aviation Security (`lab3/domain/security/`)
+
+| Module Path | Class | Fields | Methods | Associations (Connected Classes) |
+|---|---|:---:|:---:|---|
+| **security/visa.py** | `Visa` | 4 | 3 | — |
+| **security/customs_declaration.py** | `CustomsDeclaration` | 5 | 4 | `Passenger` |
+| **security/scanner.py** | `Scanner` | 4 | 3 | `Baggage`, `Passenger` |
+| **security/metal_detector.py** | `MetalDetector` | 2 | 3 | `Baggage`, `Passenger`, `Scanner` |
+| **security/xray_scanner.py** | `XRayScanner` | 3 | 3 | `Baggage`, `Passenger`, `Scanner` |
+| **security/security_checkpoint.py** | `SecurityCheckpoint` | 6 | 7 | `Baggage`, `MetalDetector`, `Passenger`, `SecurityOfficer`, `XRayScanner` |
+| **security/passport_control.py** | `PassportControl` | 2 | 3 | `Passenger`, `Visa` |
+| **security/customs_control.py** | `CustomsControl` | 2 | 3 | `CustomsDeclaration`, `Passenger` |
+
+### 1.7 Main Facade Controller (`lab3/domain/facade/`)
+
+| Module Path | Class | Fields | Methods | Associations (Connected Classes) |
+|---|---|:---:|:---:|---|
+| **facade/airport_facade.py** | `AirportFacade` | 7 | 16 | `Aircraft`, `Airline`, `Airport`, `Baggage`, `BoardingPass`, `DepartureFlight`, `Employee`, `FlightPlan`, `FuelTruck`, `MaintenanceInspection`, `MetalDetector`, `Passenger`, `RefuelingTask`, `Runway`, `Schedule`, `SecurityCheckpoint`, `Ticket`, `WeatherReport`, `XRayScanner` |
 
 ---
 
-## 3. Сводная статистика объектной модели
+## 2. Custom Domain Exceptions (14)
 
-| Показатель | Требование задания | Фактическое значение |
+The architecture contains an isolated domain exception hierarchy rooted in `AirportException`:
+
+1. `AirportException` — Base exception class for the airport domain model.
+2. `FlightDelayedException` — Raised when attempting standard operational procedures on a delayed flight.
+3. `BoardingClosedException` — Raised when a passenger attempts to board after gate closure.
+4. `InvalidTicketException` — Raised when ticket verification fails or a duplicate check-in occurs.
+5. `BaggageOverweightException` — Raised when checked luggage exceeds maximum baggage allowance.
+6. `RunwayBusyException` — Raised when an aircraft requests takeoff or landing on an occupied runway.
+7. `SecurityCheckFailedException` — Raised when a passenger or baggage item fails screening.
+8. `VisaExpiredException` — Raised at border control when an entry visa is expired or absent.
+9. `GateNotAssignedException` — Raised when attempting to board without an allocated departure gate.
+10. `MaintenanceRequiredException` — Raised when an aircraft attempts flight without line maintenance clearance.
+11. `NoAvailableCrewException` — Raised when minimum flight crew requirements are not satisfied.
+12. `WeatherWarningException` — Raised by air traffic control when severe weather conditions prohibit operations.
+13. `CapacityExceededException` — Raised when flight booking limits, lounge capacity, or vehicle thresholds are breached.
+14. `PassengerNotFoundException` — Raised when querying a passenger absent from manifests or registries.
+
+---
+
+## 3. Summary Object Model Statistics
+
+*Note: The "Fields" and "Methods" columns reflect instance attributes initialized in __init__ and public domain behaviors (excluding getters/setters and dunder methods) defined in each class.*
+
+| Metric | Assignment Requirement | Actual Value |
 |---|:---:|:---:|
-| **Классы** | $\ge$ 50 | **70** |
-| **Поля** | $\ge$ 150 | **327** |
-| **Поведения (методы логики)** | $\ge$ 100 | **206** |
-| **Ассоциации (связи между классами)** | $\ge$ 30 | **65** |
-| **Собственные исключения** | $\ge$ 12 | **14** |
+| **Classes** | $\ge$ 50 | **68** |
+| **Attributes / Fields** | $\ge$ 150 | **198** |
+| **Behaviors / Methods** | $\ge$ 100 | **195** |
+| **Class Associations** | $\ge$ 30 | **131** |
+| **Custom Domain Exceptions** | $\ge$ 12 | **14** |
 
 ---
 
-## 4. Документация
+## 4. Documentation Generation
 
-В проекте используется автоматическая генерация документации на основе встроенных docstrings с помощью утилиты **pdoc**. Папка `docs/` является артефактом сборки и не хранится в репозитории.
+The project utilizes automated API documentation generation via **pdoc**, parsing standard docstrings across all modules. The `docs/` directory is treated as a build artifact and excluded from version control.
 
-### Гайд по созданию документации:
+### Guide to Generating Documentation:
 
-1. Убедитесь, что у вас установлен Python-пакет `pdoc`. Если его нет, установите:
+1. Ensure the `pdoc` package is installed in your virtual environment:
    ```bash
    pip install pdoc
    ```
-2. Откройте терминал и перейдите в **корень всего репозитория** (`ppois_labs`):
+2. Open a terminal and navigate to the **repository root**:
    ```bash
    cd ~/CLionProjects/ppois_labs
    ```
-3. Запустите генерацию, передав переменную окружения `PYTHONPATH=.`:
+3. Execute HTML documentation generation:
    ```bash
    PYTHONPATH=. pdoc lab3 -o lab3/docs
    ```
-4. Утилита создаст папку `docs/`. Откройте главный файл в браузере:
+4. Open the generated entrypoint in your browser:
    ```bash
    open lab3/docs/index.html
    ```
 
-## 5. Сборка, тестирование и запуск
+---
 
-Выполняется из корня репозитория:
+## 5. Testing, Linting & Build Procedures
+
+All commands must be executed from the repository root:
+
+### Run Unit Tests & Verify Code Coverage (90%+ Required)
 ```bash
-python -m pytest --cov=lab3/domain --cov-fail-under=90 lab3/tests/
+python -m pytest --cov=lab3/domain --cov-fail-under=90 lab3/tests/ -v
 ```
 
-### Статический анализ и проверка типов
+### Static Analysis & Strict Type Checking
 ```bash
 ruff check lab3/
-mypy lab3/ --explicitcd-package-bases --ignore-missing-imports
+mypy lab3/ --explicit-package-bases --ignore-missing-imports
 ```
-
-### Запуск консольного интерфейса (CLI)
-```bash
-python -m lab3.cli
-```
-
-### Сборка автономного исполняемого файла (.exe / binary)
-Автоматическая сборка настроена через GitHub Actions. Для локальной сборки:
-```bash
-pyinstaller --onefile --name ppois_lab3 lab3/cli.py
-```
-Готовый исполняемый файл будет создан в каталоге `dist/`.

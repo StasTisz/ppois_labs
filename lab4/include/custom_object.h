@@ -69,7 +69,12 @@ public:
      * @brief Устанавливает дистанцию рейса.
      * @param distance Дистанция в км.
      */
-    void set_distance(double distance) { distance_km = distance; }
+    void set_distance(double distance) {
+        if (distance < 0.0) {
+            throw std::invalid_argument("Дистанция не может быть отрицательной!");
+        }
+        distance_km = distance;
+    }
 
     /**
      * @brief Устанавливает приоритет рейса.
@@ -128,6 +133,10 @@ public:
         double dist = 0.0;
         int prio = 0;
         if (is >> number >> dist >> prio) {
+            if (dist < 0.0 || prio < 0 || number.empty()) {
+                is.setstate(std::ios::failbit);
+                return is;
+            }
             flight.flight_number = std::move(number);
             flight.distance_km = dist;
             flight.priority_level = prio;

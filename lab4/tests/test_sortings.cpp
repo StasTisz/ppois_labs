@@ -215,3 +215,69 @@ TEST(FlightInfoTest, StreamInputOutput) {
     EXPECT_DOUBLE_EQ(read_flight.get_distance(), 1300.5);
     EXPECT_EQ(read_flight.get_priority(), 4);
 }
+
+TEST(HeapsortTest, RawCArray) {
+    int raw_arr[] = {5, 2, 4, 1, 3};
+    heapsort(raw_arr, 5);
+    EXPECT_EQ(raw_arr[0], 1);
+    EXPECT_EQ(raw_arr[1], 2);
+    EXPECT_EQ(raw_arr[2], 3);
+    EXPECT_EQ(raw_arr[3], 4);
+    EXPECT_EQ(raw_arr[4], 5);
+
+    FlightInfo raw_flights[] = {
+        FlightInfo("F2", 1500.0, 2),
+        FlightInfo("F1", 500.0, 1)
+    };
+    heapsort(raw_flights, 2);
+    EXPECT_EQ(raw_flights[0].get_number(), "F1");
+    EXPECT_EQ(raw_flights[1].get_number(), "F2");
+
+    // Nullptr и размер <= 1
+    int* null_arr = nullptr;
+    heapsort(null_arr, 0);
+    int single_arr[] = {42};
+    heapsort(single_arr, 1);
+    EXPECT_EQ(single_arr[0], 42);
+}
+
+TEST(StoogeSortTest, RawCArray) {
+    int raw_arr[] = {9, 1, 5, 2, 8};
+    stooge_sort(raw_arr, 5);
+    EXPECT_EQ(raw_arr[0], 1);
+    EXPECT_EQ(raw_arr[1], 2);
+    EXPECT_EQ(raw_arr[2], 5);
+    EXPECT_EQ(raw_arr[3], 8);
+    EXPECT_EQ(raw_arr[4], 9);
+
+    FlightInfo raw_flights[] = {
+        FlightInfo("F2", 900.0, 2),
+        FlightInfo("F1", 300.0, 1)
+    };
+    stooge_sort(raw_flights, 2);
+    EXPECT_EQ(raw_flights[0].get_number(), "F1");
+    EXPECT_EQ(raw_flights[1].get_number(), "F2");
+
+    int* null_arr = nullptr;
+    stooge_sort(null_arr, 0);
+    int single_arr[] = {100};
+    stooge_sort(single_arr, 1);
+    EXPECT_EQ(single_arr[0], 100);
+}
+
+TEST(FlightInfoTest, InvalidInputAndExceptions) {
+    FlightInfo flight("VALID", 500.0, 2);
+    EXPECT_THROW(flight.set_distance(-10.0), std::invalid_argument);
+
+    // Ввод с отрицательной дистанцией
+    std::istringstream in_negative_dist("FAIL-1 -100.0 2");
+    EXPECT_FALSE(in_negative_dist >> flight);
+    EXPECT_TRUE(in_negative_dist.fail());
+    EXPECT_EQ(flight.get_number(), "VALID"); // Значение не перезаписано
+
+    // Ввод с отрицательным приоритетом
+    std::istringstream in_negative_prio("FAIL-2 200.0 -1");
+    EXPECT_FALSE(in_negative_prio >> flight);
+    EXPECT_TRUE(in_negative_prio.fail());
+    EXPECT_EQ(flight.get_number(), "VALID");
+}

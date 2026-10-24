@@ -3,6 +3,7 @@
 #include <iterator>
 #include <functional>
 #include <algorithm>
+#include <type_traits>
 
 namespace detail {
     /**
@@ -50,8 +51,14 @@ namespace detail {
 }
 
 /**
-     * @brief Публичная версия для сортировки Студжа.
-*/
+ * @brief Сортировка Студжа (Stooge sort) для диапазона итераторов.
+ * 
+ * @tparam RandomIt Тип итератора произвольного доступа.
+ * @tparam Compare Тип компаратора (по умолчанию std::less<>).
+ * @param first Итератор на начало диапазона.
+ * @param last Итератор на конец диапазона (эксклюзивный).
+ * @param comp Функция-компаратор.
+ */
 template <typename RandomIt, typename Compare = std::less<>>
 void stooge_sort(RandomIt first, RandomIt last, Compare comp = Compare()) {
     detail::stooge_sort_impl(first, last, comp);
@@ -66,6 +73,37 @@ void stooge_sort(RandomIt first, RandomIt last, Compare comp = Compare()) {
  * @param comp Функция-компаратор.
  */
 template <typename Container, typename Compare = std::less<>>
+    requires (!std::is_pointer_v<std::decay_t<Container>> && !std::is_integral_v<Compare>)
 void stooge_sort(Container& c, Compare comp = Compare()) {
     stooge_sort(std::begin(c), std::end(c), comp);
+}
+
+/**
+ * @brief Перегрузка Stooge sort для классических C-массивов фиксированного размера.
+ * 
+ * @tparam T Тип элементов массива.
+ * @tparam N Размер массива.
+ * @tparam Compare Тип компаратора (по умолчанию std::less<>).
+ * @param arr Массив для сортировки.
+ * @param comp Функция-компаратор.
+ */
+template <typename T, std::size_t N, typename Compare = std::less<>>
+    requires (!std::is_integral_v<Compare>)
+void stooge_sort(T (&arr)[N], Compare comp = Compare()) {
+    stooge_sort(arr, arr + N, comp);
+}
+
+/**
+ * @brief Перегрузка Stooge sort для классических C-массивов (указатель и размер).
+ * 
+ * @tparam T Тип элементов массива.
+ * @tparam Compare Тип компаратора (по умолчанию std::less<>).
+ * @param arr Указатель на начало массива.
+ * @param n Количество элементов в массиве.
+ * @param comp Функция-компаратор.
+ */
+template <typename T, typename Compare = std::less<>>
+void stooge_sort(T* arr, std::size_t n, Compare comp = Compare()) {
+    if (arr == nullptr || n <= 1) return;
+    stooge_sort(arr, arr + n, comp);
 }

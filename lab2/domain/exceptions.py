@@ -1,16 +1,57 @@
+"""Модуль пользовательских исключений предметной области."""
+
+
 class DeanOfficeException(Exception):
     """Базовое исключение доменной модели деканата."""
 
-class StudentNotFoundException(DeanOfficeException): pass
-class GroupNotFoundException(DeanOfficeException): pass
-class DuplicateEnrollmentException(DeanOfficeException): pass
-class ExpulsionDeniedException(DeanOfficeException): pass
-class InsufficientFundsException(DeanOfficeException): pass
-class AccountBlockedException(DeanOfficeException): pass
-class InvalidScoreException(DeanOfficeException): pass
-class RoomCapacityExceededException(DeanOfficeException): pass
-class ResidentNotFoundException(DeanOfficeException): pass
-class BookNotAvailableException(DeanOfficeException): pass
-class LibraryLimitExceededException(DeanOfficeException): pass
-class ScheduleCollisionException(DeanOfficeException): pass
-class DocumentNotSignedException(DeanOfficeException): pass
+
+class StudentNotFoundException(DeanOfficeException):
+    """Студент или зачетная книжка не найдены в реестре."""
+
+
+class GroupNotFoundException(DeanOfficeException):
+    """Учебная группа не найдена на факультете."""
+
+
+class DuplicateEnrollmentException(DeanOfficeException):
+    """Попытка повторного зачисления студента в группу."""
+
+
+class ExpulsionDeniedException(DeanOfficeException):
+    """Отказ в отчислении при отсутствии законных оснований."""
+
+
+class InsufficientFundsException(DeanOfficeException):
+    """Недостаточно средств на банковском счете."""
+
+
+class AccountBlockedException(DeanOfficeException):
+    """Попытка операции по заблокированному банковскому счету."""
+
+
+class InvalidScoreException(DeanOfficeException):
+    """Оценка выходит за допустимый диапазон (0-10)."""
+
+
+class RoomCapacityExceededException(DeanOfficeException):
+    """Превышение лимита мест в комнате общежития."""
+
+
+class ResidentNotFoundException(DeanOfficeException):
+    """Студент не проживает в указанной комнате."""
+
+
+class BookNotAvailableException(DeanOfficeException):
+    """Отсутствие доступных экземпляров книги в библиотеке."""
+
+
+class LibraryLimitExceededException(DeanOfficeException):
+    """Превышение лимита одновременно взятых книг."""
+
+
+class ScheduleCollisionException(DeanOfficeException):
+    """Накладка по аудитории, преподавателю или группе в расписании."""
+
+
+class DocumentNotSignedException(DeanOfficeException):
+    """Попытка исполнения неподписанного приказа."""
