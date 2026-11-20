@@ -5,8 +5,9 @@
 
 #pragma once
 
-#include <string>
 #include <iostream>
+#include <stdexcept>
+#include <string>
 #include <tuple>
 #include <utility>
 
@@ -20,6 +21,9 @@
  */
 class FlightInfo {
 private:
+    static constexpr double MIN_VALID_DISTANCE = 0.0; ///< Минимальная допустимая дальность полёта
+    static constexpr int DEFAULT_PRIORITY = 0;        ///< Приоритет рейса по умолчанию
+
     std::string flight_number;  ///< Номер рейса (например, "SU-100")
     double distance_km;         ///< Дальность полёта в километрах
     int priority_level;         ///< Приоритет рейса (чем выше число, тем выше приоритет)
@@ -30,7 +34,7 @@ public:
      * Инициализирует рейс со значениями "UNKNOWN", 0.0 км и нулевым приоритетом.
      */
     FlightInfo()
-        : flight_number("UNKNOWN"), distance_km(0.0), priority_level(0) {}
+        : flight_number("UNKNOWN"), distance_km(MIN_VALID_DISTANCE), priority_level(DEFAULT_PRIORITY) {}
 
     /**
      * @brief Параметризованный конструктор.
@@ -67,10 +71,11 @@ public:
 
     /**
      * @brief Устанавливает дистанцию рейса.
-     * @param distance Дистанция в км.
+     * @param distance Дистанция в км (не может быть отрицательной).
+     * @throws std::invalid_argument если distance < 0.
      */
     void set_distance(double distance) {
-        if (distance < 0.0) {
+        if (distance < MIN_VALID_DISTANCE) {
             throw std::invalid_argument("Дистанция не может быть отрицательной!");
         }
         distance_km = distance;
@@ -103,9 +108,13 @@ public:
                std::tie(other.distance_km, other.priority_level, other.flight_number);
     }
 
+    /** @brief Оператор проверки на неравенство. */
     bool operator!=(const FlightInfo& other) const { return !(*this == other); }
+    /** @brief Оператор "больше". */
     bool operator>(const FlightInfo& other) const { return other < *this; }
+    /** @brief Оператор "меньше либо равно". */
     bool operator<=(const FlightInfo& other) const { return !(other < *this); }
+    /** @brief Оператор "больше либо равно". */
     bool operator>=(const FlightInfo& other) const { return !(*this < other); }
 
     /**
@@ -130,16 +139,16 @@ public:
      */
     friend std::istream& operator>>(std::istream& is, FlightInfo& flight) {
         std::string number;
-        double dist = 0.0;
-        int prio = 0;
-        if (is >> number >> dist >> prio) {
-            if (dist < 0.0 || prio < 0 || number.empty()) {
+        double distance = MIN_VALID_DISTANCE;
+        int priority = DEFAULT_PRIORITY;
+        if (is >> number >> distance >> priority) {
+            if (distance < MIN_VALID_DISTANCE || priority < DEFAULT_PRIORITY || number.empty()) {
                 is.setstate(std::ios::failbit);
                 return is;
             }
             flight.flight_number = std::move(number);
-            flight.distance_km = dist;
-            flight.priority_level = prio;
+            flight.distance_km = distance;
+            flight.priority_level = priority;
         }
         return is;
     }

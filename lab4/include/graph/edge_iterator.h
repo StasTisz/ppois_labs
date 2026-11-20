@@ -18,21 +18,24 @@ class const_edge_iterator; // Предварительное объявлени�
  */
 class edge_iterator {
 private:
-    typename std::list<VertexRecord>::iterator v_it;   ///< Текущая вершина-источник
-    typename std::list<VertexRecord>::iterator v_end;  ///< Конец списка вершин
-    typename std::list<T>::iterator e_it;              ///< Текущая смежная вершина (цель ребра)
+    typename std::list<VertexRecord>::iterator vertex_it{};  ///< Текущая вершина-источник
+    typename std::list<VertexRecord>::iterator vertex_end{}; ///< Конец списка вершин
+    typename std::list<T>::iterator edge_it{};               ///< Текущая смежная вершина (цель ребра)
     friend class Graph;
     friend class const_edge_iterator;
 
     /**
-     * @brief Перемещает итератор на следующую непустую смежность, если текущая исчерпана.
+     * @brief Перемещает итератор на первую непустую смежность, если текущая исчерпана.
      */
     void advance_to_valid() {
-        while (v_it != v_end && e_it == v_it->adjacencies.end()) {
-            ++v_it;
-            if (v_it != v_end) e_it = v_it->adjacencies.begin();
+        while (vertex_it != vertex_end && edge_it == vertex_it->adjacencies.end()) {
+            ++vertex_it;
+            if (vertex_it != vertex_end) {
+                edge_it = vertex_it->adjacencies.begin();
+            }
         }
     }
+
 public:
     using iterator_category = std::bidirectional_iterator_tag; ///< Категория двунаправленного итератора
     using value_type = edge_type;                              ///< Тип значения (пара вершин: from, to)
@@ -45,50 +48,51 @@ public:
 
     /**
      * @brief Параметризованный конструктор итератора рёбер.
-     * @param v Итератор текущей вершины.
-     * @param vend Конец списка вершин.
-     * @param e Итератор смежной вершины в текущем списке adjacencies.
+     * @param current_vertex Итератор текущей вершины.
+     * @param end_vertex Конец списка вершин.
+     * @param current_edge Итератор смежной вершины в текущем списке adjacencies.
      */
-    edge_iterator(typename std::list<VertexRecord>::iterator v,
-                  typename std::list<VertexRecord>::iterator vend,
-                  typename std::list<T>::iterator e) : v_it(v), v_end(vend), e_it(e) {
+    edge_iterator(typename std::list<VertexRecord>::iterator current_vertex,
+                  typename std::list<VertexRecord>::iterator end_vertex,
+                  typename std::list<T>::iterator current_edge)
+        : vertex_it(current_vertex), vertex_end(end_vertex), edge_it(current_edge) {
         advance_to_valid();
     }
 
     /** @brief Разыменование: возвращает ребро как std::pair<T, T>{from, to}. */
-    reference operator*() const { return {v_it->data, *e_it}; }
+    reference operator*() const { return {vertex_it->data, *edge_it}; }
 
     /** @brief Префиксный инкремент к следующему ребру. */
-    edge_iterator& operator++() { ++e_it; advance_to_valid(); return *this; }
+    edge_iterator& operator++() { ++edge_it; advance_to_valid(); return *this; }
 
     /** @brief Постфиксный инкремент к следующему ребру. */
     edge_iterator operator++(int) {
-        edge_iterator tmp = *this;
+        edge_iterator previous = *this;
         ++(*this);
-        return tmp;
+        return previous;
     }
 
-    /** @brief Префиксный декремент к предыдущему ребру. */
+    /** @brief Префиксный декремент к предыдущему ребру (пропускает вершины без исходящих дуг). */
     edge_iterator& operator--() {
-        if (v_it == v_end || e_it == v_it->adjacencies.begin()) {
-            do { --v_it; } while (v_it->adjacencies.empty());
-            e_it = v_it->adjacencies.end();
+        if (vertex_it == vertex_end || edge_it == vertex_it->adjacencies.begin()) {
+            do { --vertex_it; } while (vertex_it->adjacencies.empty());
+            edge_it = vertex_it->adjacencies.end();
         }
-        --e_it;
+        --edge_it;
         return *this;
     }
 
     /** @brief Постфиксный декремент к предыдущему ребру. */
     edge_iterator operator--(int) {
-        edge_iterator tmp = *this;
+        edge_iterator previous = *this;
         --(*this);
-        return tmp;
+        return previous;
     }
 
     /** @brief Проверка равенства двух рёберных итераторов. */
     bool operator==(const edge_iterator& other) const {
-        if (v_it == v_end && other.v_it == other.v_end) return true;
-        return v_it == other.v_it && e_it == other.e_it;
+        if (vertex_it == vertex_end && other.vertex_it == other.vertex_end) return true;
+        return vertex_it == other.vertex_it && edge_it == other.edge_it;
     }
 
     /** @brief Проверка неравенства двух рёберных итераторов. */
@@ -101,20 +105,23 @@ public:
  */
 class const_edge_iterator {
 private:
-    typename std::list<VertexRecord>::const_iterator v_it;  ///< Константный итератор вершины-источника
-    typename std::list<VertexRecord>::const_iterator v_end; ///< Конец списка вершин
-    typename std::list<T>::const_iterator e_it;             ///< Константный итератор целевой вершины
+    typename std::list<VertexRecord>::const_iterator vertex_it{};  ///< Константный итератор вершины-источника
+    typename std::list<VertexRecord>::const_iterator vertex_end{}; ///< Конец списка вершин
+    typename std::list<T>::const_iterator edge_it{};               ///< Константный итератор целевой вершины
     friend class Graph;
 
     /**
-     * @brief Перемещает итератор на следующую непустую смежность, если текущая исчерпана.
+     * @brief Перемещает итератор на первую непустую смежность, если текущая исчерпана.
      */
     void advance_to_valid() {
-        while (v_it != v_end && e_it == v_it->adjacencies.end()) {
-            ++v_it;
-            if (v_it != v_end) e_it = v_it->adjacencies.begin();
+        while (vertex_it != vertex_end && edge_it == vertex_it->adjacencies.end()) {
+            ++vertex_it;
+            if (vertex_it != vertex_end) {
+                edge_it = vertex_it->adjacencies.begin();
+            }
         }
     }
+
 public:
     using iterator_category = std::bidirectional_iterator_tag; ///< Категория двунаправленного итератора
     using value_type = edge_type;                              ///< Тип значения (пара вершин: from, to)
@@ -127,13 +134,14 @@ public:
 
     /**
      * @brief Параметризованный конструктор константного итератора рёбер.
-     * @param v Константный итератор текущей вершины.
-     * @param vend Константный итератор конца списка вершин.
-     * @param e Константный итератор смежной вершины.
+     * @param current_vertex Константный итератор текущей вершины.
+     * @param end_vertex Константный итератор конца списка вершин.
+     * @param current_edge Константный итератор смежной вершины.
      */
-    const_edge_iterator(typename std::list<VertexRecord>::const_iterator v,
-                        typename std::list<VertexRecord>::const_iterator vend,
-                        typename std::list<T>::const_iterator e) : v_it(v), v_end(vend), e_it(e) {
+    const_edge_iterator(typename std::list<VertexRecord>::const_iterator current_vertex,
+                        typename std::list<VertexRecord>::const_iterator end_vertex,
+                        typename std::list<T>::const_iterator current_edge)
+        : vertex_it(current_vertex), vertex_end(end_vertex), edge_it(current_edge) {
         advance_to_valid();
     }
 
@@ -142,44 +150,44 @@ public:
      * @param non_const Неконстантный итератор ребра.
      */
     const_edge_iterator(const edge_iterator& non_const)
-        : v_it(non_const.v_it), v_end(non_const.v_end), e_it(non_const.e_it) {
+        : vertex_it(non_const.vertex_it), vertex_end(non_const.vertex_end), edge_it(non_const.edge_it) {
         advance_to_valid();
     }
 
     /** @brief Разыменование: возвращает ребро как std::pair<T, T>{from, to}. */
-    reference operator*() const { return {v_it->data, *e_it}; }
+    reference operator*() const { return {vertex_it->data, *edge_it}; }
 
     /** @brief Префиксный инкремент к следующему ребру. */
-    const_edge_iterator& operator++() { ++e_it; advance_to_valid(); return *this; }
+    const_edge_iterator& operator++() { ++edge_it; advance_to_valid(); return *this; }
 
     /** @brief Постфиксный инкремент к следующему ребру. */
     const_edge_iterator operator++(int) {
-        const_edge_iterator tmp = *this;
+        const_edge_iterator previous = *this;
         ++(*this);
-        return tmp;
+        return previous;
     }
 
-    /** @brief Префиксный декремент к предыдущему ребру. */
+    /** @brief Префиксный декремент к предыдущему ребру (пропускает вершины без исходящих дуг). */
     const_edge_iterator& operator--() {
-        if (v_it == v_end || e_it == v_it->adjacencies.begin()) {
-            do { --v_it; } while (v_it->adjacencies.empty());
-            e_it = v_it->adjacencies.end();
+        if (vertex_it == vertex_end || edge_it == vertex_it->adjacencies.begin()) {
+            do { --vertex_it; } while (vertex_it->adjacencies.empty());
+            edge_it = vertex_it->adjacencies.end();
         }
-        --e_it;
+        --edge_it;
         return *this;
     }
 
     /** @brief Постфиксный декремент к предыдущему ребру. */
     const_edge_iterator operator--(int) {
-        const_edge_iterator tmp = *this;
+        const_edge_iterator previous = *this;
         --(*this);
-        return tmp;
+        return previous;
     }
 
     /** @brief Проверка равенства двух константных рёберных итераторов. */
     bool operator==(const const_edge_iterator& other) const {
-        if (v_it == v_end && other.v_it == other.v_end) return true;
-        return v_it == other.v_it && e_it == other.e_it;
+        if (vertex_it == vertex_end && other.vertex_it == other.vertex_end) return true;
+        return vertex_it == other.vertex_it && edge_it == other.edge_it;
     }
 
     /** @brief Проверка неравенства двух константных рёберных итераторов. */

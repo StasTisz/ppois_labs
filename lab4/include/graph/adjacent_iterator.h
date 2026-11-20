@@ -26,14 +26,15 @@ using const_reverse_adjacent_iterator = std::reverse_iterator<const_adjacent_ite
  */
 class forward_adjacent_iterator {
 private:
-    typename std::list<T>::const_iterator it; /**< Внутренний итератор списка смежности */
+    typename std::list<T>::const_iterator it{}; ///< Внутренний итератор списка смежности
     friend class Graph;
+
 public:
-    using iterator_category = std::forward_iterator_tag;
-    using value_type = const T;
-    using difference_type = std::ptrdiff_t;
-    using pointer = const T*;
-    using reference = const T&;
+    using iterator_category = std::forward_iterator_tag; ///< Категория однонаправленного итератора
+    using value_type = const T;                          ///< Константный тип значения вершины
+    using difference_type = std::ptrdiff_t;              ///< Тип разности итераторов
+    using pointer = const T*;                            ///< Константный указатель на вершину
+    using reference = const T&;                          ///< Константная ссылка на вершину
 
     /** @brief Конструктор по умолчанию. */
     forward_adjacent_iterator() = default;
@@ -44,46 +45,26 @@ public:
      */
     explicit forward_adjacent_iterator(typename std::list<T>::const_iterator iter) : it(iter) {}
 
-    /**
-     * @brief Оператор разыменования.
-     * @return Константная ссылка на значение вершины.
-     */
+    /** @brief Оператор разыменования (константная ссылка на значение вершины). */
     reference operator*() const { return *it; }
 
-    /**
-     * @brief Оператор доступа по указателю.
-     * @return Константный указатель на значение вершины.
-     */
+    /** @brief Оператор доступа по указателю. */
     pointer operator->() const { return &(*it); }
 
-    /**
-     * @brief Префиксный инкремент.
-     * @return Ссылка на себя.
-     */
+    /** @brief Префиксный инкремент. */
     forward_adjacent_iterator& operator++() { ++it; return *this; }
 
-    /**
-     * @brief Постфиксный инкремент.
-     * @return Копия до инкремента.
-     */
+    /** @brief Постфиксный инкремент. */
     forward_adjacent_iterator operator++(int) {
-        forward_adjacent_iterator tmp = *this;
+        forward_adjacent_iterator previous = *this;
         ++it;
-        return tmp;
+        return previous;
     }
 
-    /**
-     * @brief Оператор проверки равенства.
-     * @param other Другой итератор для сравнения.
-     * @return true, если итераторы равны, иначе false.
-     */
+    /** @brief Оператор проверки равенства. */
     bool operator==(const forward_adjacent_iterator& other) const { return it == other.it; }
 
-    /**
-     * @brief Оператор проверки неравенства.
-     * @param other Другой итератор для сравнения.
-     * @return true, если итераторы не равны, иначе false.
-     */
+    /** @brief Оператор проверки неравенства. */
     bool operator!=(const forward_adjacent_iterator& other) const { return it != other.it; }
 };
 

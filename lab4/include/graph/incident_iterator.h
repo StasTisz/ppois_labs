@@ -16,78 +16,56 @@
  */
 class incident_iterator {
 private:
-    const T* source_ptr; /**< Указатель на исходную вершину */
-    typename std::list<T>::const_iterator adj_it; /**< Итератор списка смежных вершин */
+    const T* source_ptr{nullptr};               ///< Указатель на исходную вершину
+    typename std::list<T>::const_iterator adj_it{}; ///< Итератор списка смежных вершин
+
 public:
-    using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = edge_type;
-    using difference_type = std::ptrdiff_t;
-    using pointer = edge_type*;
-    using reference = edge_type;
+    using iterator_category = std::bidirectional_iterator_tag; ///< Категория двунаправленного итератора
+    using value_type = edge_type;                              ///< Тип значения (пара вершин: from, to)
+    using difference_type = std::ptrdiff_t;                    ///< Тип разности итераторов
+    using pointer = edge_type*;                                ///< Указатель на ребро
+    using reference = edge_type;                               ///< Ребро возвращается по значению
 
     /** @brief Конструктор по умолчанию. */
     incident_iterator() = default;
 
     /**
      * @brief Параметризованный конструктор.
-     * @param src Указатель на исходную вершину.
-     * @param it Итератор списка смежных вершин.
+     * @param source Указатель на исходную вершину.
+     * @param iter Итератор списка смежных вершин.
      */
-    incident_iterator(const T* src, typename std::list<T>::const_iterator it)
-        : source_ptr(src), adj_it(it) {}
+    incident_iterator(const T* source, typename std::list<T>::const_iterator iter)
+        : source_ptr(source), adj_it(iter) {}
 
-    /**
-     * @brief Оператор разыменования.
-     * @return Ребро графа (пара вершин).
-     */
+    /** @brief Оператор разыменования (возвращает пару вершин {source, target}). */
     reference operator*() const { return {*source_ptr, *adj_it}; }
 
-    /**
-     * @brief Префиксный инкремент.
-     * @return Ссылка на себя.
-     */
+    /** @brief Префиксный инкремент. */
     incident_iterator& operator++() { ++adj_it; return *this; }
 
-    /**
-     * @brief Постфиксный инкремент.
-     * @return Копия до инкремента.
-     */
+    /** @brief Постфиксный инкремент. */
     incident_iterator operator++(int) {
-        incident_iterator tmp = *this;
+        incident_iterator previous = *this;
         ++adj_it;
-        return tmp;
+        return previous;
     }
 
-    /**
-     * @brief Префиксный декремент.
-     * @return Ссылка на себя.
-     */
+    /** @brief Префиксный декремент. */
     incident_iterator& operator--() { --adj_it; return *this; }
 
-    /**
-     * @brief Постфиксный декремент.
-     * @return Копия до декремента.
-     */
+    /** @brief Постфиксный декремент. */
     incident_iterator operator--(int) {
-        incident_iterator tmp = *this;
+        incident_iterator previous = *this;
         --adj_it;
-        return tmp;
+        return previous;
     }
 
-    /**
-     * @brief Оператор проверки равенства.
-     * @param other Другой итератор для сравнения.
-     * @return true, если итераторы равны, иначе false.
-     */
+    /** @brief Оператор проверки равенства. */
     bool operator==(const incident_iterator& other) const {
         return source_ptr == other.source_ptr && adj_it == other.adj_it;
     }
 
-    /**
-     * @brief Оператор проверки неравенства.
-     * @param other Другой итератор для сравнения.
-     * @return true, если итераторы не равны, иначе false.
-     */
+    /** @brief Оператор проверки неравенства. */
     bool operator!=(const incident_iterator& other) const { return !(*this == other); }
 };
 
