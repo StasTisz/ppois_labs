@@ -18,9 +18,10 @@ class const_vertex_iterator; // Предварительное объявлен�
  */
 class vertex_iterator {
 private:
-    typename std::list<VertexRecord>::iterator it; ///< Внутренний итератор списка записей вершин
+    typename std::list<VertexRecord>::iterator it{}; ///< Внутренний итератор списка записей вершин
     friend class Graph;
     friend class const_vertex_iterator;
+
 public:
     using iterator_category = std::bidirectional_iterator_tag; ///< Категория двунаправленного итератора
     using value_type = T;                                      ///< Тип значения вершины
@@ -31,7 +32,7 @@ public:
     /** @brief Конструктор по умолчанию. */
     vertex_iterator() = default;
 
-    /** 
+    /**
      * @brief Параметризованный конструктор из итератора списка.
      * @param iter Итератор списка записей вершин.
      */
@@ -47,13 +48,13 @@ public:
     vertex_iterator& operator++() { ++it; return *this; }
 
     /** @brief Постфиксный инкремент. */
-    vertex_iterator operator++(int) { vertex_iterator tmp = *this; ++it; return tmp; }
+    vertex_iterator operator++(int) { vertex_iterator previous = *this; ++it; return previous; }
 
     /** @brief Префиксный декремент. */
     vertex_iterator& operator--() { --it; return *this; }
 
     /** @brief Постфиксный декремент. */
-    vertex_iterator operator--(int) { vertex_iterator tmp = *this; --it; return tmp; }
+    vertex_iterator operator--(int) { vertex_iterator previous = *this; --it; return previous; }
 
     /** @brief Проверка двух итераторов на равенство. */
     bool operator==(const vertex_iterator& other) const { return it == other.it; }
@@ -68,8 +69,9 @@ public:
  */
 class const_vertex_iterator {
 private:
-    typename std::list<VertexRecord>::const_iterator it; ///< Внутренний константный итератор списка
+    typename std::list<VertexRecord>::const_iterator it{}; ///< Внутренний константный итератор списка
     friend class Graph;
+
 public:
     using iterator_category = std::bidirectional_iterator_tag; ///< Категория двунаправленного итератора
     using value_type = const T;                                ///< Константный тип значения вершины
@@ -80,13 +82,13 @@ public:
     /** @brief Конструктор по умолчанию. */
     const_vertex_iterator() = default;
 
-    /** 
+    /**
      * @brief Конструктор из константного итератора списка.
      * @param iter Константный итератор списка записей вершин.
      */
     explicit const_vertex_iterator(typename std::list<VertexRecord>::const_iterator iter) : it(iter) {}
 
-    /** 
+    /**
      * @brief Конструктор неявного преобразования из неконстантного итератора.
      * @param non_const Неконстантный итератор вершины.
      */
@@ -102,13 +104,13 @@ public:
     const_vertex_iterator& operator++() { ++it; return *this; }
 
     /** @brief Постфиксный инкремент. */
-    const_vertex_iterator operator++(int) { const_vertex_iterator tmp = *this; ++it; return tmp; }
+    const_vertex_iterator operator++(int) { const_vertex_iterator previous = *this; ++it; return previous; }
 
     /** @brief Префиксный декремент. */
     const_vertex_iterator& operator--() { --it; return *this; }
 
     /** @brief Постфиксный декремент. */
-    const_vertex_iterator operator--(int) { const_vertex_iterator tmp = *this; --it; return tmp; }
+    const_vertex_iterator operator--(int) { const_vertex_iterator previous = *this; --it; return previous; }
 
     /** @brief Проверка константных итераторов на равенство. */
     bool operator==(const const_vertex_iterator& other) const { return it == other.it; }

@@ -5,20 +5,21 @@
 
 #pragma once
 
-#include <list>
-#include <utility>
-#include <stdexcept>
 #include <algorithm>
 #include <iostream>
 #include <iterator>
+#include <list>
+#include <numeric>
+#include <stdexcept>
+#include <utility>
 
 /**
  * @class Graph
  * @brief Обобщённый контейнер ориентированного графа (Структура Вирта).
- * 
- * Представляет граф в виде списка вершин (std::list<VertexRecord>),
- * где каждая запись вершины хранит данные и собственный список исходящих дуг.
- * 
+ *
+ * Реализует структуру Вирта: основной связный список записей вершин (`std::list<VertexRecord>`),
+ * где каждая запись хранит значение вершины и собственный список смежных вершин (исходящих дуг).
+ *
  * @tparam T Тип данных, хранящихся в вершинах графа.
  */
 template <typename T>
@@ -26,11 +27,11 @@ class Graph {
 private:
     /**
      * @struct VertexRecord
-     * @brief Внутренний узел структуры Вирта, хранящий вершину и список смежных вершин.
+     * @brief Узел структуры Вирта: хранит значение вершины и список её исходящих дуг.
      */
     struct VertexRecord {
-        T data;                     ///< Данные вершины
-        std::list<T> adjacencies;   ///< Список смежных вершин (исходящих дуг)
+        T data{};                   ///< Данные вершины
+        std::list<T> adjacencies{}; ///< Список смежных вершин (исходящих дуг)
 
         /**
          * @brief Проверка равенства записей вершин.
@@ -42,7 +43,7 @@ private:
         }
 
         /**
-         * @brief Оператор сравнения "меньше" для лексикографического упорядочивания.
+         * @brief Лексикографическое сравнение "меньше" по значению вершины.
          * @param other Другая запись вершины.
          * @return true, если текущая вершина меньше other.
          */
@@ -51,41 +52,53 @@ private:
         }
     };
 
-    std::list<VertexRecord> records; ///< Список записей вершин графа
+    std::list<VertexRecord> records{}; ///< Основной список записей вершин графа
 
     /**
-     * @brief Внутренний поиск итератора вершины по значению.
-     * @param val Искомое значение вершины.
-     * @return Итератор на запись вершины в списке records либо records.end().
+     * @brief Находит запись вершины по значению (мутабельная версия).
+     * @param value Искомое значение вершины.
+     * @return Итератор на запись вершины либо records.end().
      */
-    typename std::list<VertexRecord>::iterator find_vertex(const T& val) {
-        for (auto it = records.begin(); it != records.end(); ++it) {
-            if (it->data == val) return it;
-        }
-        return records.end();
+    typename std::list<VertexRecord>::iterator find_vertex(const T& value) {
+        return std::find_if(records.begin(), records.end(), [&](const VertexRecord& record) {
+            return record.data == value;
+        });
     }
 
     /**
-     * @brief Внутренний поиск константного итератора вершины по значению.
-     * @param val Искомое значение вершины.
+     * @brief Находит запись вершины по значению (константная версия).
+     * @param value Искомое значение вершины.
      * @return Константный итератор на запись вершины либо records.end().
      */
-    typename std::list<VertexRecord>::const_iterator find_vertex(const T& val) const {
-        for (auto it = records.begin(); it != records.end(); ++it) {
-            if (it->data == val) return it;
+    typename std::list<VertexRecord>::const_iterator find_vertex(const T& value) const {
+        return std::find_if(records.begin(), records.end(), [&](const VertexRecord& record) {
+            return record.data == value;
+        });
+    }
+
+    /**
+     * @brief Ищет вершину или выбрасывает исключение, если она не найдена.
+     * @param value Искомое значение вершины.
+     * @return Константный итератор на запись вершины.
+     * @throws std::invalid_argument если вершина отсутствует в графе.
+     */
+    typename std::list<VertexRecord>::const_iterator find_vertex_strict(const T& value) const {
+        auto vertex_it = find_vertex(value);
+        if (vertex_it == records.end()) {
+            throw std::invalid_argument("Вершина не найдена!");
         }
-        return records.end();
+        return vertex_it;
     }
 
 public:
-    using value_type = T;                       ///< Тип значения вершины
-    using reference = T&;                       ///< Ссылка на значение вершины
-    using const_reference = const T&;           ///< Константная ссылка на значение вершины
-    using pointer = T*;                         ///< Указатель на значение вершины
-    using const_pointer = const T*;             ///< Константный указатель на значение вершины
-    using size_type = std::size_t;              ///< Беззнаковый целочисленный тип размера
-    using difference_type = std::ptrdiff_t;     ///< Знаковый тип разности итераторов
-    using edge_type = std::pair<T, T>;          ///< Тип ребра (пара вершин: from, to)
+    using value_type = T;                   ///< Тип значения вершины
+    using reference = T&;                   ///< Ссылка на значение вершины
+    using const_reference = const T&;       ///< Константная ссылка на значение вершины
+    using pointer = T*;                     ///< Указатель на значение вершины
+    using const_pointer = const T*;         ///< Константный указатель на значение вершины
+    using size_type = std::size_t;          ///< Беззнаковый целочисленный тип размера
+    using difference_type = std::ptrdiff_t; ///< Знаковый тип разности итераторов
+    using edge_type = std::pair<T, T>;      ///< Тип ориентированного ребра (from, to)
 
     // ==========================================
     // ОБЪЯВЛЕНИЯ ITERATOR-ТИПОВ
@@ -103,13 +116,13 @@ public:
     /** @brief Конструктор по умолчанию (создаёт пустой граф). */
     Graph() = default;
 
-    /** 
+    /**
      * @brief Конструктор копирования.
      * @param other Копируемый граф.
      */
     Graph(const Graph& other) = default;
 
-    /** 
+    /**
      * @brief Конструктор перемещения.
      * @param other Перемещаемый граф.
      */
@@ -118,14 +131,14 @@ public:
     /** @brief Деструктор графа. */
     ~Graph() = default;
 
-    /** 
+    /**
      * @brief Оператор присваивания копированием.
      * @param other Копируемый граф.
      * @return Ссылка на текущий экземпляр графа.
      */
     Graph& operator=(const Graph& other) = default;
 
-    /** 
+    /**
      * @brief Оператор присваивания перемещением.
      * @param other Перемещаемый граф.
      * @return Ссылка на текущий экземпляр графа.
@@ -138,9 +151,7 @@ public:
      */
     bool empty() const noexcept { return records.empty(); }
 
-    /**
-     * @brief Полная очистка графа (удаление всех вершин и рёбер).
-     */
+    /** @brief Полная очистка графа (удаление всех вершин и рёбер). */
     void clear() noexcept { records.clear(); }
 
     /**
@@ -150,15 +161,14 @@ public:
     size_type vertex_count() const noexcept { return records.size(); }
 
     /**
-     * @brief Возвращает общее количество рёбер в графе.
-     * @return Число ориентированных рёбер.
+     * @brief Возвращает общее количество ориентированных рёбер в графе.
+     * @return Число рёбер.
      */
     size_type edge_count() const noexcept {
-        size_type count = 0;
-        for (const auto& rec : records) {
-            count += rec.adjacencies.size();
-        }
-        return count;
+        return std::accumulate(records.begin(), records.end(), size_type{0},
+            [](size_type sum, const VertexRecord& record) {
+                return sum + record.adjacencies.size();
+            });
     }
 
     // ==========================================
@@ -227,92 +237,90 @@ public:
     /** @brief Явный константный обратный итератор на конец обратной последовательности всех рёбер. */
     const_reverse_edge_iterator e_crend() const { return const_reverse_edge_iterator(e_cbegin()); }
 
-    /** 
+    /**
      * @brief Итератор на начало списка смежных вершин для заданной вершины.
-     * @param val Значение вершины.
+     * @param value Значение вершины.
      * @return Итератор на первую смежную вершину.
      * @throws std::invalid_argument если вершина отсутствует в графе.
      */
-    adjacent_iterator adj_begin(const T& val) const {
-        auto it = find_vertex(val);
-        if (it == records.end()) throw std::invalid_argument("Вершина не найдена");
-        return it->adjacencies.begin();
+    adjacent_iterator adj_begin(const T& value) const {
+        return find_vertex_strict(value)->adjacencies.begin();
     }
-    /** 
+    /**
      * @brief Итератор на конец списка смежных вершин для заданной вершины.
-     * @param val Значение вершины.
+     * @param value Значение вершины.
      * @return Итератор на конец списка смежностей.
      * @throws std::invalid_argument если вершина отсутствует в графе.
      */
-    adjacent_iterator adj_end(const T& val) const {
-        auto it = find_vertex(val);
-        if (it == records.end()) throw std::invalid_argument("Вершина не найдена");
-        return it->adjacencies.end();
+    adjacent_iterator adj_end(const T& value) const {
+        return find_vertex_strict(value)->adjacencies.end();
     }
     /** @brief Константный итератор на начало списка смежных вершин. */
-    const_adjacent_iterator adj_cbegin(const T& val) const { return adj_begin(val); }
+    const_adjacent_iterator adj_cbegin(const T& value) const { return adj_begin(value); }
     /** @brief Константный итератор на конец списка смежных вершин. */
-    const_adjacent_iterator adj_cend(const T& val) const { return adj_end(val); }
+    const_adjacent_iterator adj_cend(const T& value) const { return adj_end(value); }
     /** @brief Обратный итератор на начало списка смежных вершин. */
-    reverse_adjacent_iterator adj_rbegin(const T& val) const { return reverse_adjacent_iterator(adj_end(val)); }
+    reverse_adjacent_iterator adj_rbegin(const T& value) const { return reverse_adjacent_iterator(adj_end(value)); }
     /** @brief Обратный итератор на конец списка смежных вершин. */
-    reverse_adjacent_iterator adj_rend(const T& val) const { return reverse_adjacent_iterator(adj_begin(val)); }
+    reverse_adjacent_iterator adj_rend(const T& value) const { return reverse_adjacent_iterator(adj_begin(value)); }
     /** @brief Константный обратный итератор на начало списка смежных вершин. */
-    const_reverse_adjacent_iterator adj_crbegin(const T& val) const { return const_reverse_adjacent_iterator(adj_cend(val)); }
+    const_reverse_adjacent_iterator adj_crbegin(const T& value) const { return const_reverse_adjacent_iterator(adj_cend(value)); }
     /** @brief Константный обратный итератор на конец списка смежных вершин. */
-    const_reverse_adjacent_iterator adj_crend(const T& val) const { return const_reverse_adjacent_iterator(adj_cbegin(val)); }
+    const_reverse_adjacent_iterator adj_crend(const T& value) const { return const_reverse_adjacent_iterator(adj_cbegin(value)); }
 
-    /** 
+    /**
      * @brief Однонаправленный итератор на первую смежную вершину (Вариант 2.1.12).
-     * @param val Значение вершины.
+     * @param value Значение вершины.
      * @return forward_adjacent_iterator на начало смежных вершин.
      */
-    forward_adjacent_iterator f_adj_begin(const T& val) const {
-        return forward_adjacent_iterator(adj_begin(val));
+    forward_adjacent_iterator f_adj_begin(const T& value) const {
+        return forward_adjacent_iterator(adj_begin(value));
     }
-    /** 
+    /**
      * @brief Однонаправленный итератор на конец смежных вершин (Вариант 2.1.12).
-     * @param val Значение вершины.
+     * @param value Значение вершины.
      * @return forward_adjacent_iterator на конец смежных вершин.
      */
-    forward_adjacent_iterator f_adj_end(const T& val) const {
-        return forward_adjacent_iterator(adj_end(val));
+    forward_adjacent_iterator f_adj_end(const T& value) const {
+        return forward_adjacent_iterator(adj_end(value));
     }
+    /** @brief Константный однонаправленный итератор на первую смежную вершину. */
+    const_forward_adjacent_iterator f_adj_cbegin(const T& value) const { return f_adj_begin(value); }
+    /** @brief Константный однонаправленный итератор на конец смежных вершин. */
+    const_forward_adjacent_iterator f_adj_cend(const T& value) const { return f_adj_end(value); }
 
-    /** 
+    /**
      * @brief Итератор на первое инцидентное (исходящее) ребро вершины.
-     * @param val Значение вершины-источника.
+     * @param value Значение вершины-источника.
      * @return incident_iterator на первое исходящее ребро.
      * @throws std::invalid_argument если вершина отсутствует в графе.
      */
-    incident_iterator inc_begin(const T& val) const {
-        auto it = find_vertex(val);
-        if (it == records.end()) throw std::invalid_argument("Вершина не найдена");
-        return incident_iterator(&(it->data), it->adjacencies.begin());
+    incident_iterator inc_begin(const T& value) const {
+        auto vertex_it = find_vertex_strict(value);
+        return incident_iterator(&(vertex_it->data), vertex_it->adjacencies.begin());
     }
-    /** 
+    /**
      * @brief Итератор на конец инцидентных рёбер вершины.
-     * @param val Значение вершины-источника.
+     * @param value Значение вершины-источника.
      * @return incident_iterator на конец исходящих рёбер.
      * @throws std::invalid_argument если вершина отсутствует в графе.
      */
-    incident_iterator inc_end(const T& val) const {
-        auto it = find_vertex(val);
-        if (it == records.end()) throw std::invalid_argument("Вершина не найдена");
-        return incident_iterator(&(it->data), it->adjacencies.end());
+    incident_iterator inc_end(const T& value) const {
+        auto vertex_it = find_vertex_strict(value);
+        return incident_iterator(&(vertex_it->data), vertex_it->adjacencies.end());
     }
     /** @brief Константный итератор на первое инцидентное ребро. */
-    const_incident_iterator inc_cbegin(const T& val) const { return inc_begin(val); }
+    const_incident_iterator inc_cbegin(const T& value) const { return inc_begin(value); }
     /** @brief Константный итератор на конец инцидентных рёбер. */
-    const_incident_iterator inc_cend(const T& val) const { return inc_end(val); }
+    const_incident_iterator inc_cend(const T& value) const { return inc_end(value); }
     /** @brief Обратный итератор на последнее инцидентное ребро. */
-    reverse_incident_iterator inc_rbegin(const T& val) const { return reverse_incident_iterator(inc_end(val)); }
+    reverse_incident_iterator inc_rbegin(const T& value) const { return reverse_incident_iterator(inc_end(value)); }
     /** @brief Обратный итератор на конец инцидентных рёбер. */
-    reverse_incident_iterator inc_rend(const T& val) const { return reverse_incident_iterator(inc_begin(val)); }
+    reverse_incident_iterator inc_rend(const T& value) const { return reverse_incident_iterator(inc_begin(value)); }
     /** @brief Константный обратный итератор на последнее инцидентное ребро. */
-    const_reverse_incident_iterator inc_crbegin(const T& val) const { return const_reverse_incident_iterator(inc_cend(val)); }
+    const_reverse_incident_iterator inc_crbegin(const T& value) const { return const_reverse_incident_iterator(inc_cend(value)); }
     /** @brief Константный обратный итератор на конец инцидентных рёбер. */
-    const_reverse_incident_iterator inc_crend(const T& val) const { return const_reverse_incident_iterator(inc_cbegin(val)); }
+    const_reverse_incident_iterator inc_crend(const T& value) const { return const_reverse_incident_iterator(inc_cbegin(value)); }
 
     // ==========================================
     // МОДИФИКАЦИЯ ГРАФА И УДАЛЕНИЕ ЧЕРЕЗ ИТЕРАТОРЫ
@@ -320,24 +328,31 @@ public:
 
     /**
      * @brief Вставка новой вершины в граф.
-     * @param val Значение добавляемой вершины.
+     * @param value Значение добавляемой вершины.
      * @throws std::invalid_argument если вершина с таким значением уже существует.
      */
-    void insert_vertex(const T& val) {
-        if (has_vertex(val)) throw std::invalid_argument("Вершина уже существует!");
-        records.push_back({val, {}});
+    void insert_vertex(const T& value) {
+        if (has_vertex(value)) {
+            throw std::invalid_argument("Вершина уже существует!");
+        }
+        records.push_back({value, {}});
     }
 
     /**
-     * @brief Удаление вершины по значению (удаляет саму вершину и все инцидентные ей рёбра).
-     * @param val Значение удаляемой вершины.
+     * @brief Удаление вершины по значению (удаляет саму вершину и все инцидентные ей дуги).
+     * @param value Значение удаляемой вершины.
      * @throws std::invalid_argument если вершина не найдена в графе.
      */
-    void erase_vertex(const T& val) {
-        auto it = find_vertex(val);
-        if (it == records.end()) throw std::invalid_argument("Вершина не найдена!");
-        records.erase(it);
-        for (auto& rec : records) rec.adjacencies.remove(val);
+    void erase_vertex(const T& value) {
+        auto target_it = find_vertex(value);
+        if (target_it == records.end()) {
+            throw std::invalid_argument("Вершина не найдена!");
+        }
+        records.erase(target_it);
+        // Удаляем все входящие дуги, ведущие в удалённую вершину.
+        for (auto& record : records) {
+            record.adjacencies.remove(value);
+        }
     }
 
     /**
@@ -367,15 +382,15 @@ public:
      * @throws std::invalid_argument если одна из вершин не существует или ребро уже присутствует.
      */
     void insert_edge(const T& from, const T& to) {
-        auto it_from = find_vertex(from);
-        if (it_from == records.end() || !has_vertex(to)) {
+        auto source_it = find_vertex(from);
+        if (source_it == records.end() || !has_vertex(to)) {
             throw std::invalid_argument("Одной из вершин не существует!");
         }
-        auto& adj = it_from->adjacencies;
-        if (std::find(adj.begin(), adj.end(), to) != adj.end()) {
+        auto& adjacencies = source_it->adjacencies;
+        if (std::find(adjacencies.begin(), adjacencies.end(), to) != adjacencies.end()) {
             throw std::invalid_argument("Ребро уже существует!");
         }
-        adj.push_back(to);
+        adjacencies.push_back(to);
     }
 
     /**
@@ -385,13 +400,15 @@ public:
      * @throws std::invalid_argument если вершина-источник или ребро не найдены.
      */
     void erase_edge(const T& from, const T& to) {
-        auto it_from = find_vertex(from);
-        if (it_from == records.end()) throw std::invalid_argument("Исходная вершина не найдена!");
-
-        auto edge_it = std::find(it_from->adjacencies.begin(), it_from->adjacencies.end(), to);
-        if (edge_it == it_from->adjacencies.end()) throw std::invalid_argument("Ребро не найдено!");
-
-        it_from->adjacencies.erase(edge_it);
+        auto source_it = find_vertex(from);
+        if (source_it == records.end()) {
+            throw std::invalid_argument("Исходная вершина не найдена!");
+        }
+        auto edge_it = std::find(source_it->adjacencies.begin(), source_it->adjacencies.end(), to);
+        if (edge_it == source_it->adjacencies.end()) {
+            throw std::invalid_argument("Ребро не найдено!");
+        }
+        source_it->adjacencies.erase(edge_it);
     }
 
     /**
@@ -401,7 +418,7 @@ public:
      */
     void erase_edge(edge_iterator it) {
         if (it == e_end()) throw std::invalid_argument("Невалидный итератор ребра!");
-        it.v_it->adjacencies.erase(it.e_it);
+        it.vertex_it->adjacencies.erase(it.edge_it);
     }
 
     /**
@@ -411,7 +428,7 @@ public:
      */
     void erase_edge(const_edge_iterator it) {
         if (it == e_cend()) throw std::invalid_argument("Невалидный итератор ребра!");
-        erase_edge(it.v_it->data, *it.e_it);
+        erase_edge(it.vertex_it->data, *it.edge_it);
     }
 
     // ==========================================
@@ -420,10 +437,10 @@ public:
 
     /**
      * @brief Проверяет наличие вершины в графе.
-     * @param val Искомое значение вершины.
+     * @param value Искомое значение вершины.
      * @return true, если вершина присутствует в графе.
      */
-    bool has_vertex(const T& val) const { return find_vertex(val) != records.end(); }
+    bool has_vertex(const T& value) const { return find_vertex(value) != records.end(); }
 
     /**
      * @brief Проверяет наличие ориентированного ребра между вершинами.
@@ -432,32 +449,32 @@ public:
      * @return true, если ориентированное ребро from -> to существует.
      */
     bool has_edge(const T& from, const T& to) const {
-        auto it = find_vertex(from);
-        if (it == records.end()) return false;
-        return std::find(it->adjacencies.begin(), it->adjacencies.end(), to) != it->adjacencies.end();
+        auto source_it = find_vertex(from);
+        if (source_it == records.end()) return false;
+        const auto& adjacencies = source_it->adjacencies;
+        return std::find(adjacencies.begin(), adjacencies.end(), to) != adjacencies.end();
     }
 
     /**
-     * @brief Вычисляет общую степень вершины (сумму входящих и исходящих рёбер).
-     * @param val Значение вершины.
+     * @brief Вычисляет общую степень вершины (входящие + исходящие рёбра).
+     * @param value Значение вершины.
      * @return Общая степень вершины.
      * @throws std::invalid_argument если вершина не найдена.
      */
-    size_type vertex_degree(const T& val) const {
-        auto it = find_vertex(val);
-        if (it == records.end()) throw std::invalid_argument("Вершина не найдена!");
-
-        size_type degree = it->adjacencies.size();
-        for (const auto& rec : records) {
-            if (std::find(rec.adjacencies.begin(), rec.adjacencies.end(), val) != rec.adjacencies.end()) {
-                degree++;
+    size_type vertex_degree(const T& value) const {
+        auto target_it = find_vertex_strict(value);
+        // Начинаем с полустепени исхода, затем добавляем число входящих дуг.
+        size_type total_degree = target_it->adjacencies.size();
+        for (const auto& record : records) {
+            if (std::find(record.adjacencies.begin(), record.adjacencies.end(), value) != record.adjacencies.end()) {
+                ++total_degree;
             }
         }
-        return degree;
+        return total_degree;
     }
 
     /**
-     * @brief Вычисляет степень ребра (сумму степеней инцидентных вершин).
+     * @brief Вычисляет степень ребра (сумму степеней инцидентных ему вершин).
      * @param from Вершина-источник.
      * @param to Вершина-назначение.
      * @return Степень ребра.
@@ -499,8 +516,8 @@ public:
             if (graph.adj_cbegin(vertex) == graph.adj_cend(vertex)) {
                 os << "(нет исходящих)";
             } else {
-                std::for_each(graph.adj_cbegin(vertex), graph.adj_cend(vertex), [&](const T& adj) {
-                    os << adj << " ";
+                std::for_each(graph.adj_cbegin(vertex), graph.adj_cend(vertex), [&](const T& adjacent_vertex) {
+                    os << adjacent_vertex << " ";
                 });
             }
             os << "\n";

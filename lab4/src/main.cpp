@@ -3,23 +3,28 @@
  * @brief Главный модуль консольного интерфейса (CLI) для демонстрации сортировок и графов.
  */
 
-#include <iostream>
-#include <vector>
-#include <string>
-#include <limits>
+#include <cstddef>
 #include <iomanip>
+#include <iostream>
+#include <limits>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 #include "custom_object.h"
+#include "graph/graph.h"
 #include "sortings/heapsort.h"
 #include "sortings/stooge_sort.h"
-#include "graph/graph.h"
 
 namespace cli {
 
 constexpr double MIN_DISTANCE = 0.1;
 constexpr int MIN_PRIORITY = 1;
 constexpr int MAX_PRIORITY = 10;
+constexpr int INDEX_COLUMN_WIDTH = 3;
+constexpr int MAX_SORT_MENU_OPTION = 9;
+constexpr int MAX_GRAPH_MENU_OPTION = 10;
+constexpr int MAX_MAIN_MENU_OPTION = 2;
 
 /** @brief Очистка потока ввода cin от ошибок и остаточных символов. */
 void clearInputStream() {
@@ -84,29 +89,29 @@ std::string readString(const std::string& prompt) {
 
 /**
  * @brief Заполнение вектора рейсов начальными тестовыми данными.
- * @param list Целевой список рейсов.
+ * @param flights Целевой список рейсов.
  */
-void seedDefaultData(std::vector<FlightInfo>& list) {
-    list.clear();
-    list.emplace_back("B2-710", 1250.5, 2);
-    list.emplace_back("SU-100", 720.0, 1);
-    list.emplace_back("LH-144", 1830.0, 3);
-    list.emplace_back("TK-401", 1420.0, 1);
-    list.emplace_back("LO-678", 510.2, 2);
-    list.emplace_back("BA-890", 2100.0, 4);
+void seedDefaultData(std::vector<FlightInfo>& flights) {
+    flights.clear();
+    flights.emplace_back("B2-710", 1250.5, 2);
+    flights.emplace_back("SU-100", 720.0, 1);
+    flights.emplace_back("LH-144", 1830.0, 3);
+    flights.emplace_back("TK-401", 1420.0, 1);
+    flights.emplace_back("LO-678", 510.2, 2);
+    flights.emplace_back("BA-890", 2100.0, 4);
 }
 
 /**
  * @brief Отображение форматированного списка авиарейсов.
- * @param list Список рейсов для отображения.
+ * @param flights Список рейсов для отображения.
  */
-void displayList(const std::vector<FlightInfo>& list) {
+void displayList(const std::vector<FlightInfo>& flights) {
     std::cout << "\n---------------- ТЕКУЩИЙ СПИСОК РЕЙСОВ ----------------\n";
-    if (list.empty()) {
+    if (flights.empty()) {
         std::cout << "[Список пуст]\n";
     } else {
-        for (std::size_t i = 0; i < list.size(); ++i) {
-            std::cout << std::setw(3) << i << ". " << list[i] << "\n";
+        for (std::size_t index = 0; index < flights.size(); ++index) {
+            std::cout << std::setw(INDEX_COLUMN_WIDTH) << index << ". " << flights[index] << "\n";
         }
     }
     std::cout << "-------------------------------------------------------\n";
@@ -114,27 +119,27 @@ void displayList(const std::vector<FlightInfo>& list) {
 
 /**
  * @brief Интерактивное добавление рейса по полям.
- * @param list Целевой список рейсов.
+ * @param flights Целевой список рейсов.
  */
-void addFlightInteractive(std::vector<FlightInfo>& list) {
+void addFlightInteractive(std::vector<FlightInfo>& flights) {
     std::cout << "\n--- Добавление нового авиарейса ---\n";
     std::string number = readString("Введите номер рейса (например, AF-112): ");
     double distance = readDouble("Введите дистанцию полёта (км, > 0): ", MIN_DISTANCE);
     int priority = readInt("Введите уровень приоритета (от 1 до 10): ", MIN_PRIORITY, MAX_PRIORITY);
-    list.emplace_back(std::move(number), distance, priority);
+    flights.emplace_back(std::move(number), distance, priority);
     std::cout << "Рейс успешно добавлен!\n";
 }
 
 /**
  * @brief Добавление рейса через потоковый ввод (operator>>).
- * @param list Целевой список рейсов.
+ * @param flights Целевой список рейсов.
  */
-void addFlightViaStream(std::vector<FlightInfo>& list) {
+void addFlightViaStream(std::vector<FlightInfo>& flights) {
     std::cout << "\n--- Добавление рейса через поток ввода (operator>>) ---\n";
     std::cout << "Введите данные через пробел: [Номер] [Дистанция] [Приоритет]\n> ";
     FlightInfo new_flight;
     if (std::cin >> new_flight) {
-        list.push_back(new_flight);
+        flights.push_back(new_flight);
         std::cout << "Объект успешно считан и добавлен!\n";
     } else {
         std::cout << "Ошибка формата ввода! Данные не добавлены.\n";
@@ -144,16 +149,16 @@ void addFlightViaStream(std::vector<FlightInfo>& list) {
 
 /**
  * @brief Удаление рейса по индексу из списка.
- * @param list Целевой список рейсов.
+ * @param flights Целевой список рейсов.
  */
-void removeFlight(std::vector<FlightInfo>& list) {
-    if (list.empty()) {
+void removeFlight(std::vector<FlightInfo>& flights) {
+    if (flights.empty()) {
         std::cout << "Список пуст!\n";
         return;
     }
-    displayList(list);
-    int index = readInt("Введите индекс рейса для удаления: ", 0, static_cast<int>(list.size() - 1));
-    list.erase(list.begin() + index);
+    displayList(flights);
+    int index = readInt("Введите индекс рейса для удаления: ", 0, static_cast<int>(flights.size() - 1));
+    flights.erase(flights.begin() + index);
     std::cout << "Рейс успешно удалён.\n";
 }
 
@@ -164,13 +169,12 @@ void demoRawArraySort() {
         FlightInfo("AF-202", 850.0, 1),
         FlightInfo("BA-303", 2100.0, 3)
     };
-    constexpr std::size_t n = sizeof(raw_flights) / sizeof(raw_flights[0]);
-    std::cout << "\n--- Сортировка C-массива FlightInfo (" << n << " элементов) ---\n";
-    std::cout << "До сортировки:\n";
-    for (std::size_t i = 0; i < n; ++i) std::cout << "  " << raw_flights[i] << "\n";
-    heapsort(raw_flights, n);
-    std::cout << "После Heapsort (arr, n):\n";
-    for (std::size_t i = 0; i < n; ++i) std::cout << "  " << raw_flights[i] << "\n";
+    constexpr std::size_t array_size = sizeof(raw_flights) / sizeof(raw_flights[0]);
+    std::cout << "\n--- Сортировка C-массива FlightInfo (" << array_size << " элементов) ---\nДо:\n";
+    for (std::size_t index = 0; index < array_size; ++index) std::cout << "  " << raw_flights[index] << "\n";
+    heapsort(raw_flights, array_size);
+    std::cout << "После Heapsort (arr, size):\n";
+    for (std::size_t index = 0; index < array_size; ++index) std::cout << "  " << raw_flights[index] << "\n";
 }
 
 /**
@@ -198,8 +202,8 @@ void sortStoogeDemo(std::vector<FlightInfo>& flights) {
  * @param flights Список рейсов для сортировки.
  */
 void sortLambdaDemo(std::vector<FlightInfo>& flights) {
-    heapsort(flights, [](const FlightInfo& a, const FlightInfo& b) {
-        return a.get_distance() > b.get_distance();
+    heapsort(flights, [](const FlightInfo& first_flight, const FlightInfo& second_flight) {
+        return first_flight.get_distance() > second_flight.get_distance();
     });
     std::cout << "Отсортировано по убыванию дистанции!\n";
     displayList(flights);
@@ -247,7 +251,7 @@ void sortingMenu() {
     int choice = -1;
     while (choice != 0) {
         printSortingMenu();
-        choice = readInt("Выберите действие: ", 0, 9);
+        choice = readInt("Выберите действие: ", 0, MAX_SORT_MENU_OPTION);
         handleSortingChoice(choice, flights);
     }
 }
@@ -278,8 +282,8 @@ void addVertex(Graph<std::string>& graph) {
     try {
         graph.insert_vertex(vertex_code);
         std::cout << "Аэропорт " << vertex_code << " успешно добавлен.\n";
-    } catch (const std::exception& e) {
-        std::cout << "Ошибка: " << e.what() << "\n";
+    } catch (const std::exception& error) {
+        std::cout << "Ошибка: " << error.what() << "\n";
     }
 }
 
@@ -292,8 +296,8 @@ void removeVertex(Graph<std::string>& graph) {
     try {
         graph.erase_vertex(vertex_code);
         std::cout << "Аэропорт " << vertex_code << " и все его маршруты удалены.\n";
-    } catch (const std::exception& e) {
-        std::cout << "Ошибка: " << e.what() << "\n";
+    } catch (const std::exception& error) {
+        std::cout << "Ошибка: " << error.what() << "\n";
     }
 }
 
@@ -302,13 +306,13 @@ void removeVertex(Graph<std::string>& graph) {
  * @param graph Целевой граф.
  */
 void addEdge(Graph<std::string>& graph) {
-    std::string from = readString("Откуда летим (аэропорт): ");
-    std::string to = readString("Куда летим (аэропорт): ");
+    std::string origin = readString("Откуда летим (аэропорт): ");
+    std::string destination = readString("Куда летим (аэропорт): ");
     try {
-        graph.insert_edge(from, to);
-        std::cout << "Маршрут " << from << " -> " << to << " успешно открыт!\n";
-    } catch (const std::exception& e) {
-        std::cout << "Ошибка: " << e.what() << "\n";
+        graph.insert_edge(origin, destination);
+        std::cout << "Маршрут " << origin << " -> " << destination << " успешно открыт!\n";
+    } catch (const std::exception& error) {
+        std::cout << "Ошибка: " << error.what() << "\n";
     }
 }
 
@@ -317,13 +321,13 @@ void addEdge(Graph<std::string>& graph) {
  * @param graph Целевой граф.
  */
 void removeEdge(Graph<std::string>& graph) {
-    std::string from = readString("Откуда летим (аэропорт): ");
-    std::string to = readString("Куда летим (аэропорт): ");
+    std::string origin = readString("Откуда летим (аэропорт): ");
+    std::string destination = readString("Куда летим (аэропорт): ");
     try {
-        graph.erase_edge(from, to);
-        std::cout << "Маршрут " << from << " -> " << to << " закрыт.\n";
-    } catch (const std::exception& e) {
-        std::cout << "Ошибка: " << e.what() << "\n";
+        graph.erase_edge(origin, destination);
+        std::cout << "Маршрут " << origin << " -> " << destination << " закрыт.\n";
+    } catch (const std::exception& error) {
+        std::cout << "Ошибка: " << error.what() << "\n";
     }
 }
 
@@ -331,7 +335,7 @@ void removeEdge(Graph<std::string>& graph) {
  * @brief Вывод степени вершины графа.
  * @param graph Исходный граф.
  */
-void printVertexInfo(Graph<std::string>& graph) {
+void printVertexInfo(const Graph<std::string>& graph) {
     std::string vertex_code = readString("Введите код аэропорта: ");
     if (!graph.has_vertex(vertex_code)) {
         std::cout << "Аэропорт " << vertex_code << " не найден в графе.\n";
@@ -346,13 +350,13 @@ void printVertexInfo(Graph<std::string>& graph) {
  * @param graph Исходный граф.
  */
 void printEdgeDegree(const Graph<std::string>& graph) {
-    std::string from = readString("Исходный аэропорт: ");
-    std::string to = readString("Целевой аэропорт: ");
+    std::string origin = readString("Исходный аэропорт: ");
+    std::string destination = readString("Целевой аэропорт: ");
     try {
-        std::cout << "Степень ребра (" << from << " -> " << to << "): "
-                  << graph.edge_degree(from, to) << "\n";
-    } catch (const std::exception& e) {
-        std::cout << "Ошибка: " << e.what() << "\n";
+        std::cout << "Степень ребра (" << origin << " -> " << destination << "): "
+                  << graph.edge_degree(origin, destination) << "\n";
+    } catch (const std::exception& error) {
+        std::cout << "Ошибка: " << error.what() << "\n";
     }
 }
 
@@ -363,15 +367,15 @@ void printEdgeDegree(const Graph<std::string>& graph) {
 void demoGraphIterators(const Graph<std::string>& graph) {
     std::cout << "\n--- Демонстрация обратных и однонаправленных итераторов ---\n";
     std::cout << "Вершины в обратном порядке (v_crbegin -> v_crend):\n  ";
-    for (auto it = graph.v_crbegin(); it != graph.v_crend(); ++it) {
-        std::cout << *it << " ";
+    for (auto rev_it = graph.v_crbegin(); rev_it != graph.v_crend(); ++rev_it) {
+        std::cout << *rev_it << " ";
     }
     std::cout << "\nСмежные вершины для первой вершины через f_adj (forward_iterator):\n  ";
-    if (graph.vertex_count() > 0) {
-        const std::string& first_v = *graph.v_cbegin();
-        std::cout << "[" << first_v << "]: ";
-        for (auto it = graph.f_adj_begin(first_v); it != graph.f_adj_end(first_v); ++it) {
-            std::cout << *it << " ";
+    if (!graph.empty()) {
+        const std::string& first_vertex = *graph.v_cbegin();
+        std::cout << "[" << first_vertex << "]: ";
+        for (auto fwd_it = graph.f_adj_begin(first_vertex); fwd_it != graph.f_adj_end(first_vertex); ++fwd_it) {
+            std::cout << *fwd_it << " ";
         }
     }
     std::cout << "\n";
@@ -401,8 +405,8 @@ void printGraphMenu() {
 void handleGraphChoice(int choice, Graph<std::string>& graph) {
     switch (choice) {
         case 1:
-            std::cout << graph;
-            std::cout << "Вершин: " << graph.vertex_count() << ", Рёбер: " << graph.edge_count() << "\n";
+            std::cout << graph << "Вершин: " << graph.vertex_count()
+                      << ", Рёбер: " << graph.edge_count() << "\n";
             break;
         case 2: addVertex(graph); break;
         case 3: removeVertex(graph); break;
@@ -424,7 +428,7 @@ void graphMenu() {
     int choice = -1;
     while (choice != 0) {
         printGraphMenu();
-        choice = readInt("Выберите действие: ", 0, 10);
+        choice = readInt("Выберите действие: ", 0, MAX_GRAPH_MENU_OPTION);
         handleGraphChoice(choice, graph);
     }
 }
@@ -441,7 +445,7 @@ int main() {
                   << "1. Задание 1: Обобщённые алгоритмы сортировки\n"
                   << "2. Задание 2: Обобщённый контейнер Граф\n"
                   << "0. Выход из программы\n";
-        choice = cli::readInt("Выберите раздел: ", 0, 2);
+        choice = cli::readInt("Выберите раздел: ", 0, cli::MAX_MAIN_MENU_OPTION);
         if (choice == 1) cli::sortingMenu();
         else if (choice == 2) cli::graphMenu();
         else if (choice == 0) std::cout << "До свидания!\n";
